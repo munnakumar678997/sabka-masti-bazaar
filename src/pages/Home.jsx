@@ -151,10 +151,7 @@ export default function Home() {
               <span style={{ fontSize: 18, fontWeight: 800, color: '#fff' }}>{avatarLetter}</span>
             )}
           </div>
-          <div className="topbar-name-wrap">
-            <div className="topbar-greeting">Namaste! 👋</div>
-            <div className="topbar-name">{displayName}</div>
-          </div>
+          <div className="topbar-name">{displayName}</div>
         </div>
         <div className="topbar-right">
           <div className="topbar-notif-btn" onClick={() => setShowNotif(true)}>
