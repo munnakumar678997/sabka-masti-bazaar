@@ -83,7 +83,7 @@ export default function Home() {
             <span className="balance-num">{balance.toLocaleString()}</span>
             <span className="balance-unit">Coins</span>
           </div>
-          <div className="balance-inr">≈ ₹{(balance * 0.1).toFixed(2)} INR</div>
+          <div className="balance-inr">≈ ₹{(balance / 100).toFixed(2)} INR</div>
           <div className="balance-actions">
             <button className="bal-btn withdraw" onClick={() => setShowWithdraw(true)}>
               💸 Withdraw
@@ -215,7 +215,7 @@ export default function Home() {
             <div className="popup-emoji">💸</div>
             <div className="popup-title">Withdrawal</div>
             <div className="popup-desc">
-              Minimum withdrawal: <b>500 Coins (₹50)</b><br />
+              Minimum withdrawal: <b>500 Coins (₹5)</b><br />
               Tumhare paas abhi <b>{balance.toLocaleString()} Coins</b> hain.
             </div>
             {balance >= 500
