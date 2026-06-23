@@ -11,7 +11,7 @@ const S = {
     background: 'linear-gradient(180deg, #1a1a2e 0%, #16213e 55%, #0f3460 100%)',
     display: 'flex', flexDirection: 'column',
     alignItems: 'center', justifyContent: 'center',
-    gap: 28, padding: '32px 0',
+    gap: 24, padding: '32px 0',
     position: 'relative', overflow: 'hidden',
   },
   bgCircle1: {
@@ -43,12 +43,12 @@ const S = {
   middleSection: {
     width: '100%', display: 'flex',
     flexDirection: 'column', alignItems: 'center',
-    padding: '0 18px',
+    padding: '0 18px', gap: 12,
   },
   userCard: {
     width: '100%', background: 'rgba(255,255,255,0.06)',
     borderRadius: 20, border: '1px solid rgba(255,255,255,0.1)',
-    padding: '22px 18px', display: 'flex',
+    padding: '20px 18px', display: 'flex',
     flexDirection: 'column', alignItems: 'center', gap: 8,
     backdropFilter: 'blur(12px)',
   },
@@ -59,8 +59,8 @@ const S = {
     display: 'flex', alignItems: 'center', justifyContent: 'center',
     fontSize: 30, color: '#fff', overflow: 'hidden',
   },
-  userName:      { fontSize: 18, fontWeight: 700, color: '#fff', textAlign: 'center' },
-  userHandle:    { fontSize: 13, color: '#29b6f6' },
+  userName:   { fontSize: 18, fontWeight: 700, color: '#fff', textAlign: 'center' },
+  userHandle: { fontSize: 13, color: '#29b6f6' },
   userId: {
     fontSize: 11, color: 'rgba(255,255,255,0.38)',
     background: 'rgba(255,255,255,0.05)',
@@ -73,6 +73,43 @@ const S = {
     borderRadius: 20, padding: '5px 14px',
     fontSize: 12, color: '#2ecc71', marginTop: 2,
   },
+  // ── Phone box ──
+  phoneBox: {
+    width: '100%', background: 'rgba(255,255,255,0.05)',
+    borderRadius: 16, border: '1px solid rgba(255,255,255,0.1)',
+    padding: '16px', display: 'flex', flexDirection: 'column', gap: 10,
+  },
+  phoneLabel: {
+    fontSize: 13, color: 'rgba(255,255,255,0.6)',
+    fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6,
+  },
+  phoneInputRow: { display: 'flex', gap: 8, width: '100%' },
+  phoneInput: {
+    flex: 1, padding: '12px 14px',
+    background: 'rgba(255,255,255,0.08)',
+    border: '1.5px solid rgba(255,255,255,0.15)',
+    borderRadius: 12, color: '#fff', fontSize: 16,
+    outline: 'none',
+  },
+  phoneSaveBtn: {
+    padding: '12px 16px',
+    background: 'linear-gradient(135deg, #0088cc, #005fa3)',
+    color: '#fff', border: 'none', borderRadius: 12,
+    fontSize: 13, fontWeight: 700, cursor: 'pointer',
+    whiteSpace: 'nowrap',
+  },
+  phoneSaved: {
+    display: 'flex', alignItems: 'center', gap: 6,
+    background: 'rgba(39,174,96,0.13)',
+    border: '1px solid rgba(39,174,96,0.28)',
+    borderRadius: 10, padding: '8px 12px',
+    fontSize: 12, color: '#2ecc71',
+  },
+  phoneSkip: {
+    fontSize: 11, color: 'rgba(255,255,255,0.3)',
+    textAlign: 'center', cursor: 'pointer', textDecoration: 'underline',
+  },
+  // ── Web login box ──
   webLoginBox: {
     width: '100%', background: 'rgba(255,255,255,0.05)',
     borderRadius: 20, border: '1px solid rgba(255,255,255,0.09)',
@@ -128,14 +165,20 @@ const S = {
 };
 
 export default function Login() {
-  const navigate             = useNavigate();
-  const widgetRef            = useRef(null);
-  const { loadUser }         = useApp();
+  const navigate         = useNavigate();
+  const widgetRef        = useRef(null);
+  const { loadUser }     = useApp();
 
-  const [isMiniApp,   setIsMiniApp]   = useState(false);
-  const [tgUser,      setTgUser]      = useState(null);
-  const [btnLoading,  setBtnLoading]  = useState(false);
-  const [autoLogging, setAutoLogging] = useState(false);
+  const [isMiniApp,    setIsMiniApp]    = useState(false);
+  const [tgUser,       setTgUser]       = useState(null);
+  const [btnLoading,   setBtnLoading]   = useState(false);
+  const [autoLogging,  setAutoLogging]  = useState(false);
+
+  // ── Phone number states ──
+  const [phoneInput,   setPhoneInput]   = useState('');
+  const [phoneSaved,   setPhoneSaved]   = useState(false);
+  const [phoneSkipped, setPhoneSkipped] = useState(false);
+  const [capturedPhone, setCapturedPhone] = useState(null); // Mini App se mila number
 
   useEffect(() => {
     const tg = window.Telegram?.WebApp;
@@ -151,13 +194,12 @@ export default function Login() {
         const tgData = {
           id:        user.id,
           name:      `${user.first_name} ${user.last_name || ''}`.trim(),
-          username:  user.username || null,
+          username:  user.username  || null,
           photo_url: user.photo_url || null,
         };
         setIsMiniApp(true);
         setTgUser(tgData);
 
-        // Check karo — existing user hai? Agar hai toh seedha home bhejo
         setAutoLogging(true);
         supabase
           .from('users')
@@ -166,11 +208,9 @@ export default function Login() {
           .maybeSingle()
           .then(async ({ data }) => {
             if (data) {
-              // Existing user — seedha load karke home bhejo
               await loadUser(tgData);
               navigate('/home');
             } else {
-              // Naya user — button dikhao
               setAutoLogging(false);
             }
           });
@@ -178,7 +218,7 @@ export default function Login() {
       }
     }
 
-    // ── WEB: Pehle localStorage check karo ──
+    // ── WEB: localStorage check ──
     const savedId = localStorage.getItem('smb_tg_id');
     if (savedId) {
       setAutoLogging(true);
@@ -204,12 +244,12 @@ export default function Login() {
       return;
     }
 
-    // ── WEB: Telegram widget dikhao ──
+    // ── WEB: Telegram widget ──
     window.onTelegramAuth = (user) => {
       setTgUser({
         id:        user.id,
         name:      `${user.first_name} ${user.last_name || ''}`.trim(),
-        username:  user.username || null,
+        username:  user.username  || null,
         photo_url: user.photo_url || null,
         hash:      user.hash,
         auth_date: user.auth_date,
@@ -230,30 +270,43 @@ export default function Login() {
     return () => { delete window.onTelegramAuth; };
   }, []);
 
-  const handleCreateAccount = async () => {
-    if (!tgUser || btnLoading) return;
-    setBtnLoading(true);
-    await loadUser(tgUser);
-    // Web ke liye localStorage mein save karo
-    localStorage.setItem('smb_tg_id', String(tgUser.id));
-    navigate('/home');
-  };
-
+  // ── Mini App: Phone number maango ──
   const handleJoinNow = async () => {
     const tg = window.Telegram?.WebApp;
     if (!tg || btnLoading) return;
     setBtnLoading(true);
-    tg.requestContact(async (accepted) => {
-      if (accepted) {
-        await loadUser(tgUser);
-        navigate('/home');
-      } else {
-        setBtnLoading(false);
+
+    tg.requestContact(async (isSent, event) => {
+      let phone = null;
+      if (isSent) {
+        // Naye Telegram versions mein event.contact milta hai
+        phone = event?.contact?.phone_number || null;
+        // Clean karo — sirf numbers rakho
+        if (phone) phone = phone.replace(/\D/g, '');
+        setCapturedPhone(phone);
       }
+      await loadUser(tgUser, phone);
+      navigate('/home');
     });
   };
 
-  // Auto-login loading screen
+  // ── Web: Account banao (phone optional) ──
+  const handleCreateAccount = async () => {
+    if (!tgUser || btnLoading) return;
+    setBtnLoading(true);
+    const phone = phoneInput.trim() || null;
+    await loadUser(tgUser, phone);
+    localStorage.setItem('smb_tg_id', String(tgUser.id));
+    navigate('/home');
+  };
+
+  // ── Web: Phone manually save karo ──
+  const handleSavePhone = () => {
+    const cleaned = phoneInput.replace(/\D/g, '');
+    if (cleaned.length < 10) return;
+    setPhoneSaved(true);
+  };
+
   if (autoLogging) {
     return (
       <div style={{ ...S.page, gap: 16 }}>
@@ -280,11 +333,13 @@ export default function Login() {
           justify-content: center !important; gap: 10px !important;
           border: none !important; cursor: pointer !important; color: #fff !important;
         }
+        input::placeholder { color: rgba(255,255,255,0.3); }
       `}</style>
 
       <div style={S.bgCircle1} />
       <div style={S.bgCircle2} />
 
+      {/* ── Logo ── */}
       <div style={S.topSection}>
         <div style={S.appLogo}>🎪</div>
         <div style={S.appName}>Sabka Masti Bazaar</div>
@@ -292,6 +347,8 @@ export default function Login() {
       </div>
 
       <div style={S.middleSection}>
+
+        {/* ── User Card ── */}
         {tgUser && (
           <div style={S.userCard}>
             <div style={S.userAvatar}>
@@ -307,6 +364,43 @@ export default function Login() {
           </div>
         )}
 
+        {/* ── Web: Phone number input (optional) ── */}
+        {!isMiniApp && tgUser && (
+          <div style={S.phoneBox}>
+            <div style={S.phoneLabel}>📱 Mobile Number (optional)</div>
+            {phoneSaved ? (
+              <div style={S.phoneSaved}>
+                ✅ Number save ho jayega — {phoneInput}
+              </div>
+            ) : !phoneSkipped && (
+              <>
+                <div style={S.phoneInputRow}>
+                  <input
+                    style={S.phoneInput}
+                    type="tel"
+                    placeholder="+91 9876543210"
+                    value={phoneInput}
+                    onChange={e => setPhoneInput(e.target.value)}
+                    maxLength={15}
+                  />
+                  <button style={S.phoneSaveBtn} onClick={handleSavePhone}>
+                    ✓ Set
+                  </button>
+                </div>
+                <div style={S.phoneSkip} onClick={() => setPhoneSkipped(true)}>
+                  Skip karo — baad mein add kar lena
+                </div>
+              </>
+            )}
+            {phoneSkipped && (
+              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)', textAlign: 'center' }}>
+                ⏭ Skip kiya — account bina number ke banayenge
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ── Web: Telegram widget (no user yet) ── */}
         {!isMiniApp && !tgUser && (
           <div style={S.webLoginBox}>
             <div style={S.tgCircle}>✈️</div>
@@ -331,21 +425,26 @@ export default function Login() {
         )}
       </div>
 
+      {/* ── Bottom Buttons ── */}
       <div style={S.bottomSection}>
         {tgUser && (
           <>
             {btnLoading ? (
               <div style={S.savingText}>⏳ Account save ho raha hai...</div>
             ) : (
-              <button style={S.createBtn}
-                onClick={isMiniApp ? handleJoinNow : handleCreateAccount}>
-                🚀 Create New Account
+              <button
+                style={S.createBtn}
+                onClick={isMiniApp ? handleJoinNow : handleCreateAccount}
+              >
+                {isMiniApp ? '📱 Number Share Karke Join Karo' : '🚀 Account Banao'}
               </button>
             )}
             <div style={S.termsText}>
               {isMiniApp
-                ? 'Apna Telegram number share karke account banao — 100% free!'
-                : 'Telegram verified — tumhara account ready hai! 🎉'}
+                ? 'Tumhara Telegram number securely save hoga — 100% free!'
+                : phoneSaved
+                  ? `✅ ${phoneInput} number ke saath account banega`
+                  : 'Mobile number optional hai — baad mein bhi add kar sakte ho'}
             </div>
           </>
         )}

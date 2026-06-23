@@ -13,12 +13,12 @@ export function AppProvider({ children }) {
 
   // ─────────────────────────────────────────────
   // loadUser — naye user ko INSERT, purane ko sirf SELECT
-  // Ek baar bhi double save nahi hoga
+  // mobile: optional — jab user share kare tab save hoga
   // ─────────────────────────────────────────────
-  const loadUser = async (tgUser) => {
+  const loadUser = async (tgUser, mobile = null) => {
     setLoading(true);
     try {
-      // Step 1: Pehle check karo — user already hai kya?
+      // Step 1: User pehle se hai ya nahi?
       const { data: existing, error: fetchErr } = await supabase
         .from('users')
         .select('*')
@@ -28,15 +28,18 @@ export function AppProvider({ children }) {
       if (fetchErr) throw fetchErr;
 
       if (existing) {
-        // ── Purana user: sirf profile info update karo (naam/photo) ──
-        // Balance, streak, check-in date — kuch nahi chhedo
+        // ── Purana user: profile + mobile (agar diya) update karo ──
+        const updatePayload = {
+          name:      tgUser.name,
+          username:  tgUser.username  || null,
+          photo_url: tgUser.photo_url || null,
+        };
+        // Mobile sirf tab update karo jab user ne share kiya ho
+        if (mobile) updatePayload.mobile = mobile;
+
         const { data: updated, error: updateErr } = await supabase
           .from('users')
-          .update({
-            name:      tgUser.name,
-            username:  tgUser.username  || null,
-            photo_url: tgUser.photo_url || null,
-          })
+          .update(updatePayload)
           .eq('id', existing.id)
           .select()
           .single();
@@ -52,12 +55,13 @@ export function AppProvider({ children }) {
         const { data: inserted, error: insertErr } = await supabase
           .from('users')
           .insert({
-            id:        tgUser.id,
-            name:      tgUser.name,
-            username:  tgUser.username  || null,
-            photo_url: tgUser.photo_url || null,
-            balance:   0,
-            streak:    0,
+            id:                tgUser.id,
+            name:              tgUser.name,
+            username:          tgUser.username  || null,
+            photo_url:         tgUser.photo_url || null,
+            mobile:            mobile            || null,
+            balance:           0,
+            streak:            0,
             total_checkins:    0,
             last_checkin_date: null,
           })
@@ -76,6 +80,20 @@ export function AppProvider({ children }) {
     } finally {
       setLoading(false);
     }
+  };
+
+  // ─────────────────────────────────────────────
+  // saveMobile — baad mein bhi mobile save kar sako
+  // ─────────────────────────────────────────────
+  const saveMobile = async (mobile) => {
+    if (!user || !mobile) return;
+    const { data, error } = await supabase
+      .from('users')
+      .update({ mobile })
+      .eq('id', user.id)
+      .select()
+      .single();
+    if (!error && data) setUser(data);
   };
 
   // ─────────────────────────────────────────────
@@ -122,7 +140,6 @@ export function AppProvider({ children }) {
   const updateCheckIn = async (newStreak, totalDays, lastDate, coinsEarned) => {
     const newBalance = balance + coinsEarned;
 
-    // Turant local state update karo — button foran disable ho jaaye
     setBalance(newBalance);
     setStreak(newStreak);
     setUser(prev => prev ? {
@@ -133,7 +150,6 @@ export function AppProvider({ children }) {
       last_checkin_date: lastDate,
     } : prev);
 
-    // Supabase mein save karo
     if (user) {
       await supabase
         .from('users')
@@ -156,6 +172,7 @@ export function AppProvider({ children }) {
       referrals,
       loading,
       loadUser,
+      saveMobile,
       addCoins,
       deductCoins,
       completeTask,
