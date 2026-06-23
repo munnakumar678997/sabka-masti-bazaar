@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
+import DailyCheckIn from './DailyCheckIn';
 import '../styles/home.css';
 
 const TASKS = [
@@ -11,130 +12,34 @@ const TASKS = [
   { id: 5, icon: '👥', title: 'Friend ko refer karo', desc: 'Dost ko invite karo',            coins: 50, tag: 'Big'  },
 ];
 
-const DAY_REWARDS = [10, 15, 25, 35, 50, 75, 100];
-
 const NOTIFICATIONS = [
-  { id: 1, icon: '🎁', title: 'Check-in Bonus Mila!',     desc: '+25 coins tumhare wallet mein aa gaye.',     time: '2 min pehle',   unread: true  },
-  { id: 2, icon: '🔥', title: 'Streak 5 din ka!',          desc: 'Waah! 5 din ki streak maintain kar li.',     time: '1 ghante pehle', unread: true  },
-  { id: 3, icon: '💸', title: 'Withdrawal Process Ho Raha', desc: 'Tumhara ₹50 ka withdrawal process mein hai.', time: 'Kal',            unread: false },
-  { id: 4, icon: '👥', title: 'Naya Referral!',             desc: 'Ek dost ne tumhare link se join kiya!',      time: '2 din pehle',    unread: false },
-  { id: 5, icon: '📢', title: 'Naya Task Available',        desc: 'Video dekho aur 5 coins kamao — abhi karo!', time: '3 din pehle',    unread: false },
+  { id: 1, icon: '🎁', title: 'Check-in Bonus Mila!',      desc: '+25 coins tumhare wallet mein aa gaye.',     time: '2 min pehle',    unread: true  },
+  { id: 2, icon: '🔥', title: 'Streak 5 din ka!',           desc: 'Waah! 5 din ki streak maintain kar li.',     time: '1 ghante pehle', unread: true  },
+  { id: 3, icon: '💸', title: 'Withdrawal Process Ho Raha', desc: 'Tumhara ₹50 ka withdrawal process mein hai.', time: 'Kal',             unread: false },
+  { id: 4, icon: '👥', title: 'Naya Referral!',              desc: 'Ek dost ne tumhare link se join kiya!',      time: '2 din pehle',     unread: false },
+  { id: 5, icon: '📢', title: 'Naya Task Available',         desc: 'Video dekho aur 5 coins kamao — abhi karo!', time: '3 din pehle',     unread: false },
 ];
-
-// IST date string — "YYYY-MM-DD"
-function getISTDateStr() {
-  const now   = new Date();
-  const istMs = now.getTime() + 5.5 * 60 * 60 * 1000;
-  return new Date(istMs).toISOString().split('T')[0];
-}
-
-// IST midnight tak kitne seconds bache
-function getSecsUntilISTMidnight() {
-  const now   = new Date();
-  const istMs = now.getTime() + 5.5 * 60 * 60 * 1000;
-  const ist   = new Date(istMs);
-  const h = ist.getUTCHours(), m = ist.getUTCMinutes(), s = ist.getUTCSeconds();
-  return 86400 - (h * 3600 + m * 60 + s);
-}
-
-function fmtCountdown(secs) {
-  const h = Math.floor(secs / 3600);
-  const m = Math.floor((secs % 3600) / 60);
-  const s = secs % 60;
-  return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-}
 
 export default function Home() {
   const navigate = useNavigate();
-  const {
-    user, balance, streak, completeTask, tasksCompleted,
-    referrals, updateCheckIn, CHECKIN_BACKUP_KEY,
-  } = useApp();
+  const { user, balance, streak, completeTask, tasksCompleted, referrals } = useApp();
 
-  const [activeTab,      setActiveTab]      = useState('home');
-  const [showWithdraw,   setShowWithdraw]   = useState(false);
-  const [showClaimed,    setShowClaimed]    = useState(false);
-  const [countdown,      setCountdown]      = useState(getSecsUntilISTMidnight());
-  const [checkInLoading, setCheckInLoading] = useState(false);
-  const [showNotif,      setShowNotif]      = useState(false);
-  const [notifs,         setNotifs]         = useState(NOTIFICATIONS);
+  const [activeTab,    setActiveTab]    = useState('home');
+  const [showWithdraw, setShowWithdraw] = useState(false);
+  const [showNotif,    setShowNotif]    = useState(false);
+  const [notifs,       setNotifs]       = useState(NOTIFICATIONS);
 
   const unreadCount = notifs.filter(n => n.unread).length;
-
-  const todayIST = getISTDateStr();
-
-  // ── TRIPLE PROTECTION AGAINST UNLIMITED CHECK-IN ──
-  // Layer 1: Supabase se loaded user state check karo
-  const checkedInSupabase = user?.last_checkin_date === todayIST;
-  // Layer 2: localStorage backup check karo (Supabase fail hone pe bhi kaam kare)
-  const checkedInLocal    = typeof localStorage !== 'undefined'
-    && localStorage.getItem(CHECKIN_BACKUP_KEY) === todayIST;
-  // Final: dono mein se koi bhi true ho — check-in blocked
-  const checkedIn = checkedInSupabase || checkedInLocal;
-
-  const dayIndex    = ((streak - 1) % 7);
-  const todayReward = DAY_REWARDS[checkedIn ? dayIndex : (streak % 7)];
-
-  const isStreakBroken = useCallback(() => {
-    if (!user?.last_checkin_date) return false;
-    const last     = new Date(user.last_checkin_date + 'T00:00:00+05:30');
-    const today    = new Date(todayIST + 'T00:00:00+05:30');
-    const diffDays = Math.round((today - last) / 86400000);
-    return diffDays > 1;
-  }, [user?.last_checkin_date, todayIST]);
-
-  // Countdown timer — har second update
-  useEffect(() => {
-    const interval = setInterval(() => setCountdown(getSecsUntilISTMidnight()), 1000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const handleCheckIn = async () => {
-    // Triple check — checkedIn already dono layers check kar raha hai
-    if (checkedIn || checkInLoading) return;
-
-    setCheckInLoading(true);
-    const broken      = isStreakBroken();
-    const newStreak   = broken ? 1 : streak + 1;
-    const rewardDay   = (newStreak - 1) % 7;
-    const coinsEarned = DAY_REWARDS[rewardDay];
-    const totalDays   = (user?.total_checkins || 0) + 1;
-
-    await updateCheckIn(newStreak, totalDays, todayIST, coinsEarned);
-    setCheckInLoading(false);
-    setShowClaimed(coinsEarned);
-    setTimeout(() => setShowClaimed(false), 2500);
-  };
-
   const markAllRead = () => setNotifs(prev => prev.map(n => ({ ...n, unread: false })));
 
-  const gridDays = DAY_REWARDS.map((reward, i) => {
-    const streakPos = checkedIn ? streak : streak + 1;
-    const cyclePos  = ((streakPos - 1) % 7) + 1;
-    let state = 'locked';
-    if (i < cyclePos - 1)       state = 'done';
-    else if (i === cyclePos - 1) state = checkedIn ? 'claimed' : 'today';
-    return { dayNum: i + 1, reward, state };
-  });
-
-  // User display info
-  const displayName  = user?.name || 'Masti Bazaar User';
+  // Topbar — user ka naam aur photo
+  const rawName     = user?.name?.trim() || user?.username || '';
+  const displayName = rawName || 'User';
   const avatarLetter = displayName.charAt(0).toUpperCase();
   const photoUrl     = user?.photo_url || null;
 
   return (
     <div className="home-page">
-
-      {/* ── CLAIM POPUP ── */}
-      {showClaimed && (
-        <div className="claim-popup">
-          <div className="claim-popup-inner">
-            <div className="claim-anim">🎉</div>
-            <div className="claim-title">+{showClaimed} Coins Mila!</div>
-            <div className="claim-sub">Check-in bonus credited!</div>
-          </div>
-        </div>
-      )}
 
       {/* ── TOPBAR ── */}
       <div className="home-topbar">
@@ -145,7 +50,10 @@ export default function Home() {
                 src={photoUrl}
                 alt="dp"
                 style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
-                onError={e => { e.target.style.display = 'none'; }}
+                onError={e => {
+                  e.target.style.display = 'none';
+                  e.target.parentNode.setAttribute('data-fallback', 'true');
+                }}
               />
             ) : (
               <span style={{ fontSize: 18, fontWeight: 800, color: '#fff' }}>{avatarLetter}</span>
@@ -205,75 +113,8 @@ export default function Home() {
           </div>
         </div>
 
-        {/* ── DAILY CHECK-IN ── */}
-        <div className="section-header">
-          <span>📅 Daily Check-in</span>
-          {streak > 0 && <span className="streak-badge">🔥 {streak} Day Streak</span>}
-        </div>
-
-        <div className="checkin-card-v2">
-          <div className={`checkin-glow-bar ${checkedIn ? 'glow-green' : 'glow-orange'}`} />
-          <div className="checkin-grid">
-            {gridDays.map(({ dayNum, reward, state }) => (
-              <div key={dayNum} className={`ci-day ci-${state}`}>
-                <div className="ci-day-icon">
-                  {state === 'done'    ? '✅' :
-                   state === 'claimed' ? '🎁' :
-                   state === 'today'   ? '🪙' : '🔒'}
-                </div>
-                <div className="ci-day-num">Day {dayNum}</div>
-                <div className="ci-day-reward">
-                  {state === 'done' || state === 'claimed'
-                    ? <span className="ci-done-lbl">Done</span>
-                    : <span className="ci-coins-lbl">+{reward}</span>}
-                </div>
-              </div>
-            ))}
-          </div>
-          <div className="ci-divider" />
-
-          {checkedIn ? (
-            <div className="ci-done-section">
-              <div className="ci-done-msg">
-                ✅ Aaj ka Check-in Complete! <span className="ci-done-sub">Kal raat 12 baje phir aana 🌙</span>
-              </div>
-              <div className="ci-countdown-box">
-                <div className="ci-countdown-lbl">⏰ Next check-in mein bacha</div>
-                <div className="ci-countdown-timer">{fmtCountdown(countdown)}</div>
-                <div className="ci-countdown-sub">India time (IST) ke hisab se</div>
-              </div>
-            </div>
-          ) : (
-            <div className="ci-claim-section">
-              <div className="ci-today-reward-row">
-                <div>
-                  <div className="ci-today-label">Aaj ka reward</div>
-                  <div className="ci-today-coins">🪙 +{todayReward} Coins</div>
-                </div>
-                {streak > 0 && (
-                  <div className="ci-streak-pill">🔥 {streak} din ki streak!</div>
-                )}
-              </div>
-              {isStreakBroken() && (
-                <div className="ci-broken-streak">
-                  ⚠️ Streak toot gayi — aaj se naya shuru!
-                </div>
-              )}
-              <button
-                className="ci-claim-btn"
-                onClick={handleCheckIn}
-                disabled={checkedIn || checkInLoading}
-                style={checkInLoading ? { opacity: 0.6, cursor: 'not-allowed' } : {}}
-              >
-                <span className="ci-btn-icon">{checkInLoading ? '⏳' : '🎁'}</span>
-                <span className="ci-btn-text">
-                  {checkInLoading ? 'Save ho raha hai...' : 'Aaj ka Check-in Karo'}
-                </span>
-                <span className="ci-btn-coins">+{todayReward} 🪙</span>
-              </button>
-            </div>
-          )}
-        </div>
+        {/* ── DAILY CHECK-IN (separate component) ── */}
+        <DailyCheckIn />
 
         {/* ── EARNING TASKS ── */}
         <div className="section-header" style={{ marginTop: 20 }}>
