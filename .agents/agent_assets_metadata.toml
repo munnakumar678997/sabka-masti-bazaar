@@ -1,0 +1,14 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "5hXojGOooYyb5hs1A3cBK"
+uri = "file://TEAM_PROMPT.md"
+type = "text"
+title = "Team Master Prompt — Sabka Masti Bazaar"
+
+[[outputs]]
+id = "ZFK-ZD9lxEV34MSem47Xj"
+uri = "file://api-setup.txt"
+type = "text"
+title = "API & Secrets Setup Guide — Sab Friends ke liye"

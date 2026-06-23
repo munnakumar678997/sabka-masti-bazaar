@@ -1,0 +1,125 @@
+================================================================
+  SABKA MASTI BAZAAR — API & SECRETS SETUP GUIDE
+  Yeh file team members ke liye hai — project import karne ke baad
+  Replit Secrets mein yeh sab add karo
+================================================================
+
+IMPORTANT: Replit mein Settings > Secrets mein jao aur
+neeche diye gaye har ek secret ko add karo.
+
+----------------------------------------------------------------
+SECTION 1: SUPABASE (Backend Database)
+Kya hai: Hamara main backend — database, auth, storage sab yahan hai
+Project URL: https://supabase.com/dashboard/project/fliuxvovyiszsufftygk
+----------------------------------------------------------------
+
+SECRET NAME   : VITE_SUPABASE_URL
+SECRET VALUE  : https://fliuxvovyiszsufftygk.supabase.co
+Kaam kya hai  : Supabase project ka address — app isse connect hoti hai
+
+SECRET NAME   : VITE_SUPABASE_ANON_KEY
+SECRET VALUE  : sb_publishable_WX6M3cqgJ6tyazUf4RS2KA_QaCU-nNs
+Kaam kya hai  : Supabase ka public key (anon/publishable) — browser se
+                database read/write ke liye. Yeh safe hai share karna.
+
+NOTE: Supabase ka Secret Key (sb_secret_...) KABHI mat daalna —
+      woh sirf server-side ke liye hai, bahut dangerous hota hai.
+
+----------------------------------------------------------------
+SECTION 2: FIREBASE (Hosting & Deployment)
+Kya hai: Hamara production hosting platform
+Live URL: https://sabka-masti-bazaar-71333.web.app
+Firebase Console: https://console.firebase.google.com/project/sabka-masti-bazaar-71333
+----------------------------------------------------------------
+
+SECRET NAME   : (GitHub Actions mein set hai, Replit mein zaroori nahi)
+Firebase Project ID : sabka-masti-bazaar-71333
+Kaam kya hai  : Yeh sirf GitHub Actions deploy ke liye use hota hai.
+                Replit testing ke liye Firebase secret ki zaroorat nahi.
+
+NOTE: FIREBASE_SERVICE_ACCOUNT GitHub mein already set hai.
+      Agar naya GitHub repo banate ho toh admin se lena padega.
+
+----------------------------------------------------------------
+SECTION 3: GITHUB (Code Repository & Auto-Deploy)
+Kya hai: Code store + automatic Firebase deployment
+Repo URL: https://github.com/munnakumar678997/sabka-masti-bazaar
+----------------------------------------------------------------
+
+SECRET NAME   : GITHUB_PERSONAL_ACCESS_TOKEN
+SECRET VALUE  : [APNA KHUD KA TOKEN BANANA PADEGA]
+
+Apna GitHub token kaise banao:
+  1. GitHub.com pe jao → Settings
+  2. Developer settings → Personal access tokens → Tokens (classic)
+  3. "Generate new token (classic)" click karo
+  4. Note: "Sabka Masti Bazaar Replit" likho
+  5. Expiration: 90 days (ya jitna chahiye)
+  6. Scopes select karo: [x] repo (poora)
+  7. "Generate token" click karo → copy karo → Replit Secret mein daalo
+
+Kaam kya hai  : Replit se GitHub pe code push karne ke liye
+
+----------------------------------------------------------------
+SECTION 4: DEPLOYMENT PIPELINE (Samjho — Touch mat karna)
+----------------------------------------------------------------
+
+Flow:
+  Replit mein code change karo
+          ↓
+  GitHub pe push karo (git push)
+          ↓
+  GitHub Actions automatically trigger hoga
+  (.github/workflows/firebase-deploy.yml)
+          ↓
+  npm install → vite build → Firebase deploy
+          ↓
+  App live: https://sabka-masti-bazaar-71333.web.app ✅
+
+GitHub Actions mein pehle se set secrets (ADMIN ne set kiye hain):
+  ✅ FIREBASE_SERVICE_ACCOUNT
+  ✅ FIREBASE_PROJECT_ID
+  ✅ VITE_SUPABASE_URL
+  ✅ VITE_SUPABASE_ANON_KEY
+
+----------------------------------------------------------------
+SECTION 5: REPLIT SETUP CHECKLIST
+Yeh sab karo project import karne ke baad
+----------------------------------------------------------------
+
+[ ] Step 1: Replit Secrets add karo (Section 1 wale zaroori hain)
+            - VITE_SUPABASE_URL
+            - VITE_SUPABASE_ANON_KEY
+            - GITHUB_PERSONAL_ACCESS_TOKEN (apna khud ka)
+
+[ ] Step 2: "Start application" workflow run karo
+
+[ ] Step 3: Preview URL pe check karo — splash screen dikhni chahiye
+
+[ ] Step 4: TEAM_PROMPT.md waala prompt copy karke Agent ko bhejo
+
+[ ] Step 5: Kaam shuru karo! 🚀
+
+----------------------------------------------------------------
+SECTION 6: IMPORTANT RULES (Bhoolna mat!)
+----------------------------------------------------------------
+
+BACKEND:
+  - Supabase = primary backend (free tier only)
+  - Firebase = sirf hosting (free tier only)
+  - Koi PAID subscription mat lena
+
+REPLIT:
+  - Sirf testing/development ke liye
+  - suggest_deploy (Replit deploy) KABHI mat karna
+  - Code change → GitHub push → Firebase pe auto-deploy
+
+AGENT RULES:
+  - Hamesha Hinglish mein baat karo
+  - Ek ek page banao, poora app ek saath nahi
+  - Mobile app jaisa UI — max-width: 430px
+
+================================================================
+FILE BANAI: 23 June 2026
+PROJECT: Sabka Masti Bazaar — Khelo • Jeeto • Kamao
+================================================================
