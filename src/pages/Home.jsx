@@ -153,15 +153,18 @@ export default function Home() {
       {/* ── BOTTOM NAVIGATION ── */}
       <div className="bottom-nav">
         {[
-          { key: 'home',    icon: '🏠', label: 'Home' },
-          { key: 'tasks',   icon: '📋', label: 'Tasks' },
-          { key: 'wallet',  icon: '💰', label: 'Wallet' },
-          { key: 'profile', icon: '👤', label: 'Profile' },
+          { key: 'home',    icon: '🏠', label: 'Home',    path: null      },
+          { key: 'store',   icon: '🛒', label: 'Store',   path: '/store'  },
+          { key: 'wallet',  icon: '💰', label: 'Wallet',  path: null      },
+          { key: 'profile', icon: '👤', label: 'Profile', path: null      },
         ].map(tab => (
           <button
             key={tab.key}
             className={`nav-tab ${activeTab === tab.key ? 'active' : ''}`}
-            onClick={() => setActiveTab(tab.key)}
+            onClick={() => {
+              setActiveTab(tab.key);
+              if (tab.path) navigate(tab.path);
+            }}
           >
             <span className="nav-icon">{tab.icon}</span>
             <span className="nav-label">{tab.label}</span>
