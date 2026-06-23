@@ -1,7 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
-import { supabase } from '../lib/supabase';
 
 const BOT_USERNAME = 'SabkaMastiBazaar_Bot';
 
@@ -41,7 +40,7 @@ const S = {
   },
   middleSection: {
     width: '100%', display: 'flex', flexDirection: 'column',
-    alignItems: 'center', padding: '0 18px', gap: 14,
+    alignItems: 'center', padding: '0 18px', gap: 12,
   },
   userCard: {
     width: '100%', background: 'rgba(255,255,255,0.06)',
@@ -71,28 +70,6 @@ const S = {
     borderRadius: 20, padding: '5px 14px',
     fontSize: 12, color: '#2ecc71', marginTop: 2,
   },
-  // ── Mobile required card ──
-  mobileCard: {
-    width: '100%', background: 'rgba(255,136,0,0.08)',
-    borderRadius: 20, border: '1.5px solid rgba(255,136,0,0.3)',
-    padding: '20px 18px', display: 'flex',
-    flexDirection: 'column', alignItems: 'center', gap: 10,
-  },
-  mobileIcon: { fontSize: 42 },
-  mobileTitle: { fontSize: 17, fontWeight: 800, color: '#fff', textAlign: 'center' },
-  mobileDesc: {
-    fontSize: 13, color: 'rgba(255,255,255,0.5)',
-    textAlign: 'center', lineHeight: 1.6,
-  },
-  mobileWarning: {
-    display: 'flex', alignItems: 'center', gap: 8,
-    background: 'rgba(255,80,80,0.1)',
-    border: '1px solid rgba(255,80,80,0.25)',
-    borderRadius: 12, padding: '10px 14px',
-    fontSize: 12, color: '#ff6b6b', width: '100%',
-    justifyContent: 'center',
-  },
-  // ── Web login box ──
   webLoginBox: {
     width: '100%', background: 'rgba(255,255,255,0.05)',
     borderRadius: 20, border: '1px solid rgba(255,255,255,0.09)',
@@ -125,21 +102,12 @@ const S = {
     width: '100%', padding: '0 18px',
     display: 'flex', flexDirection: 'column', gap: 10,
   },
-  // ── Buttons ──
-  orangeBtn: {
+  createBtn: {
     width: '100%', padding: '18px',
     background: 'linear-gradient(135deg, #ff6a00, #ee0979)',
     color: '#fff', border: 'none', borderRadius: 16,
     fontSize: 17, fontWeight: 800, cursor: 'pointer',
     boxShadow: '0 8px 24px rgba(238,9,121,0.38)',
-    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-  },
-  blueBtn: {
-    width: '100%', padding: '18px',
-    background: 'linear-gradient(135deg, #0088cc, #005fa3)',
-    color: '#fff', border: 'none', borderRadius: 16,
-    fontSize: 17, fontWeight: 800, cursor: 'pointer',
-    boxShadow: '0 8px 24px rgba(0,136,204,0.35)',
     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
   },
   termsText: {
@@ -153,14 +121,14 @@ const S = {
 };
 
 export default function Login() {
-  const navigate       = useNavigate();
-  const location       = useLocation();
-  const widgetRef      = useRef(null);
-  const { loadUser, saveMobile } = useApp();
+  const navigate     = useNavigate();
+  const location     = useLocation();
+  const widgetRef    = useRef(null);
+  const { loadUser } = useApp();
 
-  // Loading.jsx ne state pass kiya hoga
-  const passedTgData = location.state?.tgData   || null;
-  const mode         = location.state?.mode      || 'new';
+  // Loading.jsx se state aata hai
+  const passedTgData = location.state?.tgData || null;
+  const mode         = location.state?.mode   || 'new';
   // mode: 'new' | 'need_mobile'
 
   const [isMiniApp,  setIsMiniApp]  = useState(false);
@@ -178,7 +146,6 @@ export default function Login() {
       tg.setBackgroundColor('#1a1a2e');
       setIsMiniApp(true);
 
-      // Agar passedTgData nahi hai toh Telegram se lo
       if (!passedTgData) {
         const user = tg.initDataUnsafe?.user;
         if (user) {
@@ -194,38 +161,36 @@ export default function Login() {
     }
 
     // ── WEB: Telegram widget ──
-    if (mode === 'new' && !passedTgData) {
-      window.onTelegramAuth = (user) => {
-        setTgUser({
-          id:        user.id,
-          name:      `${user.first_name} ${user.last_name || ''}`.trim(),
-          username:  user.username  || null,
-          photo_url: user.photo_url || null,
-        });
-      };
+    window.onTelegramAuth = (user) => {
+      setTgUser({
+        id:        user.id,
+        name:      `${user.first_name} ${user.last_name || ''}`.trim(),
+        username:  user.username  || null,
+        photo_url: user.photo_url || null,
+      });
+    };
 
-      if (widgetRef.current && !widgetRef.current.querySelector('script')) {
-        const script = document.createElement('script');
-        script.src   = 'https://telegram.org/js/telegram-widget.js?22';
-        script.setAttribute('data-telegram-login', BOT_USERNAME);
-        script.setAttribute('data-size', 'large');
-        script.setAttribute('data-radius', '14');
-        script.setAttribute('data-onauth', 'onTelegramAuth(user)');
-        script.setAttribute('data-request-access', 'write');
-        script.async = true;
-        widgetRef.current.appendChild(script);
-      }
-      return () => { delete window.onTelegramAuth; };
+    if (widgetRef.current && !widgetRef.current.querySelector('script')) {
+      const script = document.createElement('script');
+      script.src   = 'https://telegram.org/js/telegram-widget.js?22';
+      script.setAttribute('data-telegram-login', BOT_USERNAME);
+      script.setAttribute('data-size', 'large');
+      script.setAttribute('data-radius', '14');
+      script.setAttribute('data-onauth', 'onTelegramAuth(user)');
+      script.setAttribute('data-request-access', 'write');
+      script.async = true;
+      widgetRef.current.appendChild(script);
     }
+    return () => { delete window.onTelegramAuth; };
   }, []);
 
-  // ── Mini App: Phone request karo → account banao / update karo ──
-  const handleShareNumber = () => {
+  // ── Mini App: "Create New Account" button → phone maango ──
+  // Dono cases (new + need_mobile) mein same flow
+  const handleMiniAppBtn = () => {
     const tg = window.Telegram?.WebApp;
     if (!tg || btnLoading || !tgUser) return;
     setBtnLoading(true);
 
-    // contactRequested event se phone milega
     tg.onEvent('contactRequested', async (eventData) => {
       let phone = null;
       try {
@@ -237,13 +202,8 @@ export default function Login() {
         }
       } catch (_) {}
 
-      if (mode === 'need_mobile') {
-        // Existing user — loadUser karo (mobile update hoga) phir home
-        await loadUser(tgUser, phone);
-      } else {
-        // Naya user — account banao mobile ke saath
-        await loadUser(tgUser, phone);
-      }
+      // Naya ho ya purana — dono ke liye loadUser (mobile save hoga)
+      await loadUser(tgUser, phone);
       sessionStorage.setItem('smb_session', '1');
       navigate('/home');
     });
@@ -252,7 +212,7 @@ export default function Login() {
   };
 
   // ── Web: Account banao ──
-  const handleCreateAccount = async () => {
+  const handleWebBtn = async () => {
     if (!tgUser || btnLoading) return;
     setBtnLoading(true);
     await loadUser(tgUser, null);
@@ -289,7 +249,7 @@ export default function Login() {
 
       <div style={S.middleSection}>
 
-        {/* ── User ki info card (jab tgUser ho) ── */}
+        {/* ── User Card (jab Telegram se detect ho) ── */}
         {tgUser && (
           <div style={S.userCard}>
             <div style={S.userAvatar}>
@@ -305,23 +265,8 @@ export default function Login() {
           </div>
         )}
 
-        {/* ── EXISTING USER: Mobile nahi hai — zaroori hai ── */}
-        {mode === 'need_mobile' && tgUser && (
-          <div style={S.mobileCard}>
-            <div style={S.mobileIcon}>📱</div>
-            <div style={S.mobileTitle}>Mobile Number Zaroori Hai!</div>
-            <div style={S.mobileDesc}>
-              App mein enter karne ke liye apna Telegram number share karna hoga.
-              Bina number ke account access nahi milega.
-            </div>
-            <div style={S.mobileWarning}>
-              🔒 Number share kiye bina app nahi khulega
-            </div>
-          </div>
-        )}
-
-        {/* ── Web: Telegram widget (naya user, no tgUser yet) ── */}
-        {!isMiniApp && !tgUser && mode === 'new' && (
+        {/* ── Web: No user yet → show Telegram widget ── */}
+        {!isMiniApp && !tgUser && (
           <div style={S.webLoginBox}>
             <div style={S.tgCircle}>✈️</div>
             <div style={S.webTitle}>Telegram se Login karo</div>
@@ -347,50 +292,30 @@ export default function Login() {
 
       {/* ── Bottom Buttons ── */}
       <div style={S.bottomSection}>
-        {btnLoading ? (
-          <div style={S.savingText}>⏳ Save ho raha hai...</div>
-        ) : (
+        {tgUser && (
           <>
-            {/* Mini App: number share karo (naya user ya existing without mobile) */}
-            {isMiniApp && tgUser && (
-              <>
-                <button style={S.orangeBtn} onClick={handleShareNumber}>
-                  📱 Number Share Karke {mode === 'need_mobile' ? 'Enter Karo' : 'Join Karo'}
-                </button>
-                <div style={S.termsText}>
-                  {mode === 'need_mobile'
-                    ? '⚠️ Mobile number dena zaroori hai — bina iske app nahi khulega'
-                    : 'Tumhara Telegram number securely save hoga — 100% free!'}
-                </div>
-              </>
+            {btnLoading ? (
+              <div style={S.savingText}>⏳ Account save ho raha hai...</div>
+            ) : (
+              <button
+                style={S.createBtn}
+                onClick={isMiniApp ? handleMiniAppBtn : handleWebBtn}
+              >
+                🚀 Create New Account
+              </button>
             )}
-
-            {/* Web: naya user, tgUser mil gaya → account banao */}
-            {!isMiniApp && tgUser && mode === 'new' && (
-              <>
-                <button style={S.orangeBtn} onClick={handleCreateAccount}>
-                  🚀 Account Banao
-                </button>
-                <div style={S.termsText}>
-                  Telegram verified — account ready hai! 🎉
-                </div>
-              </>
-            )}
-
-            {/* Web: existing user without mobile → instructions */}
-            {!isMiniApp && tgUser && mode === 'need_mobile' && (
-              <div style={S.termsText}>
-                ⚠️ Telegram Mini App mein jaake number share karo
-              </div>
-            )}
-
-            {/* Web: abhi tak tgUser nahi mila */}
-            {!isMiniApp && !tgUser && (
-              <div style={S.termsText}>
-                Upar Telegram button dabao — koi OTP nahi, koi password nahi ⚡
-              </div>
-            )}
+            <div style={S.termsText}>
+              {isMiniApp
+                ? 'Apna Telegram number share karke account banao — 100% free!'
+                : 'Telegram verified — tumhara account ready hai! 🎉'}
+            </div>
           </>
+        )}
+
+        {!isMiniApp && !tgUser && (
+          <div style={S.termsText}>
+            Upar Telegram button dabao — koi OTP nahi, koi password nahi ⚡
+          </div>
         )}
       </div>
     </div>
