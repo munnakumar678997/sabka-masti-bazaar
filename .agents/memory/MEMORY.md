@@ -1,0 +1,1 @@
+- [Project rules & deployment setup](project-rules.md) — Supabase=backend, Firebase=hosting, free tier only, Replit=testing only, auto-deploy via GitHub Actions

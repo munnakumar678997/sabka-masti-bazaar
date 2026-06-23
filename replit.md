@@ -147,18 +147,39 @@ export default function App() {
 ---
 
 ## Development Server
-- `npm run dev` — local development
+- `npm run dev` — local development / testing ke liye
 - Port: **5000**
 - Workflow name: **"Start application"**
+- **Replit sirf testing ke liye hai — live deploy NAHI karna Replit se**
 
-## Deploy
-- `npm run build` → Firebase Hosting pe deploy karna hai
+## Deploy — Firebase (Production)
+- Code change → GitHub push → GitHub Actions auto-trigger → Firebase pe live
+- Firebase URL: **https://sabka-masti-bazaar-71333.web.app**
+- GitHub Repo: **https://github.com/munnakumar678997/sabka-masti-bazaar**
+- Firebase Project ID: `sabka-masti-bazaar-71333`
+
+## CI/CD Pipeline (Already Setup)
+```
+Replit mein code change karo
+        ↓
+GitHub pe push karo (git push)
+        ↓
+GitHub Actions automatically trigger hoga
+        ↓
+npm install → vite build → Firebase deploy
+        ↓
+App live: https://sabka-masti-bazaar-71333.web.app ✅
+```
 
 ---
 
 ## User Preferences
-- Hinglish mein baat karo (sabse important rule)
-- Mobile app jaisa UI hamesha
+- **Hinglish mein baat karo** (sabse important rule)
+- Suggestions bhi Hinglish mein: `**Aage, main X kar sakta hoon. Kya tum chahte ho?**`
+- Mobile app jaisa UI hamesha — website hai lekin app feel
 - Ek ek page banwata hoon — jaldi mat karo
 - File names samajh mein aane wale rakhna
 - React + Vite — koi aur framework suggest mat karo jab tak user na bole
+- **Sirf free tier use karna hai — koi paid subscription nahi**
+- **Replit pe deploy mat karo — sirf test karo**
+- Firebase sirf hosting ke liye — backend Supabase hai
