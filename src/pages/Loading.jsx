@@ -5,15 +5,15 @@ import { supabase } from '../lib/supabase';
 import '../styles/loading.css';
 
 export default function Loading() {
-  const navigate       = useNavigate();
-  const { loadUser }   = useApp();
+  const navigate     = useNavigate();
+  const { loadUser } = useApp();
 
   useEffect(() => {
     sessionStorage.removeItem('smb_session');
 
     let navigated = false;
 
-    const goHome  = async (tgData) => {
+    const goHome = async (tgData) => {
       if (navigated) return;
       navigated = true;
       await loadUser(tgData);
@@ -21,17 +21,18 @@ export default function Loading() {
       navigate('/home');
     };
 
-    const goLogin = () => {
+    // Login pe jaao — state mein batao user ka situation
+    // mode: 'new'          → naya user, account banana hai
+    // mode: 'need_mobile'  → existing user, mobile nahi hai
+    const goLogin = (tgData = null, mode = 'new') => {
       if (navigated) return;
       navigated = true;
       sessionStorage.setItem('smb_session', '1');
-      navigate('/login');
+      navigate('/login', { state: { tgData, mode } });
     };
 
-    // ── Minimum 2.5s splash dikhao ──
     const minTimer = new Promise(res => setTimeout(res, 2500));
 
-    // ── Background check: user pehle se hai? ──
     const checkUser = async () => {
       const tg = window.Telegram?.WebApp;
 
@@ -49,13 +50,23 @@ export default function Loading() {
             username:  user.username  || null,
             photo_url: user.photo_url || null,
           };
+
           const { data } = await supabase
             .from('users')
-            .select('id')
+            .select('id, mobile')
             .eq('id', tgData.id)
             .maybeSingle();
 
-          return data ? { found: true, tgData } : { found: false, tgData };
+          if (!data) {
+            // Naya user
+            return { action: 'login', tgData, mode: 'new' };
+          } else if (!data.mobile) {
+            // Purana user — mobile nahi hai
+            return { action: 'login', tgData, mode: 'need_mobile' };
+          } else {
+            // Sab sahi — seedha home
+            return { action: 'home', tgData };
+          }
         }
       }
 
@@ -69,34 +80,33 @@ export default function Loading() {
           .maybeSingle();
 
         if (data) {
-          return {
-            found: true,
-            tgData: {
-              id:        data.id,
-              name:      data.name,
-              username:  data.username,
-              photo_url: data.photo_url,
-            },
+          const tgData = {
+            id:        data.id,
+            name:      data.name,
+            username:  data.username,
+            photo_url: data.photo_url,
           };
+          if (!data.mobile) {
+            return { action: 'login', tgData, mode: 'need_mobile' };
+          }
+          return { action: 'home', tgData };
         } else {
           localStorage.removeItem('smb_tg_id');
         }
       }
 
-      return { found: false, tgData: null };
+      return { action: 'login', tgData: null, mode: 'new' };
     };
 
-    // Dono parallel chalao — jo pehle khatam ho
     Promise.all([minTimer, checkUser()]).then(([, result]) => {
-      if (result.found && result.tgData) {
+      if (result.action === 'home') {
         goHome(result.tgData);
       } else {
-        goLogin();
+        goLogin(result.tgData, result.mode);
       }
     });
 
-    // Fallback: 5s ke baad bhi kuch na hua toh login bhejo
-    const fallback = setTimeout(() => goLogin(), 5000);
+    const fallback = setTimeout(() => goLogin(null, 'new'), 5000);
     return () => clearTimeout(fallback);
   }, []);
 
