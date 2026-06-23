@@ -41,7 +41,7 @@ const S = {
   middleSection: {
     width: '100%', flex: 1, display: 'flex',
     flexDirection: 'column', alignItems: 'center',
-    justifyContent: 'center', padding: '12px 18px',
+    justifyContent: 'flex-start', padding: '16px 18px 12px',
   },
 
   userCard: {
@@ -205,15 +205,34 @@ export default function Login() {
   return (
     <div style={S.page}>
       <style>{`
+        .tgme_widget_login { width: 100% !important; display: block !important; }
         .tgme_widget_login > button,
-        iframe { border-radius: 14px !important; width: 100% !important; }
-        .tgme_widget_login { width: 100% !important; }
-        .tgme_widget_login button {
+        .tgme_widget_login_button {
           width: 100% !important;
-          padding: 14px 20px !important;
-          font-size: 16px !important;
-          font-weight: 700 !important;
-          border-radius: 14px !important;
+          padding: 16px 20px !important;
+          font-size: 17px !important;
+          font-weight: 800 !important;
+          border-radius: 16px !important;
+          box-shadow: 0 6px 22px rgba(0,136,204,0.45) !important;
+          background: linear-gradient(135deg, #0088cc, #0055aa) !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          gap: 10px !important;
+          letter-spacing: 0.3px !important;
+          border: none !important;
+          cursor: pointer !important;
+          color: #fff !important;
+        }
+        .tgme_widget_login_icon {
+          font-size: 20px !important;
+          width: 24px !important;
+          height: 24px !important;
+        }
+        .tgme_widget_login_text {
+          font-size: 17px !important;
+          font-weight: 800 !important;
+          color: #fff !important;
         }
       `}</style>
 
@@ -297,7 +316,7 @@ export default function Login() {
               </div>
             ) : (
               <button style={S.createBtn} onClick={handleJoinNow}>
-                🚀 Create New Account — Join Now!
+                🚀 Create New Account
               </button>
             )}
             <div style={S.termsText}>
@@ -309,7 +328,7 @@ export default function Login() {
         {!isMiniApp && tgUser && (
           <>
             <button style={S.createBtn} onClick={handleCreateAccount}>
-              🚀 Create New Account — Join Now!
+              🚀 Create New Account
             </button>
             <div style={S.termsText}>
               Telegram verified — tumhara account ready hai! 🎉
