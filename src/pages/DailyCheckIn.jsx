@@ -129,11 +129,6 @@ export default function DailyCheckIn() {
 
         {checkedIn ? (
           <div className="dci-done-area">
-            <div className="dci-done-msg">
-              <span>✅</span>
-              <span>Aaj ka Check-in Complete!</span>
-              <span className="dci-done-sub">Kal raat 12 baje phir aana 🌙</span>
-            </div>
             <div className="dci-countdown-box">
               <div className="dci-cd-label">⏰ Next check-in mein bacha</div>
               <div className="dci-cd-timer">{fmtCountdown(countdown)}</div>
