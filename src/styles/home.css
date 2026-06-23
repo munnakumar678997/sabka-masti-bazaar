@@ -28,10 +28,18 @@
   border-radius: 50%; display: flex; align-items: center;
   justify-content: center; font-size: 20px;
   box-shadow: 0 4px 14px rgba(238,9,121,0.35);
-  flex-shrink: 0;
+  flex-shrink: 0; overflow: hidden;
+}
+.topbar-name-wrap {
+  display: flex; flex-direction: column; gap: 1px;
+}
+.topbar-greeting {
+  font-size: 11px; color: rgba(255,255,255,0.45);
+  font-weight: 500; letter-spacing: 0.2px;
 }
 .topbar-name {
-  font-size: 16px; font-weight: 800; color: #fff;
+  font-size: 15px; font-weight: 800; color: #fff;
+  letter-spacing: 0.3px;
 }
 .topbar-right {
   display: flex; align-items: center;
@@ -444,8 +452,17 @@
 .ci-locked .ci-coins-lbl { color: rgba(255,255,255,0.2); }
 .ci-divider { height: 1px; background: rgba(255,255,255,0.06); margin: 0 12px; }
 
-/* Done section — sirf countdown */
+/* Done section */
 .ci-done-section { padding: 14px 14px 16px; }
+.ci-done-msg {
+  background: rgba(34,197,94,0.1);
+  border: 1px solid rgba(34,197,94,0.25);
+  border-radius: 12px; padding: 10px 14px;
+  font-size: 13px; font-weight: 700; color: #22c55e;
+  text-align: center; margin-bottom: 12px;
+  display: flex; align-items: center; justify-content: center; gap: 6px; flex-wrap: wrap;
+}
+.ci-done-sub { font-size: 11px; color: rgba(255,255,255,0.4); font-weight: 500; }
 
 /* Countdown box */
 .ci-countdown-box {

@@ -1,1 +1,2 @@
 - [Project rules & deployment setup](project-rules.md) — Supabase=backend, Firebase=hosting, free tier only, Replit=testing only, auto-deploy via GitHub Actions
+- [Unlimited check-in bug fix](checkin-bug.md) — useRef for userId + localStorage backup = triple protection; if(user) stale closure was root cause

@@ -4,29 +4,31 @@ import { useApp } from '../context/AppContext';
 import '../styles/home.css';
 
 const TASKS = [
-  { id: 1, icon: '📺', title: 'Video dekho',       desc: 'Ek video dekho aur kamao',       coins: 5,  tag: 'Easy' },
-  { id: 2, icon: '📲', title: 'App install karo',  desc: 'Naya app install karo',          coins: 20, tag: 'Hot'  },
-  { id: 3, icon: '🔗', title: 'Link share karo',   desc: 'Apna link share karo',           coins: 10, tag: 'Easy' },
-  { id: 4, icon: '📝', title: 'Survey bharo',       desc: '2 min ka survey complete karo',  coins: 15, tag: 'New'  },
-  { id: 5, icon: '👥', title: 'Friend ko refer karo', desc: 'Dost ko invite karo',         coins: 50, tag: 'Big'  },
+  { id: 1, icon: '📺', title: 'Video dekho',          desc: 'Ek video dekho aur kamao',       coins: 5,  tag: 'Easy' },
+  { id: 2, icon: '📲', title: 'App install karo',     desc: 'Naya app install karo',          coins: 20, tag: 'Hot'  },
+  { id: 3, icon: '🔗', title: 'Link share karo',      desc: 'Apna link share karo',           coins: 10, tag: 'Easy' },
+  { id: 4, icon: '📝', title: 'Survey bharo',         desc: '2 min ka survey complete karo',  coins: 15, tag: 'New'  },
+  { id: 5, icon: '👥', title: 'Friend ko refer karo', desc: 'Dost ko invite karo',            coins: 50, tag: 'Big'  },
 ];
 
 const DAY_REWARDS = [10, 15, 25, 35, 50, 75, 100];
 
 const NOTIFICATIONS = [
-  { id: 1, icon: '🎁', title: 'Check-in Bonus Mila!',     desc: '+25 coins tumhare wallet mein aa gaye.',     time: '2 min pehle', unread: true  },
-  { id: 2, icon: '🔥', title: 'Streak 5 din ka!',          desc: 'Waah! 5 din ki streak maintain kar li.',     time: '1 ghante pehle', unread: true },
-  { id: 3, icon: '💸', title: 'Withdrawal Process Ho Raha', desc: 'Tumhara ₹50 ka withdrawal process mein hai.', time: 'Kal',           unread: false },
-  { id: 4, icon: '👥', title: 'Naya Referral!',             desc: 'Ek dost ne tumhare link se join kiya!',      time: '2 din pehle',   unread: false },
-  { id: 5, icon: '📢', title: 'Naya Task Available',        desc: 'Video dekho aur 5 coins kamao — abhi karo!', time: '3 din pehle',   unread: false },
+  { id: 1, icon: '🎁', title: 'Check-in Bonus Mila!',     desc: '+25 coins tumhare wallet mein aa gaye.',     time: '2 min pehle',   unread: true  },
+  { id: 2, icon: '🔥', title: 'Streak 5 din ka!',          desc: 'Waah! 5 din ki streak maintain kar li.',     time: '1 ghante pehle', unread: true  },
+  { id: 3, icon: '💸', title: 'Withdrawal Process Ho Raha', desc: 'Tumhara ₹50 ka withdrawal process mein hai.', time: 'Kal',            unread: false },
+  { id: 4, icon: '👥', title: 'Naya Referral!',             desc: 'Ek dost ne tumhare link se join kiya!',      time: '2 din pehle',    unread: false },
+  { id: 5, icon: '📢', title: 'Naya Task Available',        desc: 'Video dekho aur 5 coins kamao — abhi karo!', time: '3 din pehle',    unread: false },
 ];
 
+// IST date string — "YYYY-MM-DD"
 function getISTDateStr() {
   const now   = new Date();
   const istMs = now.getTime() + 5.5 * 60 * 60 * 1000;
   return new Date(istMs).toISOString().split('T')[0];
 }
 
+// IST midnight tak kitne seconds bache
 function getSecsUntilISTMidnight() {
   const now   = new Date();
   const istMs = now.getTime() + 5.5 * 60 * 60 * 1000;
@@ -44,21 +46,33 @@ function fmtCountdown(secs) {
 
 export default function Home() {
   const navigate = useNavigate();
-  const { user, balance, streak, completeTask, tasksCompleted, referrals, updateCheckIn } = useApp();
+  const {
+    user, balance, streak, completeTask, tasksCompleted,
+    referrals, updateCheckIn, CHECKIN_BACKUP_KEY,
+  } = useApp();
 
-  const [activeTab,       setActiveTab]       = useState('home');
-  const [showWithdraw,    setShowWithdraw]    = useState(false);
-  const [showClaimed,     setShowClaimed]     = useState(false);
-  const [countdown,       setCountdown]       = useState(getSecsUntilISTMidnight());
-  const [checkInLoading,  setCheckInLoading]  = useState(false);
-  const [showNotif,       setShowNotif]       = useState(false);
-  const [notifs,          setNotifs]          = useState(NOTIFICATIONS);
+  const [activeTab,      setActiveTab]      = useState('home');
+  const [showWithdraw,   setShowWithdraw]   = useState(false);
+  const [showClaimed,    setShowClaimed]    = useState(false);
+  const [countdown,      setCountdown]      = useState(getSecsUntilISTMidnight());
+  const [checkInLoading, setCheckInLoading] = useState(false);
+  const [showNotif,      setShowNotif]      = useState(false);
+  const [notifs,         setNotifs]         = useState(NOTIFICATIONS);
 
   const unreadCount = notifs.filter(n => n.unread).length;
 
-  const todayIST   = getISTDateStr();
-  const checkedIn  = user?.last_checkin_date === todayIST;
-  const dayIndex   = ((streak - 1) % 7);
+  const todayIST = getISTDateStr();
+
+  // ── TRIPLE PROTECTION AGAINST UNLIMITED CHECK-IN ──
+  // Layer 1: Supabase se loaded user state check karo
+  const checkedInSupabase = user?.last_checkin_date === todayIST;
+  // Layer 2: localStorage backup check karo (Supabase fail hone pe bhi kaam kare)
+  const checkedInLocal    = typeof localStorage !== 'undefined'
+    && localStorage.getItem(CHECKIN_BACKUP_KEY) === todayIST;
+  // Final: dono mein se koi bhi true ho — check-in blocked
+  const checkedIn = checkedInSupabase || checkedInLocal;
+
+  const dayIndex    = ((streak - 1) % 7);
   const todayReward = DAY_REWARDS[checkedIn ? dayIndex : (streak % 7)];
 
   const isStreakBroken = useCallback(() => {
@@ -69,15 +83,16 @@ export default function Home() {
     return diffDays > 1;
   }, [user?.last_checkin_date, todayIST]);
 
+  // Countdown timer — har second update
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCountdown(getSecsUntilISTMidnight());
-    }, 1000);
+    const interval = setInterval(() => setCountdown(getSecsUntilISTMidnight()), 1000);
     return () => clearInterval(interval);
   }, []);
 
   const handleCheckIn = async () => {
+    // Triple check — checkedIn already dono layers check kar raha hai
     if (checkedIn || checkInLoading) return;
+
     setCheckInLoading(true);
     const broken      = isStreakBroken();
     const newStreak   = broken ? 1 : streak + 1;
@@ -91,25 +106,26 @@ export default function Home() {
     setTimeout(() => setShowClaimed(false), 2500);
   };
 
-  const markAllRead = () => {
-    setNotifs(prev => prev.map(n => ({ ...n, unread: false })));
-  };
+  const markAllRead = () => setNotifs(prev => prev.map(n => ({ ...n, unread: false })));
 
   const gridDays = DAY_REWARDS.map((reward, i) => {
     const streakPos = checkedIn ? streak : streak + 1;
     const cyclePos  = ((streakPos - 1) % 7) + 1;
     let state = 'locked';
-    if (i < cyclePos - 1)      state = 'done';
+    if (i < cyclePos - 1)       state = 'done';
     else if (i === cyclePos - 1) state = checkedIn ? 'claimed' : 'today';
     return { dayNum: i + 1, reward, state };
   });
 
-  const displayName = user?.name || 'Masti Bazaar User';
+  // User display info
+  const displayName  = user?.name || 'Masti Bazaar User';
   const avatarLetter = displayName.charAt(0).toUpperCase();
+  const photoUrl     = user?.photo_url || null;
 
   return (
     <div className="home-page">
 
+      {/* ── CLAIM POPUP ── */}
       {showClaimed && (
         <div className="claim-popup">
           <div className="claim-popup-inner">
@@ -124,12 +140,21 @@ export default function Home() {
       <div className="home-topbar">
         <div className="topbar-left">
           <div className="topbar-avatar">
-            {user?.photo_url
-              ? <img src={user.photo_url} alt="dp"
-                  style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
-              : avatarLetter}
+            {photoUrl ? (
+              <img
+                src={photoUrl}
+                alt="dp"
+                style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
+                onError={e => { e.target.style.display = 'none'; }}
+              />
+            ) : (
+              <span style={{ fontSize: 18, fontWeight: 800, color: '#fff' }}>{avatarLetter}</span>
+            )}
           </div>
-          <div className="topbar-name">{displayName}</div>
+          <div className="topbar-name-wrap">
+            <div className="topbar-greeting">Namaste! 👋</div>
+            <div className="topbar-name">{displayName}</div>
+          </div>
         </div>
         <div className="topbar-right">
           <div className="topbar-notif-btn" onClick={() => setShowNotif(true)}>
@@ -143,6 +168,7 @@ export default function Home() {
 
       <div className="home-scroll">
 
+        {/* ── BALANCE CARD ── */}
         <div className="balance-card">
           <div className="balance-card-bg1" />
           <div className="balance-card-bg2" />
@@ -163,6 +189,7 @@ export default function Home() {
           </div>
         </div>
 
+        {/* ── QUICK STATS ── */}
         <div className="quick-stats">
           <div className="stat-box">
             <div className="stat-icon">🏆</div>
@@ -181,6 +208,7 @@ export default function Home() {
           </div>
         </div>
 
+        {/* ── DAILY CHECK-IN ── */}
         <div className="section-header">
           <span>📅 Daily Check-in</span>
           {streak > 0 && <span className="streak-badge">🔥 {streak} Day Streak</span>}
@@ -209,6 +237,9 @@ export default function Home() {
 
           {checkedIn ? (
             <div className="ci-done-section">
+              <div className="ci-done-msg">
+                ✅ Aaj ka Check-in Complete! <span className="ci-done-sub">Kal raat 12 baje phir aana 🌙</span>
+              </div>
               <div className="ci-countdown-box">
                 <div className="ci-countdown-lbl">⏰ Next check-in mein bacha</div>
                 <div className="ci-countdown-timer">{fmtCountdown(countdown)}</div>
@@ -247,6 +278,7 @@ export default function Home() {
           )}
         </div>
 
+        {/* ── EARNING TASKS ── */}
         <div className="section-header" style={{ marginTop: 20 }}>
           <span>⚡ Earning Tasks</span>
           <span className="see-all">Sab dekho →</span>
@@ -270,6 +302,7 @@ export default function Home() {
           ))}
         </div>
 
+        {/* ── REFER BANNER ── */}
         <div className="refer-banner">
           <div className="refer-text">
             <div className="refer-title">👥 Dosto ko Invite karo!</div>
