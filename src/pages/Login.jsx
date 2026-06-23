@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useApp } from '../context/AppContext';
 
 const BOT_USERNAME = 'SabkaMastiBazaar_Bot';
 
@@ -22,7 +23,6 @@ const S = {
     width: 180, height: 180, borderRadius: '50%',
     background: 'rgba(0,136,204,0.05)', pointerEvents: 'none',
   },
-
   topSection: {
     width: '100%', display: 'flex', flexDirection: 'column',
     alignItems: 'center', paddingTop: 0,
@@ -34,18 +34,16 @@ const S = {
     border: '2.5px solid rgba(255,255,255,0.18)', marginBottom: 14,
     boxShadow: '0 8px 30px rgba(0,0,0,0.25)',
   },
-  appName: { fontSize: 26, fontWeight: 800, color: '#fff', letterSpacing: 0.4 },
+  appName:    { fontSize: 26, fontWeight: 800, color: '#fff', letterSpacing: 0.4 },
   appTagline: {
     fontSize: 12, color: 'rgba(255,255,255,0.5)',
     letterSpacing: 2.5, textTransform: 'uppercase', marginTop: 6,
   },
-
   middleSection: {
     width: '100%', display: 'flex',
     flexDirection: 'column', alignItems: 'center',
     padding: '0 18px',
   },
-
   userCard: {
     width: '100%', background: 'rgba(255,255,255,0.06)',
     borderRadius: 20, border: '1px solid rgba(255,255,255,0.1)',
@@ -60,8 +58,8 @@ const S = {
     display: 'flex', alignItems: 'center', justifyContent: 'center',
     fontSize: 30, color: '#fff', overflow: 'hidden',
   },
-  userName: { fontSize: 18, fontWeight: 700, color: '#fff', textAlign: 'center' },
-  userHandle: { fontSize: 13, color: '#29b6f6' },
+  userName:      { fontSize: 18, fontWeight: 700, color: '#fff', textAlign: 'center' },
+  userHandle:    { fontSize: 13, color: '#29b6f6' },
   userId: {
     fontSize: 11, color: 'rgba(255,255,255,0.38)',
     background: 'rgba(255,255,255,0.05)',
@@ -74,7 +72,6 @@ const S = {
     borderRadius: 20, padding: '5px 14px',
     fontSize: 12, color: '#2ecc71', marginTop: 2,
   },
-
   webLoginBox: {
     width: '100%', background: 'rgba(255,255,255,0.05)',
     borderRadius: 20, border: '1px solid rgba(255,255,255,0.09)',
@@ -92,10 +89,7 @@ const S = {
     fontSize: 12, color: 'rgba(255,255,255,0.45)',
     textAlign: 'center', lineHeight: 1.6,
   },
-  stepsBox: {
-    width: '100%', display: 'flex',
-    flexDirection: 'column', gap: 7,
-  },
+  stepsBox:  { width: '100%', display: 'flex', flexDirection: 'column', gap: 7 },
   stepRow: {
     display: 'flex', alignItems: 'flex-start', gap: 10,
     background: 'rgba(255,255,255,0.04)',
@@ -108,12 +102,7 @@ const S = {
     fontSize: 11, fontWeight: 700, flexShrink: 0,
   },
   stepText: { fontSize: 12, color: 'rgba(255,255,255,0.55)', lineHeight: 1.5 },
-
-  widgetWrap: {
-    display: 'flex', justifyContent: 'center',
-    width: '100%',
-  },
-
+  widgetWrap: { display: 'flex', justifyContent: 'center', width: '100%' },
   bottomSection: {
     width: '100%', padding: '0 18px',
     display: 'flex', flexDirection: 'column', gap: 10,
@@ -131,19 +120,23 @@ const S = {
     fontSize: 11, color: 'rgba(255,255,255,0.3)',
     textAlign: 'center', lineHeight: 1.5,
   },
+  savingText: {
+    fontSize: 13, color: 'rgba(255,255,255,0.5)',
+    textAlign: 'center', padding: '18px',
+  },
 };
 
 export default function Login() {
-  const navigate  = useNavigate();
-  const widgetRef = useRef(null);
+  const navigate   = useNavigate();
+  const widgetRef  = useRef(null);
+  const { loadUser, loading } = useApp();
 
   const [isMiniApp, setIsMiniApp] = useState(false);
-  const [tgUser, setTgUser]       = useState(null);
-  const [loading, setLoading]     = useState(false);
+  const [tgUser,    setTgUser]    = useState(null);
+  const [btnLoading, setBtnLoading] = useState(false);
 
   useEffect(() => {
     const tg = window.Telegram?.WebApp;
-
     if (tg && tg.initData && tg.initData.length > 0) {
       tg.ready();
       tg.expand();
@@ -184,57 +177,43 @@ export default function Login() {
       script.async = true;
       widgetRef.current.appendChild(script);
     }
-
     return () => { delete window.onTelegramAuth; };
   }, []);
+
+  const handleCreateAccount = async () => {
+    if (!tgUser) return;
+    setBtnLoading(true);
+    await loadUser(tgUser);
+    navigate('/home');
+  };
 
   const handleJoinNow = () => {
     const tg = window.Telegram?.WebApp;
     if (!tg) return;
-    setLoading(true);
-    tg.requestContact((accepted, contact) => {
-      setLoading(false);
+    setBtnLoading(true);
+    tg.requestContact(async (accepted, contact) => {
       if (accepted && contact) {
+        await loadUser(tgUser);
         navigate('/home');
+      } else {
+        setBtnLoading(false);
       }
     });
-  };
-
-  const handleCreateAccount = () => {
-    navigate('/home');
   };
 
   return (
     <div style={S.page}>
       <style>{`
         .tgme_widget_login { width: 100% !important; display: block !important; }
-        .tgme_widget_login > button,
-        .tgme_widget_login_button {
-          width: 100% !important;
-          padding: 16px 20px !important;
-          font-size: 17px !important;
-          font-weight: 800 !important;
+        .tgme_widget_login > button, .tgme_widget_login_button {
+          width: 100% !important; padding: 16px 20px !important;
+          font-size: 17px !important; font-weight: 800 !important;
           border-radius: 16px !important;
           box-shadow: 0 6px 22px rgba(0,136,204,0.45) !important;
           background: linear-gradient(135deg, #0088cc, #0055aa) !important;
-          display: flex !important;
-          align-items: center !important;
-          justify-content: center !important;
-          gap: 10px !important;
-          letter-spacing: 0.3px !important;
-          border: none !important;
-          cursor: pointer !important;
-          color: #fff !important;
-        }
-        .tgme_widget_login_icon {
-          font-size: 20px !important;
-          width: 24px !important;
-          height: 24px !important;
-        }
-        .tgme_widget_login_text {
-          font-size: 17px !important;
-          font-weight: 800 !important;
-          color: #fff !important;
+          display: flex !important; align-items: center !important;
+          justify-content: center !important; gap: 10px !important;
+          border: none !important; cursor: pointer !important; color: #fff !important;
         }
       `}</style>
 
@@ -248,7 +227,6 @@ export default function Login() {
       </div>
 
       <div style={S.middleSection}>
-
         {isMiniApp && tgUser && (
           <div style={S.userCard}>
             <div style={S.userAvatar}>
@@ -287,7 +265,6 @@ export default function Login() {
                   Sirf ek click! Telegram pe "Confirm" dabao —
                   naam, username aur photo automatic aa jaayega. Koi password nahi! ⚡
                 </div>
-
                 <div style={S.stepsBox}>
                   {[
                     ['1', 'Neeche ka Telegram button dabao'],
@@ -300,22 +277,18 @@ export default function Login() {
                     </div>
                   ))}
                 </div>
-
                 <div style={S.widgetWrap} ref={widgetRef} />
               </div>
             )}
           </>
         )}
-
       </div>
 
       <div style={S.bottomSection}>
         {isMiniApp && tgUser && (
           <>
-            {loading ? (
-              <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 14, textAlign: 'center', padding: '18px' }}>
-                ⏳ Thoda wait karo...
-              </div>
+            {btnLoading || loading ? (
+              <div style={S.savingText}>⏳ Account save ho raha hai...</div>
             ) : (
               <button style={S.createBtn} onClick={handleJoinNow}>
                 🚀 Create New Account
@@ -329,9 +302,13 @@ export default function Login() {
 
         {!isMiniApp && tgUser && (
           <>
-            <button style={S.createBtn} onClick={handleCreateAccount}>
-              🚀 Create New Account
-            </button>
+            {btnLoading || loading ? (
+              <div style={S.savingText}>⏳ Account save ho raha hai...</div>
+            ) : (
+              <button style={S.createBtn} onClick={handleCreateAccount}>
+                🚀 Create New Account
+              </button>
+            )}
             <div style={S.termsText}>
               Telegram verified — tumhara account ready hai! 🎉
             </div>

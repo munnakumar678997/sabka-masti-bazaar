@@ -4,29 +4,26 @@ import { useApp } from '../context/AppContext';
 import '../styles/home.css';
 
 const TASKS = [
-  { id: 1, icon: '📺', title: 'Video dekho', desc: 'Ek video dekho aur kamao', coins: 5, tag: 'Easy' },
-  { id: 2, icon: '📲', title: 'App install karo', desc: 'Naya app install karo', coins: 20, tag: 'Hot' },
-  { id: 3, icon: '🔗', title: 'Link share karo', desc: 'Apna link share karo', coins: 10, tag: 'Easy' },
-  { id: 4, icon: '📝', title: 'Survey bharo', desc: '2 min ka survey complete karo', coins: 15, tag: 'New' },
-  { id: 5, icon: '👥', title: 'Friend ko refer karo', desc: 'Dost ko invite karo', coins: 50, tag: 'Big' },
+  { id: 1, icon: '📺', title: 'Video dekho',       desc: 'Ek video dekho aur kamao',       coins: 5,  tag: 'Easy' },
+  { id: 2, icon: '📲', title: 'App install karo',  desc: 'Naya app install karo',          coins: 20, tag: 'Hot'  },
+  { id: 3, icon: '🔗', title: 'Link share karo',   desc: 'Apna link share karo',           coins: 10, tag: 'Easy' },
+  { id: 4, icon: '📝', title: 'Survey bharo',       desc: '2 min ka survey complete karo',  coins: 15, tag: 'New'  },
+  { id: 5, icon: '👥', title: 'Friend ko refer karo', desc: 'Dost ko invite karo',         coins: 50, tag: 'Big'  },
 ];
 
 const DAY_REWARDS = [10, 15, 25, 35, 50, 75, 100];
 
-// IST = UTC + 5:30
 function getISTDateStr() {
-  const now = new Date();
+  const now   = new Date();
   const istMs = now.getTime() + 5.5 * 60 * 60 * 1000;
-  return new Date(istMs).toISOString().split('T')[0]; // "YYYY-MM-DD"
+  return new Date(istMs).toISOString().split('T')[0];
 }
 
 function getSecsUntilISTMidnight() {
-  const now = new Date();
+  const now   = new Date();
   const istMs = now.getTime() + 5.5 * 60 * 60 * 1000;
-  const ist = new Date(istMs);
-  const h = ist.getUTCHours();
-  const m = ist.getUTCMinutes();
-  const s = ist.getUTCSeconds();
+  const ist   = new Date(istMs);
+  const h = ist.getUTCHours(), m = ist.getUTCMinutes(), s = ist.getUTCSeconds();
   return 86400 - (h * 3600 + m * 60 + s);
 }
 
@@ -34,94 +31,66 @@ function fmtCountdown(secs) {
   const h = Math.floor(secs / 3600);
   const m = Math.floor((secs % 3600) / 60);
   const s = secs % 60;
-  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-}
-
-function loadCheckIn() {
-  try {
-    const saved = localStorage.getItem('smb_checkin');
-    if (saved) return JSON.parse(saved);
-  } catch {}
-  return { lastDate: null, streak: 0, totalDays: 0 };
-}
-
-function saveCheckIn(data) {
-  localStorage.setItem('smb_checkin', JSON.stringify(data));
+  return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
 }
 
 export default function Home() {
   const navigate = useNavigate();
-  const { balance, addCoins, completeTask, tasksCompleted, referrals } = useApp();
+  const { user, balance, streak, completeTask, tasksCompleted, referrals, updateCheckIn } = useApp();
 
   const [activeTab,    setActiveTab]    = useState('home');
   const [showWithdraw, setShowWithdraw] = useState(false);
   const [showClaimed,  setShowClaimed]  = useState(false);
+  const [countdown,    setCountdown]    = useState(getSecsUntilISTMidnight());
 
-  const [checkInData, setCheckInData] = useState(loadCheckIn);
-  const [countdown,   setCountdown]   = useState(getSecsUntilISTMidnight());
-
-  const todayIST    = getISTDateStr();
-  const checkedIn   = checkInData.lastDate === todayIST;
-  const streak      = checkInData.streak || 0;
-  const dayIndex    = ((streak - 1) % 7);
+  const todayIST   = getISTDateStr();
+  const checkedIn  = user?.last_checkin_date === todayIST;
+  const dayIndex   = ((streak - 1) % 7);
   const todayReward = DAY_REWARDS[checkedIn ? dayIndex : (streak % 7)];
 
-  // Check if streak is broken (missed a day)
   const isStreakBroken = useCallback(() => {
-    if (!checkInData.lastDate) return false;
-    const last = new Date(checkInData.lastDate + 'T00:00:00+05:30');
-    const today = new Date(todayIST + 'T00:00:00+05:30');
+    if (!user?.last_checkin_date) return false;
+    const last     = new Date(user.last_checkin_date + 'T00:00:00+05:30');
+    const today    = new Date(todayIST + 'T00:00:00+05:30');
     const diffDays = Math.round((today - last) / 86400000);
     return diffDays > 1;
-  }, [checkInData.lastDate, todayIST]);
+  }, [user?.last_checkin_date, todayIST]);
 
-  // Countdown timer — updates every second
   useEffect(() => {
     const interval = setInterval(() => {
       setCountdown(getSecsUntilISTMidnight());
-      // Auto re-enable at midnight IST (new day)
-      if (getISTDateStr() !== todayIST) {
-        setCheckInData(loadCheckIn());
-      }
     }, 1000);
     return () => clearInterval(interval);
-  }, [todayIST]);
+  }, []);
 
-  const handleCheckIn = () => {
+  const handleCheckIn = async () => {
     if (checkedIn) return;
-
-    const broken     = isStreakBroken();
-    const newStreak  = broken ? 1 : streak + 1;
-    const rewardDay  = (newStreak - 1) % 7;
+    const broken      = isStreakBroken();
+    const newStreak   = broken ? 1 : streak + 1;
+    const rewardDay   = (newStreak - 1) % 7;
     const coinsEarned = DAY_REWARDS[rewardDay];
+    const totalDays   = (user?.total_checkins || 0) + 1;
 
-    const newData = {
-      lastDate:  todayIST,
-      streak:    newStreak,
-      totalDays: (checkInData.totalDays || 0) + 1,
-    };
-    saveCheckIn(newData);
-    setCheckInData(newData);
-    addCoins(coinsEarned);
+    await updateCheckIn(newStreak, totalDays, todayIST, coinsEarned);
     setShowClaimed(coinsEarned);
     setTimeout(() => setShowClaimed(false), 2500);
   };
 
-  // Build 7-day grid
   const gridDays = DAY_REWARDS.map((reward, i) => {
-    const dayNum    = i + 1;
     const streakPos = checkedIn ? streak : streak + 1;
     const cyclePos  = ((streakPos - 1) % 7) + 1;
     let state = 'locked';
-    if (i < cyclePos - 1) state = 'done';
+    if (i < cyclePos - 1)      state = 'done';
     else if (i === cyclePos - 1) state = checkedIn ? 'claimed' : 'today';
-    return { dayNum, reward, state };
+    return { dayNum: i + 1, reward, state };
   });
+
+  const displayName = user?.name || 'Masti Bazaar User';
+  const avatarLetter = displayName.charAt(0).toUpperCase();
 
   return (
     <div className="home-page">
 
-      {/* ── CLAIM POPUP ── */}
       {showClaimed && (
         <div className="claim-popup">
           <div className="claim-popup-inner">
@@ -132,13 +101,17 @@ export default function Home() {
         </div>
       )}
 
-      {/* ── TOP BAR ── */}
       <div className="home-topbar">
         <div className="topbar-left">
-          <div className="topbar-avatar">😊</div>
+          <div className="topbar-avatar">
+            {user?.photo_url
+              ? <img src={user.photo_url} alt="dp"
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
+              : avatarLetter}
+          </div>
           <div>
             <div className="topbar-hello">Namaste! 👋</div>
-            <div className="topbar-name">Masti Bazaar User</div>
+            <div className="topbar-name">{displayName}</div>
           </div>
         </div>
         <div className="topbar-right">
@@ -147,10 +120,8 @@ export default function Home() {
         </div>
       </div>
 
-      {/* ── SCROLL AREA ── */}
       <div className="home-scroll">
 
-        {/* ── BALANCE CARD ── */}
         <div className="balance-card">
           <div className="balance-card-bg1" />
           <div className="balance-card-bg2" />
@@ -171,7 +142,6 @@ export default function Home() {
           </div>
         </div>
 
-        {/* ── QUICK STATS ── */}
         <div className="quick-stats">
           <div className="stat-box">
             <div className="stat-icon">🏆</div>
@@ -190,18 +160,13 @@ export default function Home() {
           </div>
         </div>
 
-        {/* ── DAILY CHECK-IN ── */}
         <div className="section-header">
           <span>📅 Daily Check-in</span>
           {streak > 0 && <span className="streak-badge">🔥 {streak} Day Streak</span>}
         </div>
 
         <div className="checkin-card-v2">
-
-          {/* Top glow bar */}
           <div className={`checkin-glow-bar ${checkedIn ? 'glow-green' : 'glow-orange'}`} />
-
-          {/* 7-day grid */}
           <div className="checkin-grid">
             {gridDays.map(({ dayNum, reward, state }) => (
               <div key={dayNum} className={`ci-day ci-${state}`}>
@@ -219,11 +184,8 @@ export default function Home() {
               </div>
             ))}
           </div>
-
-          {/* Divider */}
           <div className="ci-divider" />
 
-          {/* Bottom section */}
           {checkedIn ? (
             <div className="ci-done-section">
               <div className="ci-done-top">
@@ -247,9 +209,7 @@ export default function Home() {
                   <div className="ci-today-coins">🪙 +{todayReward} Coins</div>
                 </div>
                 {streak > 0 && (
-                  <div className="ci-streak-pill">
-                    🔥 {streak} din ki streak!
-                  </div>
+                  <div className="ci-streak-pill">🔥 {streak} din ki streak!</div>
                 )}
               </div>
               {isStreakBroken() && (
@@ -266,7 +226,6 @@ export default function Home() {
           )}
         </div>
 
-        {/* ── EARNING TASKS ── */}
         <div className="section-header" style={{ marginTop: 20 }}>
           <span>⚡ Earning Tasks</span>
           <span className="see-all">Sab dekho →</span>
@@ -290,7 +249,6 @@ export default function Home() {
           ))}
         </div>
 
-        {/* ── REFER BANNER ── */}
         <div className="refer-banner">
           <div className="refer-text">
             <div className="refer-title">👥 Dosto ko Invite karo!</div>
@@ -302,21 +260,17 @@ export default function Home() {
         <div style={{ height: 90 }} />
       </div>
 
-      {/* ── BOTTOM NAVIGATION ── */}
       <div className="bottom-nav">
         {[
-          { key: 'home',   icon: '🏠', label: 'Home',    path: null     },
-          { key: 'store',  icon: '🛒', label: 'Store',   path: '/store' },
-          { key: 'wallet', icon: '💰', label: 'Wallet',  path: null     },
-          { key: 'profile',icon: '👤', label: 'Profile', path: null     },
+          { key: 'home',    icon: '🏠', label: 'Home',    path: null     },
+          { key: 'store',   icon: '🛒', label: 'Store',   path: '/store' },
+          { key: 'wallet',  icon: '💰', label: 'Wallet',  path: null     },
+          { key: 'profile', icon: '👤', label: 'Profile', path: null     },
         ].map(tab => (
           <button
             key={tab.key}
             className={`nav-tab ${activeTab === tab.key ? 'active' : ''}`}
-            onClick={() => {
-              setActiveTab(tab.key);
-              if (tab.path) navigate(tab.path);
-            }}
+            onClick={() => { setActiveTab(tab.key); if (tab.path) navigate(tab.path); }}
           >
             <span className="nav-icon">{tab.icon}</span>
             <span className="nav-label">{tab.label}</span>
@@ -324,7 +278,6 @@ export default function Home() {
         ))}
       </div>
 
-      {/* ── WITHDRAW POPUP ── */}
       {showWithdraw && (
         <div className="popup-overlay" onClick={() => setShowWithdraw(false)}>
           <div className="popup-box" onClick={e => e.stopPropagation()}>
