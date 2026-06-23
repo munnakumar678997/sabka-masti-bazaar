@@ -38,10 +38,11 @@ export default function Home() {
   const navigate = useNavigate();
   const { user, balance, streak, completeTask, tasksCompleted, referrals, updateCheckIn } = useApp();
 
-  const [activeTab,    setActiveTab]    = useState('home');
-  const [showWithdraw, setShowWithdraw] = useState(false);
-  const [showClaimed,  setShowClaimed]  = useState(false);
-  const [countdown,    setCountdown]    = useState(getSecsUntilISTMidnight());
+  const [activeTab,       setActiveTab]       = useState('home');
+  const [showWithdraw,    setShowWithdraw]    = useState(false);
+  const [showClaimed,     setShowClaimed]     = useState(false);
+  const [countdown,       setCountdown]       = useState(getSecsUntilISTMidnight());
+  const [checkInLoading,  setCheckInLoading]  = useState(false);
 
   const todayIST   = getISTDateStr();
   const checkedIn  = user?.last_checkin_date === todayIST;
@@ -64,7 +65,8 @@ export default function Home() {
   }, []);
 
   const handleCheckIn = async () => {
-    if (checkedIn) return;
+    if (checkedIn || checkInLoading) return;
+    setCheckInLoading(true);
     const broken      = isStreakBroken();
     const newStreak   = broken ? 1 : streak + 1;
     const rewardDay   = (newStreak - 1) % 7;
@@ -72,6 +74,7 @@ export default function Home() {
     const totalDays   = (user?.total_checkins || 0) + 1;
 
     await updateCheckIn(newStreak, totalDays, todayIST, coinsEarned);
+    setCheckInLoading(false);
     setShowClaimed(coinsEarned);
     setTimeout(() => setShowClaimed(false), 2500);
   };
@@ -217,9 +220,16 @@ export default function Home() {
                   ⚠️ Streak toot gayi — aaj se naya shuru!
                 </div>
               )}
-              <button className="ci-claim-btn" onClick={handleCheckIn}>
-                <span className="ci-btn-icon">🎁</span>
-                <span className="ci-btn-text">Aaj ka Check-in Karo</span>
+              <button
+                className="ci-claim-btn"
+                onClick={handleCheckIn}
+                disabled={checkedIn || checkInLoading}
+                style={checkInLoading ? { opacity: 0.6, cursor: 'not-allowed' } : {}}
+              >
+                <span className="ci-btn-icon">{checkInLoading ? '⏳' : '🎁'}</span>
+                <span className="ci-btn-text">
+                  {checkInLoading ? 'Save ho raha hai...' : 'Aaj ka Check-in Karo'}
+                </span>
                 <span className="ci-btn-coins">+{todayReward} 🪙</span>
               </button>
             </div>

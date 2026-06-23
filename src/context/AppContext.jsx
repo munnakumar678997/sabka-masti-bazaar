@@ -68,6 +68,14 @@ export function AppProvider({ children }) {
     const newBalance = balance + coinsEarned;
     setBalance(newBalance);
     setStreak(newStreak);
+    // Local user state bhi turant update karo — button dobara na chale
+    setUser(prev => prev ? {
+      ...prev,
+      balance:           newBalance,
+      streak:            newStreak,
+      total_checkins:    totalDays,
+      last_checkin_date: lastDate,
+    } : prev);
     if (user) {
       await supabase
         .from('users')

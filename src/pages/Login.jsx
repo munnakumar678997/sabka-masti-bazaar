@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
+import { supabase } from '../lib/supabase';
 
 const BOT_USERNAME = 'SabkaMastiBazaar_Bot';
 
@@ -127,16 +128,19 @@ const S = {
 };
 
 export default function Login() {
-  const navigate   = useNavigate();
-  const widgetRef  = useRef(null);
-  const { loadUser, loading } = useApp();
+  const navigate             = useNavigate();
+  const widgetRef            = useRef(null);
+  const { loadUser }         = useApp();
 
-  const [isMiniApp, setIsMiniApp] = useState(false);
-  const [tgUser,    setTgUser]    = useState(null);
-  const [btnLoading, setBtnLoading] = useState(false);
+  const [isMiniApp,   setIsMiniApp]   = useState(false);
+  const [tgUser,      setTgUser]      = useState(null);
+  const [btnLoading,  setBtnLoading]  = useState(false);
+  const [autoLogging, setAutoLogging] = useState(false);
 
   useEffect(() => {
     const tg = window.Telegram?.WebApp;
+
+    // ── MINI APP: Auto-detect + Auto-login ──
     if (tg && tg.initData && tg.initData.length > 0) {
       tg.ready();
       tg.expand();
@@ -144,17 +148,63 @@ export default function Login() {
       tg.setBackgroundColor('#1a1a2e');
       const user = tg.initDataUnsafe?.user;
       if (user) {
-        setIsMiniApp(true);
-        setTgUser({
+        const tgData = {
           id:        user.id,
           name:      `${user.first_name} ${user.last_name || ''}`.trim(),
           username:  user.username || null,
           photo_url: user.photo_url || null,
-        });
+        };
+        setIsMiniApp(true);
+        setTgUser(tgData);
+
+        // Check karo — existing user hai? Agar hai toh seedha home bhejo
+        setAutoLogging(true);
+        supabase
+          .from('users')
+          .select('id')
+          .eq('id', tgData.id)
+          .maybeSingle()
+          .then(async ({ data }) => {
+            if (data) {
+              // Existing user — seedha load karke home bhejo
+              await loadUser(tgData);
+              navigate('/home');
+            } else {
+              // Naya user — button dikhao
+              setAutoLogging(false);
+            }
+          });
         return;
       }
     }
 
+    // ── WEB: Pehle localStorage check karo ──
+    const savedId = localStorage.getItem('smb_tg_id');
+    if (savedId) {
+      setAutoLogging(true);
+      supabase
+        .from('users')
+        .select('*')
+        .eq('id', parseInt(savedId))
+        .maybeSingle()
+        .then(async ({ data }) => {
+          if (data) {
+            await loadUser({
+              id:        data.id,
+              name:      data.name,
+              username:  data.username,
+              photo_url: data.photo_url,
+            });
+            navigate('/home');
+          } else {
+            localStorage.removeItem('smb_tg_id');
+            setAutoLogging(false);
+          }
+        });
+      return;
+    }
+
+    // ── WEB: Telegram widget dikhao ──
     window.onTelegramAuth = (user) => {
       setTgUser({
         id:        user.id,
@@ -181,18 +231,20 @@ export default function Login() {
   }, []);
 
   const handleCreateAccount = async () => {
-    if (!tgUser) return;
+    if (!tgUser || btnLoading) return;
     setBtnLoading(true);
     await loadUser(tgUser);
+    // Web ke liye localStorage mein save karo
+    localStorage.setItem('smb_tg_id', String(tgUser.id));
     navigate('/home');
   };
 
-  const handleJoinNow = () => {
+  const handleJoinNow = async () => {
     const tg = window.Telegram?.WebApp;
-    if (!tg) return;
+    if (!tg || btnLoading) return;
     setBtnLoading(true);
-    tg.requestContact(async (accepted, contact) => {
-      if (accepted && contact) {
+    tg.requestContact(async (accepted) => {
+      if (accepted) {
         await loadUser(tgUser);
         navigate('/home');
       } else {
@@ -200,6 +252,19 @@ export default function Login() {
       }
     });
   };
+
+  // Auto-login loading screen
+  if (autoLogging) {
+    return (
+      <div style={{ ...S.page, gap: 16 }}>
+        <div style={S.appLogo}>🎪</div>
+        <div style={S.appName}>Sabka Masti Bazaar</div>
+        <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.5)', marginTop: 8 }}>
+          ⏳ Account detect ho raha hai...
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={S.page}>
@@ -227,7 +292,7 @@ export default function Login() {
       </div>
 
       <div style={S.middleSection}>
-        {isMiniApp && tgUser && (
+        {tgUser && (
           <div style={S.userCard}>
             <div style={S.userAvatar}>
               {tgUser.photo_url
@@ -242,75 +307,45 @@ export default function Login() {
           </div>
         )}
 
-        {!isMiniApp && (
-          <>
-            {tgUser ? (
-              <div style={S.userCard}>
-                <div style={S.userAvatar}>
-                  {tgUser.photo_url
-                    ? <img src={tgUser.photo_url} alt="dp"
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    : tgUser.name?.charAt(0).toUpperCase()}
+        {!isMiniApp && !tgUser && (
+          <div style={S.webLoginBox}>
+            <div style={S.tgCircle}>✈️</div>
+            <div style={S.webTitle}>Telegram se Login karo</div>
+            <div style={S.webDesc}>
+              Sirf ek click! Koi password nahi, koi OTP nahi! ⚡
+            </div>
+            <div style={S.stepsBox}>
+              {[
+                ['1', 'Neeche ka Telegram button dabao'],
+                ['2', 'Telegram pe "Confirm" dabao'],
+                ['3', 'Account automatically ban jaayega! 🎉'],
+              ].map(([num, text]) => (
+                <div key={num} style={S.stepRow}>
+                  <div style={S.stepNum}>{num}</div>
+                  <div style={S.stepText}>{text}</div>
                 </div>
-                <div style={S.userName}>{tgUser.name}</div>
-                {tgUser.username && <div style={S.userHandle}>@{tgUser.username}</div>}
-                <div style={S.userId}>Telegram ID: {tgUser.id}</div>
-                <div style={S.detectedBadge}>✅ Telegram se verified!</div>
-              </div>
-            ) : (
-              <div style={S.webLoginBox}>
-                <div style={S.tgCircle}>✈️</div>
-                <div style={S.webTitle}>Telegram se Login karo</div>
-                <div style={S.webDesc}>
-                  Sirf ek click! Telegram pe "Confirm" dabao —
-                  naam, username aur photo automatic aa jaayega. Koi password nahi! ⚡
-                </div>
-                <div style={S.stepsBox}>
-                  {[
-                    ['1', 'Neeche ka Telegram button dabao'],
-                    ['2', 'Telegram pe notification aayega — "Confirm" dabao'],
-                    ['3', 'Tumhara account automatically ban jaayega! 🎉'],
-                  ].map(([num, text]) => (
-                    <div key={num} style={S.stepRow}>
-                      <div style={S.stepNum}>{num}</div>
-                      <div style={S.stepText}>{text}</div>
-                    </div>
-                  ))}
-                </div>
-                <div style={S.widgetWrap} ref={widgetRef} />
-              </div>
-            )}
-          </>
+              ))}
+            </div>
+            <div style={S.widgetWrap} ref={widgetRef} />
+          </div>
         )}
       </div>
 
       <div style={S.bottomSection}>
-        {isMiniApp && tgUser && (
+        {tgUser && (
           <>
-            {btnLoading || loading ? (
+            {btnLoading ? (
               <div style={S.savingText}>⏳ Account save ho raha hai...</div>
             ) : (
-              <button style={S.createBtn} onClick={handleJoinNow}>
+              <button style={S.createBtn}
+                onClick={isMiniApp ? handleJoinNow : handleCreateAccount}>
                 🚀 Create New Account
               </button>
             )}
             <div style={S.termsText}>
-              Apna Telegram number share karke account banao — 100% free!
-            </div>
-          </>
-        )}
-
-        {!isMiniApp && tgUser && (
-          <>
-            {btnLoading || loading ? (
-              <div style={S.savingText}>⏳ Account save ho raha hai...</div>
-            ) : (
-              <button style={S.createBtn} onClick={handleCreateAccount}>
-                🚀 Create New Account
-              </button>
-            )}
-            <div style={S.termsText}>
-              Telegram verified — tumhara account ready hai! 🎉
+              {isMiniApp
+                ? 'Apna Telegram number share karke account banao — 100% free!'
+                : 'Telegram verified — tumhara account ready hai! 🎉'}
             </div>
           </>
         )}
