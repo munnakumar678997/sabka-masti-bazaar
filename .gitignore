@@ -1,0 +1,7 @@
+node_modules/
+dist/
+.env
+*.local
+zipFile.zip
+attached_assets/
+.replit
