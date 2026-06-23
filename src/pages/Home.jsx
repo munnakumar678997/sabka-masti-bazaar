@@ -165,6 +165,7 @@ export default function Home() {
       <div className="bottom-nav">
         {[
           { key: 'home',    icon: '🏠', label: 'Home',    path: '/home'    },
+          { key: 'games',   icon: '🎮', label: 'Games',   path: '/games'   },
           { key: 'store',   icon: '🛒', label: 'Store',   path: '/store'   },
           { key: 'wallet',  icon: '💰', label: 'Wallet',  path: '/wallet'  },
           { key: 'profile', icon: '👤', label: 'Profile', path: '/profile' },
@@ -172,7 +173,7 @@ export default function Home() {
           <button
             key={tab.key}
             className={`nav-tab ${activeTab === tab.key ? 'active' : ''}`}
-            onClick={() => { setActiveTab(tab.key); if (tab.path) navigate(tab.path); }}
+            onClick={() => { setActiveTab(tab.key); navigate(tab.path); }}
           >
             <span className="nav-icon">{tab.icon}</span>
             <span className="nav-label">{tab.label}</span>

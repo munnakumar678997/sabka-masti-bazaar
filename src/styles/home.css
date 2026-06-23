@@ -240,11 +240,10 @@
   background: none; border: none; cursor: pointer;
   padding: 4px 0;
 }
-.nav-icon  { font-size: 22px; transition: transform 0.15s; }
-.nav-label { font-size: 10px; color: rgba(255,255,255,0.35); font-weight: 600; letter-spacing: 0.3px; }
-.nav-tab.active .nav-icon  { transform: scale(1.15); }
-.nav-tab.active .nav-label { color: #7b2ff7; }
-.nav-tab.active .nav-icon  { filter: drop-shadow(0 0 6px rgba(123,47,247,0.7)); }
+.nav-icon  { font-size: 19px; transition: transform 0.15s; }
+.nav-label { font-size: 9px; color: rgba(255,255,255,0.35); font-weight: 700; letter-spacing: 0.2px; }
+.nav-tab.active .nav-icon  { transform: scale(1.15); filter: drop-shadow(0 0 6px rgba(255,106,0,0.7)); }
+.nav-tab.active .nav-label { color: #ff6a00; }
 
 /* ── NOTIFICATION PANEL ── */
 .notif-overlay {

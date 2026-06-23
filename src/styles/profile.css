@@ -152,13 +152,13 @@
   flex-shrink: 0;
 }
 .profile-nav-tab {
-  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
   background: none; border: none; color: rgba(255,255,255,0.4);
-  font-size: 20px; cursor: pointer; padding: 4px 16px;
-  transition: color 0.2s;
+  font-size: 19px; cursor: pointer; padding: 3px 8px;
+  flex: 1; transition: color 0.2s;
 }
 .profile-nav-tab.active { color: #ff6a00; }
-.profile-nav-label { font-size: 10px; font-weight: 700; }
+.profile-nav-label { font-size: 9px; font-weight: 700; }
 
 /* ── MODAL ── */
 .profile-overlay {

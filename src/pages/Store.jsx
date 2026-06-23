@@ -280,6 +280,7 @@ export default function Store() {
 
   const navTabs = [
     { key: 'home',    icon: '🏠', label: 'Home',    path: '/home'    },
+    { key: 'games',   icon: '🎮', label: 'Games',   path: '/games'   },
     { key: 'store',   icon: '🛒', label: 'Store',   path: '/store'   },
     { key: 'wallet',  icon: '💰', label: 'Wallet',  path: '/wallet'  },
     { key: 'profile', icon: '👤', label: 'Profile', path: '/profile' },

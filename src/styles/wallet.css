@@ -137,12 +137,13 @@
   border-top: 1px solid rgba(255,255,255,0.08); flex-shrink: 0;
 }
 .wallet-nav-tab {
-  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
   background: none; border: none; color: rgba(255,255,255,0.4);
-  font-size: 20px; cursor: pointer; padding: 4px 16px;
+  font-size: 19px; cursor: pointer; padding: 3px 8px;
+  flex: 1;
 }
 .wallet-nav-tab.active { color: #ff6a00; }
-.wallet-nav-label { font-size: 10px; font-weight: 700; }
+.wallet-nav-label { font-size: 9px; font-weight: 700; }
 
 .wallet-toast {
   position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%);
