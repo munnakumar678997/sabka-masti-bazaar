@@ -24,18 +24,19 @@ const S = {
 
   topSection: {
     width: '100%', display: 'flex', flexDirection: 'column',
-    alignItems: 'center', paddingTop: 32,
+    alignItems: 'center', paddingTop: 0,
   },
   appLogo: {
-    width: 62, height: 62, background: 'rgba(255,255,255,0.08)',
-    borderRadius: 18, display: 'flex', alignItems: 'center',
-    justifyContent: 'center', fontSize: 30,
-    border: '2px solid rgba(255,255,255,0.12)', marginBottom: 8,
+    width: 90, height: 90, background: 'rgba(255,255,255,0.1)',
+    borderRadius: 26, display: 'flex', alignItems: 'center',
+    justifyContent: 'center', fontSize: 46,
+    border: '2.5px solid rgba(255,255,255,0.18)', marginBottom: 14,
+    boxShadow: '0 8px 30px rgba(0,0,0,0.25)',
   },
-  appName: { fontSize: 19, fontWeight: 800, color: '#fff', letterSpacing: 0.3 },
+  appName: { fontSize: 26, fontWeight: 800, color: '#fff', letterSpacing: 0.4 },
   appTagline: {
-    fontSize: 10, color: 'rgba(255,255,255,0.45)',
-    letterSpacing: 2, textTransform: 'uppercase', marginTop: 4,
+    fontSize: 12, color: 'rgba(255,255,255,0.5)',
+    letterSpacing: 2.5, textTransform: 'uppercase', marginTop: 6,
   },
 
   middleSection: {
