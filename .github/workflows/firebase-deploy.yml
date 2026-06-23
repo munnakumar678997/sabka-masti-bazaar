@@ -12,25 +12,25 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: 📥 Code checkout karo
+      - name: "📥 Code checkout karo"
         uses: actions/checkout@v4
 
-      - name: ⚙️ Node.js setup karo
+      - name: "⚙️ Node.js setup karo"
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
+          node-version: "20"
+          cache: npm
 
-      - name: 📦 Dependencies install karo
+      - name: "📦 Dependencies install karo"
         run: npm ci
 
-      - name: 🔨 React app build karo
+      - name: "🔧 React app build karo"
         run: npm run build
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
 
-      - name: 🔥 Firebase pe deploy karo
+      - name: "🔥 Firebase pe deploy karo"
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
