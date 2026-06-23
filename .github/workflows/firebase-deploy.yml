@@ -21,15 +21,8 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Debug - check vite exists
-        run: |
-          echo "Node: $(node --version)"
-          echo "NPM: $(npm --version)"
-          ls node_modules/.bin/vite || echo "vite binary NOT found"
-          cat package.json | grep vite || echo "vite not in package.json"
-
       - name: Build
-        run: node node_modules/vite/bin/vite.js build
+        run: npm run build
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
