@@ -183,7 +183,7 @@ function Toast({ msg, onClose }) {
 
 export default function Store() {
   const navigate = useNavigate();
-  const { balance, deductCoins } = useApp();
+  const { balance, deductCoins, user } = useApp();
 
   const [activeTab,      setActiveTab]      = useState('store');
   const [openProduct,    setOpenProduct]    = useState(null);
@@ -191,7 +191,6 @@ export default function Store() {
   const [selectedPlan,   setSelectedPlan]   = useState(null);
   const [qty,            setQty]            = useState(1);
   const [confirmPending, setConfirmPending] = useState(false);
-  const [linkOpened,     setLinkOpened]     = useState(false);
   const [toast,          setToast]          = useState('');
 
   const showToast = (msg) => {
@@ -206,7 +205,6 @@ export default function Store() {
     setSelectedPlan(null);
     setQty(1);
     setConfirmPending(false);
-    setLinkOpened(false);
   };
 
   const closeModal = () => {
@@ -214,7 +212,6 @@ export default function Store() {
     setSelectedPlan(null);
     setQty(1);
     setConfirmPending(false);
-    setLinkOpened(false);
   };
 
   const handleTypeChange = (type) => {
@@ -241,6 +238,14 @@ export default function Store() {
   };
 
   const handleConfirmOrder = () => {
+    // User info for Telegram message
+    const userName   = user?.name     || 'Unknown';
+    const userHandle = user?.username ? `@${user.username}` : 'No username';
+    const userId     = user?.id       || 'Unknown';
+    const replyLink  = user?.username
+      ? `https://t.me/${user.username}`
+      : `tg://user?id=${userId}`;
+
     const tgMsg = encodeURIComponent(
       `🛒 NEW ORDER\n\n` +
       `Product: ${openProduct.name}\n` +
@@ -248,21 +253,27 @@ export default function Store() {
       `Plan: ${currentPlan.label}\n` +
       `Qty: ${qty}\n` +
       `Total: ₹${total}\n` +
-      `Coins to Deduct: ${coinsRequired.toLocaleString()}\n\n` +
-      `— BY MUNNA AGENT`
+      `Coins Deducted: ${coinsRequired.toLocaleString()}\n\n` +
+      `👤 ORDER BY:\n` +
+      `Name: ${userName}\n` +
+      `Username: ${userHandle}\n` +
+      `Telegram ID: ${userId}\n` +
+      `Reply Link: ${replyLink}\n\n` +
+      `— SABKA MASTI BAZAAR`
     );
+
     const url = `https://t.me/${TELEGRAM_AGENT}?text=${tgMsg}`;
+
+    // Coins pehle deduct karo — phir Telegram kholo
+    deductCoins(coinsRequired);
+
     if (window.Telegram?.WebApp?.openLink) {
       window.Telegram.WebApp.openLink(url);
     } else {
       window.open(url, '_blank');
     }
-    setConfirmPending(false);
-    setLinkOpened(true);
-  };
 
-  const handleFinalConfirm = () => {
-    deductCoins(coinsRequired);
+    setConfirmPending(false);
     showToast(`✅ ${coinsRequired.toLocaleString()} coins deduct ho gaye! Order process ho raha hai...`);
     closeModal();
   };
@@ -567,30 +578,6 @@ export default function Store() {
             </div>
           )}
 
-          {/* Step 2 — Did you send? */}
-          {linkOpened && currentPlan && (
-            <div className="confirm-overlay">
-              <div className="confirm-box" style={{ border: '1.5px solid #22c55e66', boxShadow: '0 8px 40px #22c55e22' }}>
-                <div className="confirm-emoji">📲</div>
-                <div className="confirm-title">Order Bhej Diya?</div>
-                <div className="confirm-sub">Telegram pe message bhej diya toh "Haan, Bheja" dabao — tabhi coins deduct honge.</div>
-                <div className="confirm-deduct-box" style={{ border: '1px solid #22c55e33' }}>
-                  <div className="confirm-deduct-lbl">DEDUCT HOGA</div>
-                  <div className="confirm-deduct-coins" style={{ color: '#22c55e' }}>
-                    🪙 {coinsRequired.toLocaleString()} coins
-                  </div>
-                </div>
-                <div className="confirm-btns">
-                  <button className="confirm-cancel-btn" onClick={() => setLinkOpened(false)}>Nahi Bheja</button>
-                  <button
-                    className="confirm-go-btn"
-                    style={{ background: 'linear-gradient(135deg, #22c55e, #16a34a)', boxShadow: '0 4px 16px #22c55e44' }}
-                    onClick={handleFinalConfirm}
-                  >✅ Haan, Bheja!</button>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       )}
 
