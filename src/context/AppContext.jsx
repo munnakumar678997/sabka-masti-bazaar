@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState } from 'react';
 import { supabase } from '../lib/supabase';
 
 const AppContext = createContext(null);
@@ -11,25 +11,66 @@ export function AppProvider({ children }) {
   const [streak,         setStreak]         = useState(0);
   const [loading,        setLoading]        = useState(false);
 
+  // ─────────────────────────────────────────────
+  // loadUser — naye user ko INSERT, purane ko sirf SELECT
+  // Ek baar bhi double save nahi hoga
+  // ─────────────────────────────────────────────
   const loadUser = async (tgUser) => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      // Step 1: Pehle check karo — user already hai kya?
+      const { data: existing, error: fetchErr } = await supabase
         .from('users')
-        .upsert({
-          id:         tgUser.id,
-          name:       tgUser.name,
-          username:   tgUser.username || null,
-          photo_url:  tgUser.photo_url || null,
-        }, { onConflict: 'id' })
-        .select()
-        .single();
+        .select('*')
+        .eq('id', tgUser.id)
+        .maybeSingle();
 
-      if (error) throw error;
+      if (fetchErr) throw fetchErr;
 
-      setUser(data);
-      setBalance(data.balance || 0);
-      setStreak(data.streak || 0);
+      if (existing) {
+        // ── Purana user: sirf profile info update karo (naam/photo) ──
+        // Balance, streak, check-in date — kuch nahi chhedo
+        const { data: updated, error: updateErr } = await supabase
+          .from('users')
+          .update({
+            name:      tgUser.name,
+            username:  tgUser.username  || null,
+            photo_url: tgUser.photo_url || null,
+          })
+          .eq('id', existing.id)
+          .select()
+          .single();
+
+        if (updateErr) throw updateErr;
+
+        setUser(updated);
+        setBalance(updated.balance || 0);
+        setStreak(updated.streak   || 0);
+
+      } else {
+        // ── Naya user: pehli baar INSERT karo ──
+        const { data: inserted, error: insertErr } = await supabase
+          .from('users')
+          .insert({
+            id:        tgUser.id,
+            name:      tgUser.name,
+            username:  tgUser.username  || null,
+            photo_url: tgUser.photo_url || null,
+            balance:   0,
+            streak:    0,
+            total_checkins:    0,
+            last_checkin_date: null,
+          })
+          .select()
+          .single();
+
+        if (insertErr) throw insertErr;
+
+        setUser(inserted);
+        setBalance(0);
+        setStreak(0);
+      }
+
     } catch (err) {
       console.error('Supabase user load error:', err);
     } finally {
@@ -37,9 +78,13 @@ export function AppProvider({ children }) {
     }
   };
 
+  // ─────────────────────────────────────────────
+  // addCoins — balance badhaao + Supabase sync
+  // ─────────────────────────────────────────────
   const addCoins = async (amount) => {
     const newBalance = balance + amount;
     setBalance(newBalance);
+    setUser(prev => prev ? { ...prev, balance: newBalance } : prev);
     if (user) {
       await supabase
         .from('users')
@@ -48,9 +93,13 @@ export function AppProvider({ children }) {
     }
   };
 
+  // ─────────────────────────────────────────────
+  // deductCoins — coins kaato + Supabase sync
+  // ─────────────────────────────────────────────
   const deductCoins = async (amount) => {
     const newBalance = Math.max(0, balance - amount);
     setBalance(newBalance);
+    setUser(prev => prev ? { ...prev, balance: newBalance } : prev);
     if (user) {
       await supabase
         .from('users')
@@ -59,16 +108,23 @@ export function AppProvider({ children }) {
     }
   };
 
+  // ─────────────────────────────────────────────
+  // completeTask — task karo + coins lo
+  // ─────────────────────────────────────────────
   const completeTask = (coins) => {
     addCoins(coins);
     setTasksCompleted(t => t + 1);
   };
 
+  // ─────────────────────────────────────────────
+  // updateCheckIn — ek din mein ek baar, Supabase mein save
+  // ─────────────────────────────────────────────
   const updateCheckIn = async (newStreak, totalDays, lastDate, coinsEarned) => {
     const newBalance = balance + coinsEarned;
+
+    // Turant local state update karo — button foran disable ho jaaye
     setBalance(newBalance);
     setStreak(newStreak);
-    // Local user state bhi turant update karo — button dobara na chale
     setUser(prev => prev ? {
       ...prev,
       balance:           newBalance,
@@ -76,6 +132,8 @@ export function AppProvider({ children }) {
       total_checkins:    totalDays,
       last_checkin_date: lastDate,
     } : prev);
+
+    // Supabase mein save karo
     if (user) {
       await supabase
         .from('users')
