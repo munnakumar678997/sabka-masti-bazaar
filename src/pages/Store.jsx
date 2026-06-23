@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useApp } from '../context/AppContext';
 import '../styles/store.css';
 
 const TELEGRAM_AGENT = 'Munnapm70045';
@@ -172,46 +173,6 @@ const PRODUCTS = [
   },
 ];
 
-function CoinCalculator({ balance }) {
-  const [inrInput, setInrInput] = useState('');
-  const coinsNeeded = inrInput ? Math.ceil(parseFloat(inrInput) * 100) : 0;
-  const canAfford   = coinsNeeded > 0 && balance >= coinsNeeded;
-  const deficit     = coinsNeeded > 0 ? Math.max(0, coinsNeeded - balance) : 0;
-
-  return (
-    <div className="calc-box">
-      <div className="calc-title">🧮 Coin Calculator</div>
-      <div className="calc-row">
-        <div className="calc-input-wrap">
-          <span className="calc-rupee">₹</span>
-          <input
-            type="number"
-            value={inrInput}
-            onChange={e => setInrInput(e.target.value)}
-            placeholder="INR daalo"
-            className="calc-input"
-          />
-        </div>
-        <div className="calc-eq">=</div>
-        <div className="calc-coins-wrap">
-          <span>🪙</span>
-          <span className="calc-coins-val" style={{ color: coinsNeeded > 0 ? '#ffd700' : '#3a5a80' }}>
-            {coinsNeeded > 0 ? coinsNeeded.toLocaleString() : '—'}
-          </span>
-        </div>
-      </div>
-      {coinsNeeded > 0 && (
-        <div className="calc-status">
-          {canAfford
-            ? <span className="calc-ok">✅ Tere paas kaafi coins hain!</span>
-            : <span className="calc-warn">⚠️ {deficit.toLocaleString()} coins aur chahiye</span>
-          }
-        </div>
-      )}
-    </div>
-  );
-}
-
 function Toast({ msg, onClose }) {
   return (
     <div className="toast-box" onClick={onClose}>
@@ -222,16 +183,16 @@ function Toast({ msg, onClose }) {
 
 export default function Store() {
   const navigate = useNavigate();
-  const [balance] = useState(0);
-  const [activeTab, setActiveTab] = useState('store');
+  const { balance, deductCoins } = useApp();
 
-  const [openProduct,     setOpenProduct]     = useState(null);
-  const [activeType,      setActiveType]      = useState(null);
-  const [selectedPlan,    setSelectedPlan]    = useState(null);
-  const [qty,             setQty]             = useState(1);
-  const [confirmPending,  setConfirmPending]  = useState(false);
-  const [linkOpened,      setLinkOpened]      = useState(false);
-  const [toast,           setToast]           = useState('');
+  const [activeTab,      setActiveTab]      = useState('store');
+  const [openProduct,    setOpenProduct]    = useState(null);
+  const [activeType,     setActiveType]     = useState(null);
+  const [selectedPlan,   setSelectedPlan]   = useState(null);
+  const [qty,            setQty]            = useState(1);
+  const [confirmPending, setConfirmPending] = useState(false);
+  const [linkOpened,     setLinkOpened]     = useState(false);
+  const [toast,          setToast]          = useState('');
 
   const showToast = (msg) => {
     setToast(msg);
@@ -301,15 +262,16 @@ export default function Store() {
   };
 
   const handleFinalConfirm = () => {
-    showToast('⏳ Order process ho raha hai... Agent se confirm karo!');
+    deductCoins(coinsRequired);
+    showToast(`✅ ${coinsRequired.toLocaleString()} coins deduct ho gaye! Order process ho raha hai...`);
     closeModal();
   };
 
   const navTabs = [
-    { key: 'home',  icon: '🏠', label: 'Home',  path: '/home'  },
-    { key: 'store', icon: '🛒', label: 'Store',  path: '/store' },
-    { key: 'wallet',icon: '💰', label: 'Wallet', path: null     },
-    { key: 'profile',icon:'👤', label: 'Profile',path: null     },
+    { key: 'home',   icon: '🏠', label: 'Home',    path: '/home'  },
+    { key: 'store',  icon: '🛒', label: 'Store',   path: '/store' },
+    { key: 'wallet', icon: '💰', label: 'Wallet',  path: null     },
+    { key: 'profile',icon: '👤', label: 'Profile', path: null     },
   ];
 
   return (
@@ -329,8 +291,6 @@ export default function Store() {
         <div className="store-sub">
           {PRODUCTS.length} PRODUCTS · TAP TO ORDER
         </div>
-
-        <CoinCalculator balance={balance} />
 
         {/* ── PRODUCT GRID ── */}
         <div className="product-grid">
@@ -420,7 +380,6 @@ export default function Store() {
       {openProduct && (
         <div className="modal-page" style={{ background: '#0d1117' }}>
 
-          {/* Sticky Header */}
           <div className="modal-header" style={{ borderBottom: `1px solid ${effectiveColor}33` }}>
             <div
               className="modal-product-icon"
@@ -437,10 +396,8 @@ export default function Store() {
             <button className="modal-close-btn" onClick={closeModal}>✕</button>
           </div>
 
-          {/* Scrollable */}
           <div className="modal-scroll">
 
-            {/* Type Tabs */}
             {typeKeys.length > 1 && (
               <div className="modal-section">
                 <div className="modal-section-label">DEVICE TYPE</div>
@@ -460,7 +417,6 @@ export default function Store() {
               </div>
             )}
 
-            {/* Plans */}
             <div className="modal-section">
               <div className="modal-section-label">PLAN CHUNNO</div>
               <div className="plans-list">
@@ -582,7 +538,7 @@ export default function Store() {
             </button>
           </div>
 
-          {/* Confirm Step 1 */}
+          {/* Step 1 — Confirm */}
           {confirmPending && currentPlan && (
             <div className="confirm-overlay">
               <div className="confirm-box" style={{ border: `1.5px solid ${effectiveColor}66`, boxShadow: `0 8px 40px ${effectiveColor}33` }}>
@@ -598,7 +554,7 @@ export default function Store() {
                     Baaki bachega: {Math.max(0, balance - coinsRequired).toLocaleString()} coins
                   </div>
                 </div>
-                <div className="confirm-note">⚠️ Coins tabhi deduct honge jab tum order bhejne ki confirm karoge</div>
+                <div className="confirm-note">⚠️ Coins tabhi deduct honge jab tum Telegram pe order bhejne ki confirm karoge</div>
                 <div className="confirm-btns">
                   <button className="confirm-cancel-btn" onClick={() => setConfirmPending(false)}>Cancel</button>
                   <button
@@ -611,7 +567,7 @@ export default function Store() {
             </div>
           )}
 
-          {/* Confirm Step 2 */}
+          {/* Step 2 — Did you send? */}
           {linkOpened && currentPlan && (
             <div className="confirm-overlay">
               <div className="confirm-box" style={{ border: '1.5px solid #22c55e66', boxShadow: '0 8px 40px #22c55e22' }}>
