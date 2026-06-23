@@ -13,6 +13,14 @@ const TASKS = [
 
 const DAY_REWARDS = [10, 15, 25, 35, 50, 75, 100];
 
+const NOTIFICATIONS = [
+  { id: 1, icon: '🎁', title: 'Check-in Bonus Mila!',     desc: '+25 coins tumhare wallet mein aa gaye.',     time: '2 min pehle', unread: true  },
+  { id: 2, icon: '🔥', title: 'Streak 5 din ka!',          desc: 'Waah! 5 din ki streak maintain kar li.',     time: '1 ghante pehle', unread: true },
+  { id: 3, icon: '💸', title: 'Withdrawal Process Ho Raha', desc: 'Tumhara ₹50 ka withdrawal process mein hai.', time: 'Kal',           unread: false },
+  { id: 4, icon: '👥', title: 'Naya Referral!',             desc: 'Ek dost ne tumhare link se join kiya!',      time: '2 din pehle',   unread: false },
+  { id: 5, icon: '📢', title: 'Naya Task Available',        desc: 'Video dekho aur 5 coins kamao — abhi karo!', time: '3 din pehle',   unread: false },
+];
+
 function getISTDateStr() {
   const now   = new Date();
   const istMs = now.getTime() + 5.5 * 60 * 60 * 1000;
@@ -43,6 +51,10 @@ export default function Home() {
   const [showClaimed,     setShowClaimed]     = useState(false);
   const [countdown,       setCountdown]       = useState(getSecsUntilISTMidnight());
   const [checkInLoading,  setCheckInLoading]  = useState(false);
+  const [showNotif,       setShowNotif]       = useState(false);
+  const [notifs,          setNotifs]          = useState(NOTIFICATIONS);
+
+  const unreadCount = notifs.filter(n => n.unread).length;
 
   const todayIST   = getISTDateStr();
   const checkedIn  = user?.last_checkin_date === todayIST;
@@ -79,6 +91,10 @@ export default function Home() {
     setTimeout(() => setShowClaimed(false), 2500);
   };
 
+  const markAllRead = () => {
+    setNotifs(prev => prev.map(n => ({ ...n, unread: false })));
+  };
+
   const gridDays = DAY_REWARDS.map((reward, i) => {
     const streakPos = checkedIn ? streak : streak + 1;
     const cyclePos  = ((streakPos - 1) % 7) + 1;
@@ -104,6 +120,7 @@ export default function Home() {
         </div>
       )}
 
+      {/* ── TOPBAR ── */}
       <div className="home-topbar">
         <div className="topbar-left">
           <div className="topbar-avatar">
@@ -112,14 +129,15 @@ export default function Home() {
                   style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
               : avatarLetter}
           </div>
-          <div>
-            <div className="topbar-hello">Namaste! 👋</div>
-            <div className="topbar-name">{displayName}</div>
-          </div>
+          <div className="topbar-name">{displayName}</div>
         </div>
         <div className="topbar-right">
-          <div className="topbar-notif">🔔</div>
-          <div className="topbar-settings">⚙️</div>
+          <div className="topbar-notif-btn" onClick={() => setShowNotif(true)}>
+            <span className="notif-bell">🔔</span>
+            {unreadCount > 0 && (
+              <span className="notif-badge">{unreadCount}</span>
+            )}
+          </div>
         </div>
       </div>
 
@@ -191,13 +209,6 @@ export default function Home() {
 
           {checkedIn ? (
             <div className="ci-done-section">
-              <div className="ci-done-top">
-                <div className="ci-done-icon">✅</div>
-                <div>
-                  <div className="ci-done-title">Aaj ka Check-in Complete!</div>
-                  <div className="ci-done-sub">Kal raat 12 baje phir aana 🇮🇳</div>
-                </div>
-              </div>
               <div className="ci-countdown-box">
                 <div className="ci-countdown-lbl">⏰ Next check-in mein bacha</div>
                 <div className="ci-countdown-timer">{fmtCountdown(countdown)}</div>
@@ -270,6 +281,7 @@ export default function Home() {
         <div style={{ height: 90 }} />
       </div>
 
+      {/* ── BOTTOM NAV ── */}
       <div className="bottom-nav">
         {[
           { key: 'home',    icon: '🏠', label: 'Home',    path: null     },
@@ -288,6 +300,44 @@ export default function Home() {
         ))}
       </div>
 
+      {/* ── NOTIFICATION PANEL ── */}
+      {showNotif && (
+        <div className="notif-overlay" onClick={() => setShowNotif(false)}>
+          <div className="notif-panel" onClick={e => e.stopPropagation()}>
+            <div className="notif-panel-header">
+              <div className="notif-panel-title">
+                <span>🔔 Notifications</span>
+                {unreadCount > 0 && <span className="notif-count-chip">{unreadCount} naye</span>}
+              </div>
+              <div className="notif-header-actions">
+                {unreadCount > 0 && (
+                  <button className="notif-mark-read" onClick={markAllRead}>Sab padha</button>
+                )}
+                <button className="notif-close" onClick={() => setShowNotif(false)}>✕</button>
+              </div>
+            </div>
+            <div className="notif-list">
+              {notifs.map(n => (
+                <div
+                  key={n.id}
+                  className={`notif-item ${n.unread ? 'notif-unread' : ''}`}
+                  onClick={() => setNotifs(prev => prev.map(x => x.id === n.id ? { ...x, unread: false } : x))}
+                >
+                  <div className="notif-item-icon">{n.icon}</div>
+                  <div className="notif-item-body">
+                    <div className="notif-item-title">{n.title}</div>
+                    <div className="notif-item-desc">{n.desc}</div>
+                    <div className="notif-item-time">{n.time}</div>
+                  </div>
+                  {n.unread && <div className="notif-dot" />}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── WITHDRAW POPUP ── */}
       {showWithdraw && (
         <div className="popup-overlay" onClick={() => setShowWithdraw(false)}>
           <div className="popup-box" onClick={e => e.stopPropagation()}>
