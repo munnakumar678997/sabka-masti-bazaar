@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Loading from './pages/Loading';
 import Login from './pages/Login';
+import Home from './pages/Home';
 import './styles/global.css';
 
 export default function App() {
@@ -11,7 +12,7 @@ export default function App() {
           <Route path="/" element={<Navigate to="/loading" replace />} />
           <Route path="/loading" element={<Loading />} />
           <Route path="/login" element={<Login />} />
-          {/* Aage ke pages yahan add hote jayenge */}
+          <Route path="/home" element={<Home />} />
         </Routes>
       </div>
     </BrowserRouter>
