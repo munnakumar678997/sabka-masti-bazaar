@@ -1,4 +1,4 @@
-name: 🚀 Firebase Deploy — Sabka Masti Bazaar
+name: Deploy to Firebase Hosting
 
 on:
   push:
@@ -8,29 +8,29 @@ on:
 
 jobs:
   build-and-deploy:
-    name: Build & Deploy to Firebase Hosting
+    name: Build and Deploy to Firebase Hosting
     runs-on: ubuntu-latest
 
     steps:
-      - name: "📥 Code checkout karo"
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: "⚙️ Node.js setup karo"
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "20"
           cache: npm
 
-      - name: "📦 Dependencies install karo"
-        run: npm ci
+      - name: Install dependencies
+        run: npm install
 
-      - name: "🔧 React app build karo"
-        run: npm run build
+      - name: Build React app
+        run: npx vite build
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
 
-      - name: "🔥 Firebase pe deploy karo"
+      - name: Deploy to Firebase
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
