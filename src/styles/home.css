@@ -30,13 +30,6 @@
   box-shadow: 0 4px 14px rgba(238,9,121,0.35);
   flex-shrink: 0; overflow: hidden;
 }
-.topbar-name-wrap {
-  display: flex; flex-direction: column; gap: 1px;
-}
-.topbar-greeting {
-  font-size: 11px; color: rgba(255,255,255,0.45);
-  font-weight: 500; letter-spacing: 0.2px;
-}
 .topbar-name {
   font-size: 15px; font-weight: 800; color: #fff;
   letter-spacing: 0.3px;
