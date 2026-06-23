@@ -8,8 +8,9 @@ const S = {
     width: '100%', minHeight: '100dvh',
     background: 'linear-gradient(180deg, #1a1a2e 0%, #16213e 55%, #0f3460 100%)',
     display: 'flex', flexDirection: 'column',
-    alignItems: 'center', justifyContent: 'space-evenly',
-    padding: '20px 0', position: 'relative', overflow: 'hidden',
+    alignItems: 'center', justifyContent: 'center',
+    gap: 28, padding: '32px 0',
+    position: 'relative', overflow: 'hidden',
   },
   bgCircle1: {
     position: 'absolute', top: -80, right: -80,
