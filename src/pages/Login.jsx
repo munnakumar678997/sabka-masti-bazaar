@@ -8,8 +8,8 @@ const S = {
     width: '100%', minHeight: '100dvh',
     background: 'linear-gradient(180deg, #1a1a2e 0%, #16213e 55%, #0f3460 100%)',
     display: 'flex', flexDirection: 'column',
-    alignItems: 'center', justifyContent: 'space-between',
-    padding: '0 0 28px 0', position: 'relative', overflow: 'hidden',
+    alignItems: 'center', justifyContent: 'space-evenly',
+    padding: '20px 0', position: 'relative', overflow: 'hidden',
   },
   bgCircle1: {
     position: 'absolute', top: -80, right: -80,
@@ -39,9 +39,9 @@ const S = {
   },
 
   middleSection: {
-    width: '100%', flex: 1, display: 'flex',
+    width: '100%', display: 'flex',
     flexDirection: 'column', alignItems: 'center',
-    justifyContent: 'flex-start', padding: '16px 18px 12px',
+    padding: '0 18px',
   },
 
   userCard: {
@@ -114,7 +114,7 @@ const S = {
 
   bottomSection: {
     width: '100%', padding: '0 18px',
-    display: 'flex', flexDirection: 'column', gap: 8,
+    display: 'flex', flexDirection: 'column', gap: 10,
   },
   createBtn: {
     width: '100%', padding: '18px',
