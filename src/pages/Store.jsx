@@ -279,10 +279,10 @@ export default function Store() {
   };
 
   const navTabs = [
-    { key: 'home',   icon: '🏠', label: 'Home',    path: '/home'  },
-    { key: 'store',  icon: '🛒', label: 'Store',   path: '/store' },
-    { key: 'wallet', icon: '💰', label: 'Wallet',  path: null     },
-    { key: 'profile',icon: '👤', label: 'Profile', path: null     },
+    { key: 'home',    icon: '🏠', label: 'Home',    path: '/home'    },
+    { key: 'store',   icon: '🛒', label: 'Store',   path: '/store'   },
+    { key: 'wallet',  icon: '💰', label: 'Wallet',  path: '/wallet'  },
+    { key: 'profile', icon: '👤', label: 'Profile', path: '/profile' },
   ];
 
   return (

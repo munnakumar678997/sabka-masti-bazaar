@@ -188,6 +188,25 @@
 .task-claim-btn:active { transform: scale(0.93); }
 .task-coins { font-size: 12px; font-weight: 800; color: #fff; white-space: nowrap; }
 
+/* ── GAMES BANNER ── */
+.games-banner {
+  background: linear-gradient(135deg, #1a0a2e, #0a1a3e);
+  border-radius: 16px; border: 1px solid rgba(123,47,247,0.35);
+  padding: 16px; display: flex; align-items: center;
+  justify-content: space-between; gap: 12px; margin-bottom: 12px;
+  cursor: pointer; box-shadow: 0 4px 20px rgba(123,47,247,0.15);
+}
+.games-banner-left { flex: 1; }
+.games-banner-title { font-size: 15px; font-weight: 800; color: #fff; margin-bottom: 3px; }
+.games-banner-desc  { font-size: 11px; color: rgba(255,255,255,0.5); }
+.games-banner-btn {
+  background: linear-gradient(135deg, #7b2ff7, #5a1fc0);
+  color: #fff; border: none; border-radius: 10px;
+  padding: 10px 16px; font-size: 13px; font-weight: 700;
+  cursor: pointer; white-space: nowrap;
+  box-shadow: 0 4px 14px rgba(123,47,247,0.4);
+}
+
 /* ── REFER BANNER ── */
 .refer-banner {
   background: linear-gradient(135deg, #1a1a3e, #0d2440);

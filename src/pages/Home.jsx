@@ -140,13 +140,22 @@ export default function Home() {
           ))}
         </div>
 
+        {/* ── GAMES BANNER ── */}
+        <div className="games-banner" onClick={() => navigate('/games')}>
+          <div className="games-banner-left">
+            <div className="games-banner-title">🎮 Games Hub</div>
+            <div className="games-banner-desc">Spin, Scratch, Quiz — daily coins kamao!</div>
+          </div>
+          <button className="games-banner-btn">Khelo ▶</button>
+        </div>
+
         {/* ── REFER BANNER ── */}
-        <div className="refer-banner">
+        <div className="refer-banner" onClick={() => navigate('/referral')}>
           <div className="refer-text">
             <div className="refer-title">👥 Dosto ko Invite karo!</div>
-            <div className="refer-desc">Har referral pe ₹5 kamao — seedha wallet mein!</div>
+            <div className="refer-desc">Har referral pe +50 coins kamao!</div>
           </div>
-          <button className="refer-btn">Share 🔗</button>
+          <button className="refer-btn" onClick={e => { e.stopPropagation(); navigate('/referral'); }}>Share 🔗</button>
         </div>
 
         <div style={{ height: 90 }} />
@@ -155,10 +164,10 @@ export default function Home() {
       {/* ── BOTTOM NAV ── */}
       <div className="bottom-nav">
         {[
-          { key: 'home',    icon: '🏠', label: 'Home',    path: null     },
-          { key: 'store',   icon: '🛒', label: 'Store',   path: '/store' },
-          { key: 'wallet',  icon: '💰', label: 'Wallet',  path: null     },
-          { key: 'profile', icon: '👤', label: 'Profile', path: null     },
+          { key: 'home',    icon: '🏠', label: 'Home',    path: '/home'    },
+          { key: 'store',   icon: '🛒', label: 'Store',   path: '/store'   },
+          { key: 'wallet',  icon: '💰', label: 'Wallet',  path: '/wallet'  },
+          { key: 'profile', icon: '👤', label: 'Profile', path: '/profile' },
         ].map(tab => (
           <button
             key={tab.key}

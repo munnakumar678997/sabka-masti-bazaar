@@ -71,7 +71,8 @@ export function AppProvider({ children }) {
         }
 
       } else {
-        // ── Naya user: INSERT ──
+        // ── Naya user: INSERT — Welcome Bonus 50 coins ──
+        const WELCOME_BONUS = 50;
         const { data: inserted, error: insertErr } = await supabase
           .from('users')
           .insert({
@@ -80,7 +81,7 @@ export function AppProvider({ children }) {
             username:          tgUser.username  ?? null,
             photo_url:         tgUser.photo_url ?? null,
             mobile:            mobile           ?? null,
-            balance:           0,
+            balance:           WELCOME_BONUS,
             streak:            0,
             total_checkins:    0,
             tasks_completed:   0,
@@ -92,10 +93,12 @@ export function AppProvider({ children }) {
         if (insertErr) throw insertErr;
 
         _setUser(inserted);
-        setBalance(0);
+        setBalance(WELCOME_BONUS);
         setStreak(0);
         setTasksCompleted(0);
         localStorage.removeItem(CHECKIN_BACKUP_KEY);
+        // Welcome bonus marker — ek baar hi dikhana
+        localStorage.setItem('smb_welcome_shown', '1');
       }
 
     } catch (err) {
