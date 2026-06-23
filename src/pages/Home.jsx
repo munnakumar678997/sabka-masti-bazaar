@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useApp } from '../context/AppContext';
 import '../styles/home.css';
 
 const TASKS = [
@@ -14,20 +15,16 @@ const STREAK_DAYS = [1, 2, 3, 4, 5, 6, 7];
 
 export default function Home() {
   const navigate = useNavigate();
+  const { balance, addCoins, completeTask, tasksCompleted, referrals, streak } = useApp();
+
   const [activeTab, setActiveTab] = useState('home');
   const [checkedIn, setCheckedIn] = useState(false);
-  const [balance, setBalance] = useState(0);
-  const [currentStreak] = useState(1);
   const [showWithdraw, setShowWithdraw] = useState(false);
 
   const handleCheckIn = () => {
     if (checkedIn) return;
     setCheckedIn(true);
-    setBalance(b => b + 10);
-  };
-
-  const handleTaskClaim = (coins) => {
-    setBalance(b => b + coins);
+    addCoins(10);
   };
 
   return (
@@ -66,8 +63,8 @@ export default function Home() {
             <button className="bal-btn withdraw" onClick={() => setShowWithdraw(true)}>
               💸 Withdraw
             </button>
-            <button className="bal-btn add" onClick={() => navigate('/tasks')}>
-              ➕ Earn More
+            <button className="bal-btn add" onClick={() => navigate('/store')}>
+              🛒 Store
             </button>
           </div>
         </div>
@@ -76,17 +73,17 @@ export default function Home() {
         <div className="quick-stats">
           <div className="stat-box">
             <div className="stat-icon">🏆</div>
-            <div className="stat-val">0</div>
+            <div className="stat-val">{tasksCompleted}</div>
             <div className="stat-lbl">Tasks Done</div>
           </div>
           <div className="stat-box">
             <div className="stat-icon">🔥</div>
-            <div className="stat-val">{currentStreak}</div>
+            <div className="stat-val">{streak}</div>
             <div className="stat-lbl">Day Streak</div>
           </div>
           <div className="stat-box">
             <div className="stat-icon">👥</div>
-            <div className="stat-val">0</div>
+            <div className="stat-val">{referrals}</div>
             <div className="stat-lbl">Referrals</div>
           </div>
         </div>
@@ -94,13 +91,13 @@ export default function Home() {
         {/* ── DAILY CHECK-IN ── */}
         <div className="section-header">
           <span>📅 Daily Check-in</span>
-          <span className="streak-badge">🔥 {currentStreak} Day Streak</span>
+          <span className="streak-badge">🔥 {streak} Day Streak</span>
         </div>
         <div className="checkin-card">
           <div className="checkin-days">
             {STREAK_DAYS.map(day => (
-              <div key={day} className={`day-box ${day < currentStreak ? 'done' : day === currentStreak ? 'today' : ''}`}>
-                <div className="day-coin">{day < currentStreak ? '✅' : day === currentStreak ? '🪙' : '🔒'}</div>
+              <div key={day} className={`day-box ${day < streak ? 'done' : day === streak ? 'today' : ''}`}>
+                <div className="day-coin">{day < streak ? '✅' : day === streak ? '🪙' : '🔒'}</div>
                 <div className="day-label">Day {day}</div>
                 <div className="day-coins">+{day * 5}</div>
               </div>
@@ -131,7 +128,7 @@ export default function Home() {
                 </div>
                 <div className="task-desc">{task.desc}</div>
               </div>
-              <button className="task-claim-btn" onClick={() => handleTaskClaim(task.coins)}>
+              <button className="task-claim-btn" onClick={() => completeTask(task.coins)}>
                 <span className="task-coins">+{task.coins} 🪙</span>
               </button>
             </div>
