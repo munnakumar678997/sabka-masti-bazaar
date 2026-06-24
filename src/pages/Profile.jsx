@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
-import { supabase } from '../lib/supabase';
+import { db } from '../lib/firebase';
+import { doc, updateDoc } from 'firebase/firestore';
 import '../styles/profile.css';
 
 const ALL_BADGES = (balance, streak, tasksCompleted) => [
@@ -39,9 +40,9 @@ export default function Profile() {
     if (!editName.trim() || saving) return;
     setSaving(true);
     try {
-      const { error } = await supabase.from('users').update({ name: editName.trim() }).eq('id', user?.id);
-      if (!error) { showToast('✅ Naam update ho gaya!'); setShowEdit(false); }
-      else showToast('❌ Error! Try again.');
+      await updateDoc(doc(db, 'users', String(user?.id)), { name: editName.trim() });
+      showToast('✅ Naam update ho gaya!');
+      setShowEdit(false);
     } catch { showToast('❌ Error! Try again.'); }
     setSaving(false);
   };
