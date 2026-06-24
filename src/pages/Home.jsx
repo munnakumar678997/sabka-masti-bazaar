@@ -143,8 +143,10 @@ export default function Home() {
                   onClick={async () => {
                     if (done) return;
                     // Task 5 = "Friend ko refer karo" — sirf refer karne pe coins milte hain
-                    // Yahan directly coins nahi milte — user ko referral page pe bhejna hai
+                    // Task visited mark karo (aaj ke liye) aur referral page pe bhejna hai
                     if (task.id === 5) {
+                      markTaskUsed(task.id);
+                      setTaskDone(prev => ({ ...prev, [task.id]: true }));
                       navigate('/referral');
                       return;
                     }

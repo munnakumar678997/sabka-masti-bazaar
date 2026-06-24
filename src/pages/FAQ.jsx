@@ -30,7 +30,7 @@ const FAQS = [
   {
     cat: 'earning',
     q: 'Coins kaise kamate hain?',
-    a: 'Kai tarike hain:\n• Daily Check-in — roz aao, streak pe bonus\n• Earning Tasks — follow, join groups\n• Spin the Wheel — roz 3 baar\n• Scratch Card — roz 3 baar\n• Quiz — roz 5 attempts\n• Coin Flip — roz 5 baar\n• Referral — dost ko invite karo',
+    a: 'Kai tarike hain:\n• Daily Check-in — roz aao, streak pe bonus\n• Earning Tasks — video dekho, survey karo\n• Spin the Wheel — roz 5 baar\n• Scratch Card — roz 3 baar\n• Coin Flip — roz 10 baar\n• Referral — dost ko invite karo',
   },
   {
     cat: 'earning',
@@ -50,17 +50,17 @@ const FAQS = [
   {
     cat: 'games',
     q: 'Games roz kab reset hote hain?',
-    a: 'Raat 12:00 baje IST pe sab games reset ho jaate hain. Har roz nayi chances milti hain — Spin 3x, Scratch 3x, Quiz 5x, Coin Flip 5x.',
+    a: 'Raat 12:00 baje IST pe sab games reset ho jaate hain. Har roz nayi chances milti hain — Spin 5x, Scratch 3x, Coin Flip 10x.',
   },
   {
     cat: 'games',
     q: 'Spin the Wheel mein max kitne coins milte hain?',
-    a: 'Spin the Wheel mein 2 se 25 coins tak milte hain har spin pe. Lucky spin pe zyada coins bhi mil sakte hain!',
+    a: 'Spin the Wheel mein 5 se 200 coins tak milte hain har spin pe. Lucky spin pe 200 coins bhi mil sakte hain!',
   },
   {
     cat: 'games',
     q: 'Scratch Card se kitne coins milte hain?',
-    a: 'Scratch Card mein 3 se 20 coins milte hain har card pe — roz 3 cards scratch kar sakte ho.',
+    a: 'Scratch Card mein 5 se 200 coins milte hain har card pe — roz 3 cards scratch kar sakte ho.',
   },
   {
     cat: 'withdrawal',

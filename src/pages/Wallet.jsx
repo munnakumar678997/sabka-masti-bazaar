@@ -197,7 +197,12 @@ export default function Wallet() {
         {/* ── HISTORY ── */}
         {tab === 'history' && (
           <div className="wallet-history">
-            {withdrawals.length === 0 ? (
+            {histLoading ? (
+              <div className="wallet-empty">
+                <div className="wallet-empty-icon">⏳</div>
+                <div className="wallet-empty-text">History load ho rahi hai...</div>
+              </div>
+            ) : withdrawals.length === 0 ? (
               <div className="wallet-empty">
                 <div className="wallet-empty-icon">📋</div>
                 <div className="wallet-empty-text">Abhi koi withdrawal nahi<br />Pehla withdraw karo!</div>

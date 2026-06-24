@@ -556,7 +556,7 @@ export default function Store() {
                     Baaki bachega: {Math.max(0, balance - coinsRequired).toLocaleString()} coins
                   </div>
                 </div>
-                <div className="confirm-note">⚠️ Coins tabhi deduct honge jab tum Telegram pe order bhejne ki confirm karoge</div>
+                <div className="confirm-note">⚠️ "Telegram Kholo" dabate hi coins deduct ho jaayenge aur order Telegram pe bheja jaayega</div>
                 <div className="confirm-btns">
                   <button className="confirm-cancel-btn" onClick={() => setConfirmPending(false)}>Cancel</button>
                   <button

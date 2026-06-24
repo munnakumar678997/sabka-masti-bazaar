@@ -16,7 +16,7 @@ const MILESTONES = [
 
 export default function Referral() {
   const navigate   = useNavigate();
-  const { user, referrals, balance } = useApp();
+  const { user, referrals } = useApp();
   const [copied, setCopied] = useState(false);
 
   // Accurate total calculation — base coins + milestone bonuses jo award ho chuke
