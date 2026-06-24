@@ -41,6 +41,7 @@ export default function Home() {
   const [showWithdraw, setShowWithdraw] = useState(false);
   const [showNotif,    setShowNotif]    = useState(false);
   const [notifs,       setNotifs]       = useState(NOTIFICATIONS);
+  const [avatarError,  setAvatarError]  = useState(false);
   const [taskDone,     setTaskDone]     = useState(() =>
     Object.fromEntries(TASKS.map(t => [t.id, getTaskUsed(t.id)]))
   );
@@ -49,10 +50,10 @@ export default function Home() {
   const markAllRead = () => setNotifs(prev => prev.map(n => ({ ...n, unread: false })));
 
   // Topbar — user ka naam aur photo
-  const rawName     = user?.name?.trim() || user?.username || '';
-  const displayName = rawName || 'User';
+  const rawName      = user?.name?.trim() || user?.username || '';
+  const displayName  = rawName || 'User';
   const avatarLetter = displayName.charAt(0).toUpperCase();
-  const photoUrl     = user?.photo_url || null;
+  const photoUrl     = (!avatarError && user?.photo_url) || null;
 
   return (
     <div className="home-page">
@@ -66,10 +67,7 @@ export default function Home() {
                 src={photoUrl}
                 alt="dp"
                 style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
-                onError={e => {
-                  e.target.style.display = 'none';
-                  e.target.parentNode.setAttribute('data-fallback', 'true');
-                }}
+                onError={() => setAvatarError(true)}
               />
             ) : (
               <span style={{ fontSize: 18, fontWeight: 800, color: '#fff' }}>{avatarLetter}</span>

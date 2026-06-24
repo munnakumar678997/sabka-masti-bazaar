@@ -191,7 +191,10 @@ export default function Login() {
     if (!tg || btnLoading || !tgUser) return;
     setBtnLoading(true);
 
-    tg.onEvent('contactRequested', async (eventData) => {
+    // Handler ko named function banao taaki remove kar sakein (listener leak fix)
+    const onContact = async (eventData) => {
+      tg.offEvent('contactRequested', onContact); // sirf ek baar fire ho
+
       let phone = null;
       try {
         const contact = eventData?.contact
@@ -206,8 +209,9 @@ export default function Login() {
       await loadUser(tgUser, phone);
       sessionStorage.setItem('smb_session', '1');
       navigate('/home');
-    });
+    };
 
+    tg.onEvent('contactRequested', onContact);
     tg.requestContact();
   };
 

@@ -94,7 +94,7 @@ export default function Loading() {
       }
     });
 
-    const fallback = setTimeout(() => goLogin(null, 'new'), 5000);
+    const fallback = setTimeout(() => goLogin(null, 'new'), 10000);
     return () => clearTimeout(fallback);
   }, []);
 

@@ -2,7 +2,7 @@ import { createContext, useContext, useState, useRef } from 'react';
 import { db } from '../lib/firebase';
 import {
   doc, getDoc, setDoc, updateDoc, collection, addDoc, increment,
-  getDocs, query, where, orderBy,
+  getDocs, query, where, orderBy, arrayUnion,
 } from 'firebase/firestore';
 
 const AppContext = createContext(null);
@@ -14,9 +14,10 @@ export function AppProvider({ children }) {
   const [user,           setUser]           = useState(null);
   const [balance,        setBalance]        = useState(0);
   const [tasksCompleted, setTasksCompleted] = useState(0);
-  const [referrals]                         = useState(0);
+  const [referrals,      setReferrals]      = useState(0);
   const [streak,         setStreak]         = useState(0);
   const [loading,        setLoading]        = useState(false);
+  const [redeemedCodes,  setRedeemedCodes]  = useState([]);
 
   const userIdRef  = useRef(null);
   const balanceRef = useRef(0);
@@ -63,6 +64,8 @@ export function AppProvider({ children }) {
         _setBalance(updated.balance          || 0);
         setStreak(updated.streak             || 0);
         _setTasks(updated.tasks_completed    || 0);
+        setReferrals(updated.referral_count  || 0);
+        setRedeemedCodes(updated.redeemed_codes || []);
 
         if (updated.last_checkin_date) {
           localStorage.setItem(CHECKIN_BACKUP_KEY, updated.last_checkin_date);
@@ -83,6 +86,8 @@ export function AppProvider({ children }) {
           total_checkins:    0,
           tasks_completed:   0,
           last_checkin_date: null,
+          referral_count:    0,
+          redeemed_codes:    [],
         };
 
         await setDoc(userRef, newUser);
@@ -91,6 +96,8 @@ export function AppProvider({ children }) {
         _setBalance(WELCOME_BONUS);
         setStreak(0);
         _setTasks(0);
+        setReferrals(0);
+        setRedeemedCodes([]);
         localStorage.removeItem(CHECKIN_BACKUP_KEY);
         localStorage.setItem('smb_welcome_shown', '1');
       }
@@ -266,6 +273,21 @@ export function AppProvider({ children }) {
   };
 
   // ─────────────────────────────────────────────
+  // markCodeRedeemed — Firestore mein code track karo (multi-device safe)
+  // ─────────────────────────────────────────────
+  const markCodeRedeemed = async (code) => {
+    if (!userIdRef.current) return;
+    try {
+      await updateDoc(doc(db, 'users', String(userIdRef.current)), {
+        redeemed_codes: arrayUnion(code),
+      });
+      setRedeemedCodes(prev => [...prev, code]);
+    } catch (e) {
+      console.error('markCodeRedeemed err:', e);
+    }
+  };
+
+  // ─────────────────────────────────────────────
   // fetchWithdrawals — Firestore se user ki history lo
   // ─────────────────────────────────────────────
   const fetchWithdrawals = async () => {
@@ -302,6 +324,8 @@ export function AppProvider({ children }) {
       saveOrder,
       saveWithdrawal,
       fetchWithdrawals,
+      redeemedCodes,
+      markCodeRedeemed,
       CHECKIN_BACKUP_KEY,
       SESSION_KEY,
     }}>

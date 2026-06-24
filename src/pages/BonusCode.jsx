@@ -14,23 +14,11 @@ const VALID_CODES = {
   'SUPER300':   { coins: 300,  desc: 'Super Reward'       },
 };
 
-const usedCodesKey   = (uid) => `smb_codes_${uid}`;
-const historyKey     = (uid) => `smb_code_history_${uid}`;
-
-function getUsedCodes(uid) {
-  if (!uid) return [];
-  try { return JSON.parse(localStorage.getItem(usedCodesKey(uid)) || '[]'); }
-  catch { return []; }
-}
-function markUsed(uid, code) {
-  const used = getUsedCodes(uid);
-  used.push(code);
-  localStorage.setItem(usedCodesKey(uid), JSON.stringify(used));
-}
+const historyKey = (uid) => uid ? `smb_code_history_${uid}` : null;
 
 export default function BonusCode() {
-  const navigate       = useNavigate();
-  const { user, addCoins } = useApp();
+  const navigate = useNavigate();
+  const { user, addCoins, redeemedCodes, markCodeRedeemed } = useApp();
 
   const [code,    setCode]    = useState('');
   const [status,  setStatus]  = useState(null);
@@ -38,15 +26,19 @@ export default function BonusCode() {
   const [reward,  setReward]  = useState(null);
   const [loading, setLoading] = useState(false);
 
+  // history sirf local — sirf display ke liye, anti-cheat Firestore mein hai
   const [history, setHistory] = useState(() => {
-    try { return JSON.parse(localStorage.getItem(historyKey(user?.id)) || '[]'); }
+    const key = historyKey(user?.id);
+    if (!key) return [];
+    try { return JSON.parse(localStorage.getItem(key) || '[]'); }
     catch { return []; }
   });
 
   const saveHistory = (entry) => {
     const updated = [entry, ...history].slice(0, 10);
     setHistory(updated);
-    localStorage.setItem(historyKey(user?.id), JSON.stringify(updated));
+    const key = historyKey(user?.id);
+    if (key) localStorage.setItem(key, JSON.stringify(updated));
   };
 
   const handleRedeem = async () => {
@@ -63,14 +55,17 @@ export default function BonusCode() {
       setStatus('error'); setMsg('❌ Galat code! Dobara check karo.');
       setLoading(false); return;
     }
-    if (getUsedCodes(user?.id).includes(trimmed)) {
+
+    // Firestore-backed check — device change pe bhi safe
+    if (redeemedCodes.includes(trimmed)) {
       setStatus('error'); setMsg('⚠️ Yeh code pehle hi use ho chuka hai!');
       setLoading(false); return;
     }
 
     const { coins, desc } = VALID_CODES[trimmed];
+    // Pehle Firestore mein mark karo, phir coins do
+    await markCodeRedeemed(trimmed);
     await addCoins(coins);
-    markUsed(user?.id, trimmed);
     saveHistory({ code: trimmed, coins, desc, date: new Date().toLocaleDateString('en-IN') });
 
     setReward({ coins, desc });

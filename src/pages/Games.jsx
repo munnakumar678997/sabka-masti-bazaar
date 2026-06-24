@@ -138,17 +138,17 @@ export default function Games() {
   };
 
   /* ══════════════ SCRATCH LOGIC ══════════════ */
-  const handleScratch = (i) => {
+  const handleScratch = async (i) => {
     if (scratchRevealed[i] || getUsed('scratch') >= SCRATCH_LIMIT) return;
     const coins    = pickScratch();
     const newP     = [...scratchPrizes];    newP[i]  = coins;
     const newR     = [...scratchRevealed];  newR[i]  = true;
     setScratchPrizes(newP);
     setScratchRevealed(newR);
-    addCoins(coins);
     incUsed('scratch');
     showToast(`🎁 +${coins} coins mile!`);
     refresh();
+    await addCoins(coins);
   };
 
   const resetScratch = () => {
