@@ -3,51 +3,66 @@ import { createRoot } from 'react-dom/client'
 import App from './App.jsx'
 
 // ══════════════════════════════════════════════════════════════
-// BFCACHE FIX — Telegram WebView "background se open" problem
+// CACHE BUST — 3-Layer Fix for Telegram WebView
 //
-// Root cause:
-//   e.persisted = true  →  page bfcache se restore hua (frozen snapshot)
-//   Iska matlab: React, state, sab kuch purana frozen hai
-//   Koi bhi async fix (version.json fetch etc.) yahan kaam nahi karta
-//   kyunki page already render ho chuka hota hai bfcache se
-//
-// Fix: pageshow event mein e.persisted check karo
-//   → IMMEDIATE synchronous reload (hard refresh)
-//   → e.persisted sirf bfcache restore pe true hota hai
-//   → Normal page load pe false hota hai (infinite loop nahi)
+// Layer 1: pageshow + e.persisted  (standard bfcache browsers)
+// Layer 2: visibilitychange + version.json check (backup)
+// Layer 3: Telegram WebApp 'activated' event (Telegram-specific)
 // ══════════════════════════════════════════════════════════════
+
+// ── Layer 1: bfcache standard fix ──
 window.addEventListener('pageshow', function (e) {
   if (e.persisted) {
-    // bfcache se restore hua — purana frozen version hai
-    // Session clear karo + hard reload karo
     try { sessionStorage.removeItem('smb_session'); } catch (_) {}
     window.location.reload(true);
   }
 });
 
-// ── visibilitychange bhi rakho as backup ──
-// Kuch Telegram versions mein pageshow fire nahi hota properly
+// ── Version check helper ──
+function checkVersion() {
+  fetch('/version.json?_=' + Date.now(), { cache: 'no-store' })
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+      var stored = localStorage.getItem('smb_bv');
+      if (stored && stored !== data.v) {
+        localStorage.setItem('smb_bv', data.v);
+        try { sessionStorage.removeItem('smb_session'); } catch (_) {}
+        window.location.reload(true);
+      } else if (!stored) {
+        localStorage.setItem('smb_bv', data.v);
+      }
+    })
+    .catch(function () {});
+}
+
+// ── Layer 2: visibilitychange backup ──
 document.addEventListener('visibilitychange', function () {
   if (document.visibilityState === 'visible') {
-    // Version.json check karo — naya build aya hai to reload
-    var ts = Date.now();
-    fetch('/version.json?_=' + ts, { cache: 'no-store' })
-      .then(function (r) { return r.json(); })
-      .then(function (data) {
-        var stored = localStorage.getItem('smb_bv');
-        if (stored && stored !== data.v) {
-          localStorage.setItem('smb_bv', data.v);
-          try { sessionStorage.removeItem('smb_session'); } catch (_) {}
-          window.location.reload(true);
-        } else if (!stored) {
-          localStorage.setItem('smb_bv', data.v);
-        }
-      })
-      .catch(function () {});
+    checkVersion();
   }
 });
 
-// ── Manual reload pe session clear karo (existing fix) ──
+// ── Layer 3: Telegram WebApp 'activated' event ──
+// Telegram Mini App background → foreground pe yeh reliable event fire hota hai
+// Yeh standard browser events se zyada trustworthy hai Telegram ke andar
+function setupTelegramActivated() {
+  var tg = window.Telegram && window.Telegram.WebApp;
+  if (!tg) return;
+  try {
+    tg.onEvent('activated', function () {
+      checkVersion();
+    });
+  } catch (_) {}
+}
+
+// Telegram SDK load hone ka wait karo (already in index.html)
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', setupTelegramActivated);
+} else {
+  setupTelegramActivated();
+}
+
+// ── Manual reload pe session clear karo ──
 var navEntry = window.performance && window.performance.getEntriesByType
   ? window.performance.getEntriesByType('navigation')[0]
   : null;
