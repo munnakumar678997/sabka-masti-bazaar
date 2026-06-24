@@ -59,7 +59,6 @@ export default function Profile() {
 
       {/* ── TOPBAR ── */}
       <div className="profile-topbar">
-        <button className="profile-back-btn" onClick={() => navigate('/home')}>← Back</button>
         <div className="profile-topbar-title">👤 My Profile</div>
         <div style={{ width: 70 }} />
       </div>

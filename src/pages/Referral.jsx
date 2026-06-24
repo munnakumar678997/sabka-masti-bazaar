@@ -1,7 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
-import BottomNav from '../components/BottomNav';
 import '../styles/referral.css';
 
 const MILESTONE_COINS = { 1: 50, 3: 200, 5: 500, 10: 1200, 25: 3500, 50: 8000 };
@@ -143,10 +142,7 @@ export default function Referral() {
           </div>
         </div>
 
-        <div style={{ height: 90 }} />
       </div>
-
-      <BottomNav />
     </div>
   );
 }

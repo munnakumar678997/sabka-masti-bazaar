@@ -113,7 +113,6 @@ export default function Wallet() {
     <div className="wallet-page">
 
       <div className="wallet-topbar">
-        <button className="wallet-back-btn" onClick={() => navigate('/home')}>← Back</button>
         <div className="wallet-topbar-title">💰 Wallet</div>
         <div className="wallet-balance-chip">🪙 {balance.toLocaleString()}</div>
       </div>

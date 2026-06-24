@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
-import BottomNav from '../components/BottomNav';
 import '../styles/bonusCode.css';
 
 const historyKey = (uid) => uid ? `smb_code_history_${uid}` : null;
@@ -169,10 +168,7 @@ export default function BonusCode() {
           </>
         )}
 
-        <div style={{ height: 90 }} />
       </div>
-
-      <BottomNav />
     </div>
   );
 }

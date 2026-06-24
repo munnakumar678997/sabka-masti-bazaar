@@ -300,7 +300,6 @@ export default function Store() {
 
       {/* ── TOPBAR ── */}
       <div className="store-topbar">
-        <button className="store-back-btn" onClick={() => navigate('/home')}>← Back</button>
         <div className="store-topbar-title">🛒 Store</div>
         <div className="store-balance-chip">
           🪙 <span>{balance.toLocaleString()}</span>
