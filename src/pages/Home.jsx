@@ -25,29 +25,17 @@ function markTaskUsed(taskId) {
   try { localStorage.setItem(`smb_task_${taskId}_${getTodayKey()}`, '1'); } catch {}
 }
 
-const NOTIFICATIONS = [
-  { id: 1, icon: '🎁', title: 'Check-in Bonus Mila!',      desc: '+25 coins tumhare wallet mein aa gaye.',     time: '2 min pehle',    unread: true  },
-  { id: 2, icon: '🔥', title: 'Streak 5 din ka!',           desc: 'Waah! 5 din ki streak maintain kar li.',     time: '1 ghante pehle', unread: true  },
-  { id: 3, icon: '💸', title: 'Withdrawal Process Ho Raha', desc: 'Tumhara ₹50 ka withdrawal process mein hai.', time: 'Kal',             unread: false },
-  { id: 4, icon: '👥', title: 'Naya Referral!',              desc: 'Ek dost ne tumhare link se join kiya!',      time: '2 din pehle',     unread: false },
-  { id: 5, icon: '📢', title: 'Naya Task Available',         desc: 'Video dekho aur 5 coins kamao — abhi karo!', time: '3 din pehle',     unread: false },
-];
 
 export default function Home() {
   const navigate = useNavigate();
-  const { user, balance, streak, completeTask, tasksCompleted, referrals } = useApp();
+  const { user, balance, streak, completeTask, tasksCompleted, referrals, notifUnreadCount } = useApp();
 
   const [activeTab,    setActiveTab]    = useState('home');
   const [showWithdraw, setShowWithdraw] = useState(false);
-  const [showNotif,    setShowNotif]    = useState(false);
-  const [notifs,       setNotifs]       = useState(NOTIFICATIONS);
   const [avatarError,  setAvatarError]  = useState(false);
   const [taskDone,     setTaskDone]     = useState(() =>
     Object.fromEntries(TASKS.map(t => [t.id, getTaskUsed(t.id)]))
   );
-
-  const unreadCount = notifs.filter(n => n.unread).length;
-  const markAllRead = () => setNotifs(prev => prev.map(n => ({ ...n, unread: false })));
 
   // Topbar — user ka naam aur photo
   const rawName      = user?.name?.trim() || user?.username || '';
@@ -76,10 +64,10 @@ export default function Home() {
           <div className="topbar-name">{displayName}</div>
         </div>
         <div className="topbar-right">
-          <div className="topbar-notif-btn" onClick={() => setShowNotif(true)}>
+          <div className="topbar-notif-btn" onClick={() => navigate('/notifications')}>
             <span className="notif-bell">🔔</span>
-            {unreadCount > 0 && (
-              <span className="notif-badge">{unreadCount}</span>
+            {notifUnreadCount > 0 && (
+              <span className="notif-badge">{notifUnreadCount}</span>
             )}
           </div>
         </div>
@@ -194,43 +182,6 @@ export default function Home() {
           </button>
         ))}
       </div>
-
-      {/* ── NOTIFICATION PANEL ── */}
-      {showNotif && (
-        <div className="notif-overlay" onClick={() => setShowNotif(false)}>
-          <div className="notif-panel" onClick={e => e.stopPropagation()}>
-            <div className="notif-panel-header">
-              <div className="notif-panel-title">
-                <span>🔔 Notifications</span>
-                {unreadCount > 0 && <span className="notif-count-chip">{unreadCount} naye</span>}
-              </div>
-              <div className="notif-header-actions">
-                {unreadCount > 0 && (
-                  <button className="notif-mark-read" onClick={markAllRead}>Sab padha</button>
-                )}
-                <button className="notif-close" onClick={() => setShowNotif(false)}>✕</button>
-              </div>
-            </div>
-            <div className="notif-list">
-              {notifs.map(n => (
-                <div
-                  key={n.id}
-                  className={`notif-item ${n.unread ? 'notif-unread' : ''}`}
-                  onClick={() => setNotifs(prev => prev.map(x => x.id === n.id ? { ...x, unread: false } : x))}
-                >
-                  <div className="notif-item-icon">{n.icon}</div>
-                  <div className="notif-item-body">
-                    <div className="notif-item-title">{n.title}</div>
-                    <div className="notif-item-desc">{n.desc}</div>
-                    <div className="notif-item-time">{n.time}</div>
-                  </div>
-                  {n.unread && <div className="notif-dot" />}
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* ── WITHDRAW POPUP ── */}
       {showWithdraw && (

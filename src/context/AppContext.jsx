@@ -23,13 +23,14 @@ const CHECKIN_BACKUP_KEY = 'smb_checkin_ist';
 const SESSION_KEY        = 'smb_session';
 
 export function AppProvider({ children }) {
-  const [user,           setUser]           = useState(null);
-  const [balance,        setBalance]        = useState(0);
-  const [tasksCompleted, setTasksCompleted] = useState(0);
-  const [referrals,      setReferrals]      = useState(0);
-  const [streak,         setStreak]         = useState(0);
-  const [loading,        setLoading]        = useState(false);
-  const [redeemedCodes,  setRedeemedCodes]  = useState([]);
+  const [user,              setUser]              = useState(null);
+  const [balance,           setBalance]           = useState(0);
+  const [tasksCompleted,    setTasksCompleted]    = useState(0);
+  const [referrals,         setReferrals]         = useState(0);
+  const [streak,            setStreak]            = useState(0);
+  const [loading,           setLoading]           = useState(false);
+  const [redeemedCodes,     setRedeemedCodes]     = useState([]);
+  const [notifUnreadCount,  setNotifUnreadCount]  = useState(0);
 
   const userIdRef  = useRef(null);
   const balanceRef = useRef(0);
@@ -74,6 +75,17 @@ export function AppProvider({ children }) {
         setReferrals(updated.referral_count  || 0);
         setRedeemedCodes(updated.redeemed_codes || []);
 
+        // Notifications unread count fetch karo
+        try {
+          const notifQ = query(
+            collection(db, 'notifications'),
+            where('userId', '==', String(tgUser.id)),
+            where('read',   '==', false),
+          );
+          const notifSnap = await getDocs(notifQ);
+          setNotifUnreadCount(notifSnap.docs.length);
+        } catch (_) {}
+
         if (updated.last_checkin_date) {
           localStorage.setItem(CHECKIN_BACKUP_KEY, updated.last_checkin_date);
         } else {
@@ -114,6 +126,14 @@ export function AppProvider({ children }) {
         localStorage.removeItem(CHECKIN_BACKUP_KEY);
         localStorage.setItem('smb_welcome_shown', '1');
 
+        // Welcome notification (async — await nahi karunga taaki login slow na ho)
+        _addNotification(newUser.id, {
+          title: '🎉 Sabka Masti Bazaar mein Swagat!',
+          desc:  '+50 welcome coins tumhare wallet mein aa gaye! Games khelo, tasks karo aur aur kamao!',
+          icon:  '🎉',
+          type:  'welcome',
+        });
+
         // ── Referrer ko coins, count, aur milestone bonus update karo ──
         if (referredBy) {
           try {
@@ -142,6 +162,22 @@ export function AppProvider({ children }) {
                 }
 
                 await updateDoc(referrerRef, updatePayload);
+
+                // Referrer ko notification
+                _addNotification(referrerId, {
+                  title: '👥 Naya Referral!',
+                  desc:  `${tgUser.name || 'Ek dost'} ne tumhare link se join kiya! +50 coins mile.`,
+                  icon:  '👥',
+                  type:  'referral',
+                });
+                if (milestoneBonus > 0) {
+                  _addNotification(referrerId, {
+                    title: `🏆 Milestone! ${newRefCount} Referrals Complete!`,
+                    desc:  `${newRefCount} referrals ho gaye! +${milestoneBonus} bonus coins tumhare wallet mein!`,
+                    icon:  '🏆',
+                    type:  'milestone',
+                  });
+                }
               }
             }
           } catch (refErr) {
@@ -279,6 +315,13 @@ export function AppProvider({ children }) {
           streak:            newStreak,
           total_checkins:    totalDays,
           last_checkin_date: lastDate,
+        });
+        // Check-in notification
+        _addNotification(userIdRef.current, {
+          title: `🎁 Daily Check-in Bonus!`,
+          desc:  `+${coinsEarned} coins mile! ${newStreak} din ki streak — Keep it up! 🔥`,
+          icon:  '🎁',
+          type:  'checkin',
         });
       } catch (error) {
         console.error('Check-in Firestore save failed:', error);
@@ -429,6 +472,77 @@ export function AppProvider({ children }) {
     }
   };
 
+  // ─────────────────────────────────────────────
+  // _addNotification — Firestore mein notification likhna + badge update
+  // ─────────────────────────────────────────────
+  const _addNotification = async (userId, { title, desc, icon, type }) => {
+    if (!userId) return;
+    try {
+      await addDoc(collection(db, 'notifications'), {
+        userId:    String(userId),
+        title,
+        desc,
+        icon,
+        type:      type || 'general',
+        read:      false,
+        createdAt: new Date().toISOString(),
+      });
+      if (String(userId) === String(userIdRef.current)) {
+        setNotifUnreadCount(prev => prev + 1);
+      }
+    } catch (e) {
+      console.error('_addNotification err:', e);
+    }
+  };
+
+  // ─────────────────────────────────────────────
+  // fetchNotifications — current user ki sab notifications (sorted by date)
+  // ─────────────────────────────────────────────
+  const fetchNotifications = async () => {
+    if (!userIdRef.current) return [];
+    try {
+      const q = query(
+        collection(db, 'notifications'),
+        where('userId', '==', String(userIdRef.current)),
+      );
+      const snap    = await getDocs(q);
+      const results = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      results.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+      return results;
+    } catch (e) {
+      console.error('fetchNotifications err:', e);
+      return [];
+    }
+  };
+
+  // ─────────────────────────────────────────────
+  // markNotifRead — ek notification read mark karo
+  // ─────────────────────────────────────────────
+  const markNotifRead = async (notifId) => {
+    if (!notifId) return;
+    try {
+      await updateDoc(doc(db, 'notifications', notifId), { read: true });
+      setNotifUnreadCount(prev => Math.max(0, prev - 1));
+    } catch (e) {
+      console.error('markNotifRead err:', e);
+    }
+  };
+
+  // ─────────────────────────────────────────────
+  // markAllNotifsRead — sab notifications read mark karo
+  // ─────────────────────────────────────────────
+  const markAllNotifsRead = async (notifIds) => {
+    if (!notifIds || notifIds.length === 0) return;
+    try {
+      await Promise.all(
+        notifIds.map(id => updateDoc(doc(db, 'notifications', id), { read: true }))
+      );
+      setNotifUnreadCount(0);
+    } catch (e) {
+      console.error('markAllNotifsRead err:', e);
+    }
+  };
+
   return (
     <AppContext.Provider value={{
       user,
@@ -450,6 +564,10 @@ export function AppProvider({ children }) {
       redeemedCodes,
       markCodeRedeemed,
       redeemBonusCode,
+      notifUnreadCount,
+      fetchNotifications,
+      markNotifRead,
+      markAllNotifsRead,
       CHECKIN_BACKUP_KEY,
       SESSION_KEY,
     }}>
