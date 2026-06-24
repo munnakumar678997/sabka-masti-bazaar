@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
+import BottomNav from '../components/BottomNav';
 import '../styles/store.css';
 
 const TELEGRAM_AGENT = 'Munnapm70045';
@@ -386,22 +387,7 @@ export default function Store() {
         <div style={{ height: 90 }} />
       </div>
 
-      {/* ── BOTTOM NAV ── */}
-      <div className="store-bottom-nav">
-        {navTabs.map(tab => (
-          <button
-            key={tab.key}
-            className={`store-nav-tab ${activeTab === tab.key ? 'active' : ''}`}
-            onClick={() => {
-              setActiveTab(tab.key);
-              if (tab.path) navigate(tab.path);
-            }}
-          >
-            <span className="store-nav-icon">{tab.icon}</span>
-            <span className="store-nav-label">{tab.label}</span>
-          </button>
-        ))}
-      </div>
+      <BottomNav />
 
       {/* ── PRODUCT DETAIL MODAL ── */}
       {openProduct && (

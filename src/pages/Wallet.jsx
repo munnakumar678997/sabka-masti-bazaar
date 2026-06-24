@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
+import BottomNav from '../components/BottomNav';
 import '../styles/wallet.css';
 
 const WITHDRAW_KEY  = 'smb_withdrawals';
@@ -232,16 +233,7 @@ export default function Wallet() {
         <div style={{ height: 90 }} />
       </div>
 
-      {/* ── BOTTOM NAV ── */}
-      <div className="wallet-bottom-nav">
-        {navTabs.map(tab => (
-          <button key={tab.key} className={`wallet-nav-tab ${tab.key === 'wallet' ? 'active' : ''}`}
-            onClick={() => navigate(tab.path)}>
-            <span>{tab.icon}</span>
-            <span className="wallet-nav-label">{tab.label}</span>
-          </button>
-        ))}
-      </div>
+      <BottomNav />
 
       {toast && <div className="wallet-toast">{toast}</div>}
     </div>

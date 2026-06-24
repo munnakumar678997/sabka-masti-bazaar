@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
+import BottomNav from '../components/BottomNav';
 import '../styles/games.css';
 
 function getTodayKey() {
@@ -275,17 +276,7 @@ export default function Games() {
         <div style={{ height: 100 }} />
       </div>
 
-      {/* ── BOTTOM NAV ── */}
-      <div className="games-bottom-nav">
-        {NAV.map(t => (
-          <button key={t.key}
-            className={`games-nav-tab ${t.key === 'games' ? 'active' : ''}`}
-            onClick={() => navigate(t.path)}>
-            <span className="gnav-icon">{t.icon}</span>
-            <span className="gnav-label">{t.label}</span>
-          </button>
-        ))}
-      </div>
+      <BottomNav />
 
       {/* ═══════════════════ SPIN WHEEL MODAL ═══════════════════ */}
       {openGame === 'spin' && (

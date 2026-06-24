@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
+import BottomNav from '../components/BottomNav';
 import '../styles/profile.css';
 
 const ALL_BADGES = (balance, streak, tasksCompleted) => [
@@ -179,16 +180,7 @@ export default function Profile() {
         <div style={{ height: 90 }} />
       </div>
 
-      {/* ── BOTTOM NAV ── */}
-      <div className="profile-bottom-nav">
-        {navTabs.map(tab => (
-          <button key={tab.key} className={`profile-nav-tab ${tab.key === 'profile' ? 'active' : ''}`}
-            onClick={() => navigate(tab.path)}>
-            <span>{tab.icon}</span>
-            <span className="profile-nav-label">{tab.label}</span>
-          </button>
-        ))}
-      </div>
+      <BottomNav />
 
       {/* ── EDIT NAME MODAL ── */}
       {showEdit && (

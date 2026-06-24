@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import DailyCheckIn from './DailyCheckIn';
+import BottomNav from '../components/BottomNav';
 import '../styles/home.css';
 
 const TASKS = [
@@ -163,25 +164,7 @@ export default function Home() {
         <div style={{ height: 90 }} />
       </div>
 
-      {/* ── BOTTOM NAV ── */}
-      <div className="bottom-nav">
-        {[
-          { key: 'home',    icon: '🏠', label: 'Home',    path: '/home'    },
-          { key: 'games',   icon: '🎮', label: 'Games',   path: '/games'   },
-          { key: 'store',   icon: '🛒', label: 'Store',   path: '/store'   },
-          { key: 'wallet',  icon: '💰', label: 'Wallet',  path: '/wallet'  },
-          { key: 'profile', icon: '👤', label: 'Profile', path: '/profile' },
-        ].map(tab => (
-          <button
-            key={tab.key}
-            className={`nav-tab ${activeTab === tab.key ? 'active' : ''}`}
-            onClick={() => { setActiveTab(tab.key); navigate(tab.path); }}
-          >
-            <span className="nav-icon">{tab.icon}</span>
-            <span className="nav-label">{tab.label}</span>
-          </button>
-        ))}
-      </div>
+      <BottomNav />
 
       {/* ── WITHDRAW POPUP ── */}
       {showWithdraw && (
