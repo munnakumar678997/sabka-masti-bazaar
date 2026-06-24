@@ -4,23 +4,47 @@ import { useApp } from '../context/AppContext';
 import BottomNav from '../components/BottomNav';
 import '../styles/profile.css';
 
-const ALL_BADGES = (balance, streak, tasksCompleted) => [
-  { icon: '⭐', name: 'Starter',      desc: 'App join kiya',       earned: true               },
-  { icon: '✅', name: 'First Task',   desc: 'Pehla task done',     earned: tasksCompleted >= 1 },
-  { icon: '🔥', name: 'Streak Star',  desc: '3 din ki streak',     earned: streak >= 3         },
-  { icon: '🌟', name: 'Week Warrior', desc: '7 din ki streak',     earned: streak >= 7         },
-  { icon: '👑', name: 'Streak King',  desc: '30 din ki streak',    earned: streak >= 30        },
-  { icon: '🏆', name: 'Task Hero',    desc: '10 tasks done',       earned: tasksCompleted >= 10},
-  { icon: '💪', name: 'Task Master',  desc: '50 tasks done',       earned: tasksCompleted >= 50},
-  { icon: '💰', name: 'Coin Saver',   desc: '100+ coins',          earned: balance >= 100      },
-  { icon: '💎', name: 'Rich Bhai',    desc: '1,000+ coins',        earned: balance >= 1000     },
-  { icon: '🚀', name: 'High Roller',  desc: '5,000+ coins',        earned: balance >= 5000     },
-  { icon: '🌈', name: 'Legend',       desc: '20,000+ coins',       earned: balance >= 20000    },
+// level: 1=Beginner, 2=Growing, 3=Committed, 4=Elite
+const ALL_BADGES = (balance, streak, tasksCompleted, referrals, totalCheckins, redeemedCount) => [
+
+  /* ── LEVEL 1 — Beginner (easy start) ── */
+  { icon: '⭐', name: 'Starter',         desc: 'App join kiya',            level: 1, earned: true                    },
+  { icon: '✅', name: 'First Task',      desc: 'Pehla task complete kiya', level: 1, earned: tasksCompleted >= 1     },
+  { icon: '📅', name: 'Check-in Debut', desc: 'Pehli baar check-in kiya', level: 1, earned: totalCheckins >= 1      },
+  { icon: '🎟️', name: 'Code Hunter',    desc: '1 bonus code redeem kiya', level: 1, earned: redeemedCount >= 1      },
+  { icon: '👥', name: 'Inviter',         desc: 'Pehla dost refer kiya',    level: 1, earned: referrals >= 1          },
+
+  /* ── LEVEL 2 — Growing (medium-easy) ── */
+  { icon: '🔥', name: 'Streak Star',     desc: '3 din ki streak',          level: 2, earned: streak >= 3             },
+  { icon: '💰', name: 'Coin Saver',      desc: '500+ coins jode',          level: 2, earned: balance >= 500         },
+  { icon: '🏆', name: 'Task Hero',       desc: '10 tasks done',            level: 2, earned: tasksCompleted >= 10   },
+  { icon: '📆', name: 'Regular Player',  desc: '7 baar check-in kiya',     level: 2, earned: totalCheckins >= 7     },
+  { icon: '🤝', name: 'Squad Builder',   desc: '3 dost refer kiye',        level: 2, earned: referrals >= 3         },
+
+  /* ── LEVEL 3 — Committed (medium-hard) ── */
+  { icon: '🌟', name: 'Week Warrior',    desc: '7 din ki streak',          level: 3, earned: streak >= 7             },
+  { icon: '💎', name: 'Rich Bhai',       desc: '2,000+ coins',             level: 3, earned: balance >= 2000        },
+  { icon: '💪', name: 'Task Master',     desc: '25 tasks done',            level: 3, earned: tasksCompleted >= 25   },
+  { icon: '🗓️', name: 'Dedicated',      desc: '30 baar check-in kiya',    level: 3, earned: totalCheckins >= 30    },
+  { icon: '🌍', name: 'Community Star',  desc: '10 dost refer kiye',       level: 3, earned: referrals >= 10        },
+
+  /* ── LEVEL 4 — Elite (hard) ── */
+  { icon: '👑', name: 'Streak King',     desc: '30 din ki streak',         level: 4, earned: streak >= 30            },
+  { icon: '🚀', name: 'High Roller',     desc: '5,000+ coins',             level: 4, earned: balance >= 5000        },
+  { icon: '🦁', name: 'Grind God',       desc: '50 tasks done',            level: 4, earned: tasksCompleted >= 50   },
+  { icon: '🌈', name: 'Legend',          desc: '20,000+ coins',            level: 4, earned: balance >= 20000       },
 ];
+
+const LEVEL_META = {
+  1: { label: 'Level 1 · Beginner',  color: '#22c55e' },
+  2: { label: 'Level 2 · Growing',   color: '#0088cc' },
+  3: { label: 'Level 3 · Committed', color: '#a855f7' },
+  4: { label: 'Level 4 · Elite',     color: '#ffd700' },
+};
 
 export default function Profile() {
   const navigate = useNavigate();
-  const { user, balance, streak, tasksCompleted, referrals, updateUserName } = useApp();
+  const { user, balance, streak, tasksCompleted, referrals, updateUserName, redeemedCodes } = useApp();
 
   const [showEdit,    setShowEdit]    = useState(false);
   const [editName,    setEditName]    = useState('');
@@ -31,8 +55,19 @@ export default function Profile() {
   const toastTimerRef = useRef(null);
   useEffect(() => () => { if (toastTimerRef.current) clearTimeout(toastTimerRef.current); }, []);
 
-  const badges      = ALL_BADGES(balance, streak, tasksCompleted);
-  const earned      = badges.filter(b => b.earned).length;
+  const totalCheckins  = user?.total_checkins  || 0;
+  const redeemedCount  = redeemedCodes?.length || 0;
+
+  const badges = ALL_BADGES(balance, streak, tasksCompleted, referrals, totalCheckins, redeemedCount);
+  const earned = badges.filter(b => b.earned).length;
+
+  // Level groups ke liye
+  const levels = [1, 2, 3, 4];
+  const badgesByLevel = levels.map(lvl => ({
+    lvl,
+    meta:   LEVEL_META[lvl],
+    badges: badges.filter(b => b.level === lvl),
+  }));
   const displayName = user?.name?.trim() || user?.username || 'User';
   const avatarLetter = displayName.charAt(0).toUpperCase();
   const photoUrl    = (!avatarError && user?.photo_url) || null;
@@ -153,15 +188,39 @@ export default function Profile() {
           🎖️ Badges
           <span className="profile-section-count">{earned}/{badges.length} earned</span>
         </div>
-        <div className="profile-badges-grid">
-          {badges.map((b, i) => (
-            <div key={i} className={`profile-badge-card ${b.earned ? 'badge-earned' : 'badge-locked'}`}>
-              <div className="profile-badge-icon">{b.earned ? b.icon : '🔒'}</div>
-              <div className="profile-badge-name">{b.name}</div>
-              <div className="profile-badge-desc">{b.desc}</div>
+
+        {badgesByLevel.map(({ lvl, meta, badges: lvlBadges }) => {
+          const lvlEarned = lvlBadges.filter(b => b.earned).length;
+          const allDone   = lvlEarned === lvlBadges.length;
+          return (
+            <div key={lvl} className="badge-level-group">
+              <div className="badge-level-header">
+                <span className="badge-level-label" style={{ color: meta.color }}>
+                  {allDone ? '✅' : `${lvlEarned}/${lvlBadges.length}`} &nbsp;{meta.label}
+                </span>
+                <div className="badge-level-bar">
+                  <div
+                    className="badge-level-fill"
+                    style={{
+                      width: `${(lvlEarned / lvlBadges.length) * 100}%`,
+                      background: meta.color,
+                    }}
+                  />
+                </div>
+              </div>
+              <div className="profile-badges-grid">
+                {lvlBadges.map((b, i) => (
+                  <div key={i} className={`profile-badge-card ${b.earned ? 'badge-earned' : 'badge-locked'}`}
+                    style={b.earned ? { borderColor: `${meta.color}66`, boxShadow: `0 0 12px ${meta.color}22` } : {}}>
+                    <div className="profile-badge-icon">{b.earned ? b.icon : '🔒'}</div>
+                    <div className="profile-badge-name">{b.name}</div>
+                    <div className="profile-badge-desc">{b.desc}</div>
+                  </div>
+                ))}
+              </div>
             </div>
-          ))}
-        </div>
+          );
+        })}
 
         {/* ── QUICK ACTIONS ── */}
         <div className="profile-section-title">⚡ Quick Actions</div>
