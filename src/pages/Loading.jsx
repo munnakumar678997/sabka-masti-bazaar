@@ -1,7 +1,8 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
-import { supabase } from '../lib/supabase';
+import { db } from '../lib/firebase';
+import { doc, getDoc } from 'firebase/firestore';
 import '../styles/loading.css';
 
 export default function Loading() {
@@ -21,9 +22,6 @@ export default function Loading() {
       navigate('/home');
     };
 
-    // Login pe jaao — state mein batao user ka situation
-    // mode: 'new'          → naya user, account banana hai
-    // mode: 'need_mobile'  → existing user, mobile nahi hai
     const goLogin = (tgData = null, mode = 'new') => {
       if (navigated) return;
       navigated = true;
@@ -51,20 +49,13 @@ export default function Loading() {
             photo_url: user.photo_url || null,
           };
 
-          const { data } = await supabase
-            .from('users')
-            .select('id, mobile')
-            .eq('id', tgData.id)
-            .maybeSingle();
+          const userSnap = await getDoc(doc(db, 'users', String(tgData.id)));
 
-          if (!data) {
-            // Naya user
+          if (!userSnap.exists()) {
             return { action: 'login', tgData, mode: 'new' };
-          } else if (!data.mobile) {
-            // Purana user — mobile nahi hai
+          } else if (!userSnap.data().mobile) {
             return { action: 'login', tgData, mode: 'need_mobile' };
           } else {
-            // Sab sahi — seedha home
             return { action: 'home', tgData };
           }
         }
@@ -73,13 +64,10 @@ export default function Loading() {
       // ── WEB: localStorage check ──
       const savedId = localStorage.getItem('smb_tg_id');
       if (savedId) {
-        const { data } = await supabase
-          .from('users')
-          .select('*')
-          .eq('id', parseInt(savedId))
-          .maybeSingle();
+        const userSnap = await getDoc(doc(db, 'users', savedId));
 
-        if (data) {
+        if (userSnap.exists()) {
+          const data = userSnap.data();
           const tgData = {
             id:        data.id,
             name:      data.name,
