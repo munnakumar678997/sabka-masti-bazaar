@@ -107,6 +107,7 @@ export default function Loading() {
 
     const fallback = setTimeout(() => goLogin(null, 'new', null), 10000);
     return () => clearTimeout(fallback);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (

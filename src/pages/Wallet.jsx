@@ -54,7 +54,8 @@ export default function Wallet() {
       setHistLoading(false);
     });
     return () => { cancelled = true; };
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(''), 3200); };
 

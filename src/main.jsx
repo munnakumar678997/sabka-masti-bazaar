@@ -10,13 +10,9 @@ import App from './App.jsx'
 // Layer 3: Telegram WebApp 'activated' event (Telegram-specific)
 // ══════════════════════════════════════════════════════════════
 
-// ── Layer 1: bfcache standard fix ──
-window.addEventListener('pageshow', function (e) {
-  if (e.persisted) {
-    try { sessionStorage.removeItem('smb_session'); } catch (_) {}
-    window.location.reload(true);
-  }
-});
+// ── Layer 1: bfcache standard fix (index.html mein already hai — duplicate nahi) ──
+// NOTE: pageshow listener index.html ke inline script mein hai (React se pehle load hota hai)
+// Yahan dobara nahi add karenge — double reload prevent karne ke liye
 
 // ── Version check helper ──
 function checkVersion() {

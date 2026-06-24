@@ -41,7 +41,7 @@ export default function DailyCheckIn() {
     && localStorage.getItem(CHECKIN_BACKUP_KEY) === todayIST;
   const checkedIn = checkedInSupabase || checkedInLocal;
 
-  const dayIndex    = ((streak - 1) % 7);
+  const dayIndex    = Math.max(0, (streak - 1)) % 7;
   const todayReward = DAY_REWARDS[checkedIn ? dayIndex : (streak % 7)];
 
   const isStreakBroken = useCallback(() => {
