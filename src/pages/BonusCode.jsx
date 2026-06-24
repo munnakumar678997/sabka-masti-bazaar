@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import '../styles/bonusCode.css';
@@ -6,8 +6,9 @@ import '../styles/bonusCode.css';
 const historyKey = (uid) => uid ? `smb_code_history_${uid}` : null;
 
 export default function BonusCode() {
-  const navigate = useNavigate();
+  const navigate     = useNavigate();
   const { user, redeemBonusCode } = useApp();
+  const redeemingRef = useRef(false); // double-redeem prevent karo
 
   const [code,    setCode]    = useState('');
   const [status,  setStatus]  = useState(null);
@@ -33,6 +34,10 @@ export default function BonusCode() {
   const handleRedeem = async () => {
     const trimmed = code.trim().toUpperCase();
     if (!trimmed) { setStatus('error'); setMsg('⚠️ Pehle code daalo!'); return; }
+
+    // Rapid Enter-press double-redeem prevent karo (ref — instant, state se pehle)
+    if (redeemingRef.current) return;
+    redeemingRef.current = true;
 
     setLoading(true);
     setStatus(null);
@@ -60,6 +65,7 @@ export default function BonusCode() {
       }
     }
 
+    redeemingRef.current = false;
     setLoading(false);
   };
 
@@ -69,7 +75,7 @@ export default function BonusCode() {
 
       {/* ── TOPBAR ── */}
       <div className="bc-topbar">
-        <button className="bc-back" onClick={() => navigate(-1)}>← Back</button>
+        <button className="bc-back" onClick={() => navigate('/profile')}>← Back</button>
         <div className="bc-topbar-title">🎟️ Bonus Code</div>
         <div style={{ width: 60 }} />
       </div>

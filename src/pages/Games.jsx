@@ -141,6 +141,9 @@ export default function Games() {
     const newDeg    = rotateDegRef.current + 5 * 360 + extraRot; // 5 full rotations + exact landing
     rotateDegRef.current = newDeg;
 
+    // Spin start hote hi count record karo — navigate-away cheat se bachao
+    incUsed('spin');
+
     setSpinTrans('transform 5.5s cubic-bezier(0.17,0.67,0.12,0.99)');
     setSpinning(true);
     setSpinResult(null);
@@ -149,7 +152,6 @@ export default function Games() {
     const tid = setTimeout(async () => {
       setSpinTrans('none');
       await addCoins(winner.coins);
-      incUsed('spin');
       setSpinResult(winner);
       setSpinning(false);
       refresh();

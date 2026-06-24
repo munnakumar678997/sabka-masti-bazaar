@@ -53,8 +53,14 @@ export default function Notifications() {
 
   const handleMarkOne = async (notif) => {
     if (notif.read) return;
+    // Optimistic update — Firestore fail hone pe rollback karo
     setNotifs(prev => prev.map(n => n.id === notif.id ? { ...n, read: true } : n));
-    await markNotifRead(notif.id);
+    try {
+      await markNotifRead(notif.id);
+    } catch {
+      // Rollback: unread wapas karo agar Firestore fail hua
+      setNotifs(prev => prev.map(n => n.id === notif.id ? { ...n, read: false } : n));
+    }
   };
 
   const handleMarkAll = async () => {

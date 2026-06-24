@@ -22,16 +22,17 @@ export default function Profile() {
   const navigate = useNavigate();
   const { user, balance, streak, tasksCompleted, referrals, updateUserName } = useApp();
 
-  const [showEdit, setShowEdit] = useState(false);
-  const [editName, setEditName] = useState('');
-  const [saving,   setSaving]   = useState(false);
-  const [toast,    setToast]    = useState('');
+  const [showEdit,    setShowEdit]    = useState(false);
+  const [editName,    setEditName]    = useState('');
+  const [saving,      setSaving]      = useState(false);
+  const [toast,       setToast]       = useState('');
+  const [avatarError, setAvatarError] = useState(false);
 
   const badges      = ALL_BADGES(balance, streak, tasksCompleted);
   const earned      = badges.filter(b => b.earned).length;
   const displayName = user?.name?.trim() || user?.username || 'User';
   const avatarLetter = displayName.charAt(0).toUpperCase();
-  const photoUrl    = user?.photo_url || null;
+  const photoUrl    = (!avatarError && user?.photo_url) || null;
 
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(''), 3000); };
 
@@ -71,13 +72,18 @@ export default function Profile() {
 
           <div className="profile-avatar-row">
             <div className="profile-avatar-wrap">
-              {photoUrl
-                ? <img src={photoUrl} alt="dp" className="profile-avatar-img"
-                    onError={e => { e.target.style.display='none'; e.target.nextSibling.style.display='flex'; }} />
-                : null}
-              <span className="profile-avatar-letter" style={{ display: photoUrl ? 'none' : 'flex' }}>
-                {avatarLetter}
-              </span>
+              {photoUrl ? (
+                <img
+                  src={photoUrl}
+                  alt="dp"
+                  className="profile-avatar-img"
+                  onError={() => setAvatarError(true)}
+                />
+              ) : (
+                <span className="profile-avatar-letter" style={{ display: 'flex' }}>
+                  {avatarLetter}
+                </span>
+              )}
               {/* Online dot */}
               <span className="profile-online-dot" />
             </div>

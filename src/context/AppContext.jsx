@@ -291,9 +291,9 @@ export function AppProvider({ children }) {
     setBalance(newBalance);
     setStreak(newStreak);
     setUser(prev => {
-      const base = prev ?? {};
+      if (!prev) return prev; // user null ho toh update mat karo
       return {
-        ...base,
+        ...prev,
         balance:           newBalance,
         streak:            newStreak,
         total_checkins:    totalDays,
