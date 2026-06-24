@@ -36,11 +36,6 @@ export function AppProvider({ children }) {
   const balanceRef = useRef(0);
   const tasksRef   = useRef(0);
 
-  const _setUser = (data) => {
-    userIdRef.current = data?.id ?? null;
-    setUser(data);
-  };
-
   // ─────────────────────────────────────────────
   // loadUser — Firestore se real data lo
   // referredBy: optional — jis user ne refer kiya uska code (e.g. "SMB12345")

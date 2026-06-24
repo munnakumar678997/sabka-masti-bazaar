@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import BottomNav from '../components/BottomNav';
 import '../styles/store.css';
@@ -183,10 +182,8 @@ function Toast({ msg, onClose }) {
 }
 
 export default function Store() {
-  const navigate = useNavigate();
   const { balance, deductCoins, user, saveOrder } = useApp();
 
-  const [activeTab,      setActiveTab]      = useState('store');
   const [openProduct,    setOpenProduct]    = useState(null);
   const [activeType,     setActiveType]     = useState(null);
   const [selectedPlan,   setSelectedPlan]   = useState(null);

@@ -1,28 +1,28 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import BottomNav from '../components/BottomNav';
 import '../styles/wallet.css';
 
-const WITHDRAW_KEY  = 'smb_withdrawals';
-const MIN_WITHDRAW  = 500;
+const MIN_WITHDRAW = 500;
 
-function getLocalWithdrawals() {
-  try { return JSON.parse(localStorage.getItem(WITHDRAW_KEY) || '[]'); } catch { return []; }
+function getLocalWithdrawals(key) {
+  if (!key) return [];
+  try { return JSON.parse(localStorage.getItem(key) || '[]'); } catch { return []; }
 }
-function saveLocalWithdrawals(list) {
-  localStorage.setItem(WITHDRAW_KEY, JSON.stringify(list));
+function saveLocalWithdrawals(key, list) {
+  if (!key) return;
+  localStorage.setItem(key, JSON.stringify(list));
 }
 
 export default function Wallet() {
-  const navigate = useNavigate();
-  const { balance, addCoins, deductCoins, saveWithdrawal, fetchWithdrawals } = useApp();
+  const { balance, addCoins, deductCoins, saveWithdrawal, fetchWithdrawals, user } = useApp();
+  const withdrawKey = user?.id ? `smb_withdrawals_${user.id}` : null;
 
   const [tab,         setTab]         = useState('withdraw');
   const [amount,      setAmount]      = useState('');
   const [upiId,       setUpiId]       = useState('');
   const [submitting,  setSubmitting]  = useState(false);
-  const [withdrawals, setWithdrawals] = useState(getLocalWithdrawals());
+  const [withdrawals, setWithdrawals] = useState(() => getLocalWithdrawals(withdrawKey));
   const [histLoading, setHistLoading] = useState(true);
   const [toast,       setToast]       = useState('');
 
@@ -43,14 +43,14 @@ export default function Wallet() {
           status: d.status || 'pending',
         }));
         setWithdrawals(mapped);
-        saveLocalWithdrawals(mapped);
+        saveLocalWithdrawals(withdrawKey, mapped);
       } else {
         // Firestore empty → localStorage use karo
-        setWithdrawals(getLocalWithdrawals());
+        setWithdrawals(getLocalWithdrawals(withdrawKey));
       }
       setHistLoading(false);
     }).catch(() => {
-      setWithdrawals(getLocalWithdrawals());
+      setWithdrawals(getLocalWithdrawals(withdrawKey));
       setHistLoading(false);
     });
     return () => { cancelled = true; };
@@ -89,7 +89,7 @@ export default function Wallet() {
     try {
       await saveWithdrawal(entry);
       const updated = [entry, ...withdrawals];
-      saveLocalWithdrawals(updated);
+      saveLocalWithdrawals(withdrawKey, updated);
       setWithdrawals(updated);
       setAmount('');
       setUpiId('');

@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import BottomNav from '../components/BottomNav';
 import '../styles/games.css';
@@ -86,7 +85,6 @@ function pickScratch() { return SCRATCH_PRIZES[Math.floor(Math.random() * SCRATC
 
 /* ═══════════════════════════════ MAIN COMPONENT ═══════════════════════════════ */
 export default function Games() {
-  const navigate  = useNavigate();
   const { addCoins, balance } = useApp();
 
   const [openGame,  setOpenGame]  = useState(null);

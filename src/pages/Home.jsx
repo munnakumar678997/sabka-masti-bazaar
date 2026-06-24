@@ -31,7 +31,6 @@ export default function Home() {
   const navigate = useNavigate();
   const { user, balance, streak, completeTask, tasksCompleted, referrals, notifUnreadCount } = useApp();
 
-  const [activeTab,    setActiveTab]    = useState('home');
   const [showWithdraw, setShowWithdraw] = useState(false);
   const [avatarError,  setAvatarError]  = useState(false);
   const [taskDone,     setTaskDone]     = useState(() =>
