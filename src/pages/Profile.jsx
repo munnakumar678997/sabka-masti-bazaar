@@ -154,6 +154,7 @@ export default function Profile() {
         <div className="profile-actions">
           {[
             { icon: '✏️', label: 'Naam Edit Karo',    action: () => { setEditName(displayName); setShowEdit(true); } },
+            { icon: '🎟️', label: 'Bonus Code Redeem', action: () => navigate('/bonus-code') },
             { icon: '👥', label: 'Referral Program',  action: () => navigate('/referral') },
             { icon: '🎮', label: 'Games Hub',         action: () => navigate('/games')    },
             { icon: '❓', label: 'FAQ / Help',        action: () => navigate('/faq')      },

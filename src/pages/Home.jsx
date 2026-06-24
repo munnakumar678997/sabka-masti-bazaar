@@ -158,6 +158,18 @@ export default function Home() {
           <button className="refer-btn" onClick={e => { e.stopPropagation(); navigate('/referral'); }}>Share 🔗</button>
         </div>
 
+        {/* ── BONUS CODE BANNER ── */}
+        <div className="bonus-code-banner" onClick={() => navigate('/bonus-code')}>
+          <div className="bonus-code-left">
+            <div className="bonus-code-icon">🎟️</div>
+            <div>
+              <div className="bonus-code-title">Bonus Code Hai?</div>
+              <div className="bonus-code-desc">Redeem karo — extra coins pao!</div>
+            </div>
+          </div>
+          <button className="bonus-code-btn">Redeem ▶</button>
+        </div>
+
         <div style={{ height: 90 }} />
       </div>
 

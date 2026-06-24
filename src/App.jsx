@@ -7,7 +7,8 @@ import Wallet   from './pages/Wallet';
 import Profile  from './pages/Profile';
 import Games    from './pages/Games';
 import Referral from './pages/Referral';
-import FAQ      from './pages/FAQ';
+import FAQ       from './pages/FAQ';
+import BonusCode from './pages/BonusCode';
 import { AppProvider } from './context/AppContext';
 import './styles/global.css';
 
@@ -36,8 +37,9 @@ export default function App() {
               <Route path="/profile"  element={<Profile  />} />
               <Route path="/games"    element={<Games    />} />
               <Route path="/referral" element={<Referral />} />
-              <Route path="/faq"      element={<FAQ      />} />
-              <Route path="*"         element={<Navigate to="/home" replace />} />
+              <Route path="/faq"        element={<FAQ       />} />
+              <Route path="/bonus-code" element={<BonusCode />} />
+              <Route path="*"           element={<Navigate to="/home" replace />} />
             </Routes>
           </SessionGuard>
         </div>

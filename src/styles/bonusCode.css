@@ -1,0 +1,256 @@
+.bc-page {
+  min-height: 100dvh;
+  background: linear-gradient(180deg, #0f0f1a 0%, #131328 60%, #0a0a18 100%);
+  display: flex;
+  flex-direction: column;
+  color: #fff;
+  font-family: 'Segoe UI', sans-serif;
+  position: relative;
+}
+
+/* ── TOPBAR ── */
+.bc-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  background: rgba(255,255,255,0.04);
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.bc-back {
+  background: rgba(255,255,255,0.08);
+  border: none;
+  color: #fff;
+  padding: 7px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  cursor: pointer;
+}
+.bc-topbar-title {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+/* ── SCROLL ── */
+.bc-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 14px;
+}
+
+/* ── HERO ── */
+.bc-hero {
+  text-align: center;
+  padding: 28px 0 20px;
+}
+.bc-hero-icon {
+  font-size: 60px;
+  margin-bottom: 10px;
+  filter: drop-shadow(0 0 18px #ffd70088);
+  animation: bc-float 3s ease-in-out infinite;
+}
+@keyframes bc-float {
+  0%,100% { transform: translateY(0);    }
+  50%      { transform: translateY(-8px); }
+}
+.bc-hero-title {
+  font-size: 22px;
+  font-weight: 800;
+  background: linear-gradient(90deg, #ffd700, #ff9500);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 6px;
+}
+.bc-hero-sub {
+  font-size: 13px;
+  color: rgba(255,255,255,0.5);
+}
+
+/* ── INPUT CARD ── */
+.bc-card {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 18px;
+  padding: 18px 16px;
+  margin-bottom: 18px;
+}
+.bc-card-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.45);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 12px;
+}
+.bc-input-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.bc-input {
+  flex: 1;
+  background: rgba(255,255,255,0.08);
+  border: 1.5px solid rgba(255,255,255,0.15);
+  border-radius: 12px;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  padding: 12px 14px;
+  outline: none;
+  text-transform: uppercase;
+}
+.bc-input::placeholder { color: rgba(255,255,255,0.3); letter-spacing: 1px; text-transform: none; }
+.bc-input:focus { border-color: #ffd700; }
+.bc-redeem-btn {
+  background: linear-gradient(135deg, #ffd700, #ff9500);
+  border: none;
+  border-radius: 12px;
+  color: #000;
+  font-size: 13px;
+  font-weight: 800;
+  padding: 12px 16px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity 0.2s, transform 0.1s;
+}
+.bc-redeem-btn:active  { transform: scale(0.96); }
+.bc-redeem-btn.loading { opacity: 0.6; cursor: not-allowed; }
+
+/* ── STATUS ── */
+.bc-status {
+  margin-top: 12px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+}
+.bc-status.success {
+  background: rgba(0,255,100,0.12);
+  border: 1px solid rgba(0,255,100,0.3);
+  color: #00ff64;
+}
+.bc-status.error {
+  background: rgba(255,60,60,0.12);
+  border: 1px solid rgba(255,60,60,0.3);
+  color: #ff6060;
+}
+
+/* ── SUCCESS CARD ── */
+.bc-success-card {
+  background: linear-gradient(135deg, rgba(255,215,0,0.15), rgba(255,149,0,0.1));
+  border: 1.5px solid rgba(255,215,0,0.35);
+  border-radius: 18px;
+  padding: 22px;
+  text-align: center;
+  margin-bottom: 18px;
+  animation: bc-pop 0.4s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes bc-pop {
+  from { transform: scale(0.85); opacity: 0; }
+  to   { transform: scale(1);    opacity: 1; }
+}
+.bc-success-burst  { font-size: 40px; margin-bottom: 8px; }
+.bc-success-amount {
+  font-size: 30px;
+  font-weight: 900;
+  background: linear-gradient(90deg, #ffd700, #ff9500);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.bc-success-label  { font-size: 14px; color: rgba(255,255,255,0.7); margin: 4px 0; }
+.bc-success-hint   { font-size: 11px; color: rgba(255,215,0,0.6); }
+
+/* ── SECTION TITLE ── */
+.bc-section-title {
+  font-size: 13px;
+  font-weight: 800;
+  color: rgba(255,255,255,0.55);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin: 6px 0 10px;
+}
+
+/* ── TIPS ── */
+.bc-tips-card {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.09);
+  border-radius: 16px;
+  padding: 6px 0;
+  margin-bottom: 20px;
+}
+.bc-tip-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.bc-tip-row:last-child { border-bottom: none; }
+.bc-tip-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+.bc-tip-text { font-size: 13px; color: rgba(255,255,255,0.65); line-height: 1.5; }
+
+/* ── HISTORY ── */
+.bc-history-list {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.09);
+  border-radius: 16px;
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+.bc-history-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 13px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.bc-history-row:last-child { border-bottom: none; }
+.bc-history-code {
+  font-size: 13px;
+  font-weight: 800;
+  color: #ffd700;
+  letter-spacing: 1px;
+}
+.bc-history-desc { font-size: 11px; color: rgba(255,255,255,0.45); margin-top: 2px; }
+.bc-history-coins {
+  font-size: 14px;
+  font-weight: 800;
+  color: #00ff64;
+  text-align: right;
+}
+.bc-history-date { font-size: 10px; color: rgba(255,255,255,0.35); text-align: right; margin-top: 2px; }
+
+/* ── BOTTOM NAV ── */
+.bc-bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 430px;
+  background: rgba(10,10,24,0.97);
+  border-top: 1px solid rgba(255,255,255,0.1);
+  display: flex;
+  z-index: 100;
+}
+.bc-nav-tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 10px 0 8px;
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.45);
+  font-size: 19px;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+.bc-nav-tab.active { color: #ffd700; }
+.bc-nav-label      { font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }

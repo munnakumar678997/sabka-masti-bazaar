@@ -225,6 +225,44 @@
   box-shadow: 0 4px 14px rgba(0,136,204,0.35);
 }
 
+/* ── BONUS CODE BANNER ── */
+.bonus-code-banner {
+  background: linear-gradient(135deg, #1a1400, #2a1f00);
+  border-radius: 16px;
+  border: 1px solid rgba(255,215,0,0.25);
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+  box-shadow: 0 4px 20px rgba(255,215,0,0.08);
+  cursor: pointer;
+}
+.bonus-code-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+}
+.bonus-code-icon { font-size: 28px; flex-shrink: 0; }
+.bonus-code-title { font-size: 14px; font-weight: 700; color: #ffd700; margin-bottom: 3px; }
+.bonus-code-desc  { font-size: 11px; color: rgba(255,255,255,0.45); }
+.bonus-code-btn {
+  background: linear-gradient(135deg, #ffd700, #ff9500);
+  color: #000;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: 0 4px 14px rgba(255,215,0,0.3);
+  flex-shrink: 0;
+}
+
 /* ── BOTTOM NAV ── */
 .bottom-nav {
   position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
