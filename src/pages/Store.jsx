@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import BottomNav from '../components/BottomNav';
 import '../styles/store.css';
@@ -189,11 +189,16 @@ export default function Store() {
   const [selectedPlan,   setSelectedPlan]   = useState(null);
   const [qty,            setQty]            = useState(1);
   const [confirmPending, setConfirmPending] = useState(false);
+  const [confirming,     setConfirming]     = useState(false); // double-click prevent
   const [toast,          setToast]          = useState('');
 
+  const toastTimerRef = useRef(null);
+  useEffect(() => () => { if (toastTimerRef.current) clearTimeout(toastTimerRef.current); }, []);
+
   const showToast = (msg) => {
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
     setToast(msg);
-    setTimeout(() => setToast(''), 3200);
+    toastTimerRef.current = setTimeout(() => setToast(''), 3200);
   };
 
   const openModal = (product) => {
@@ -236,6 +241,9 @@ export default function Store() {
   };
 
   const handleConfirmOrder = async () => {
+    if (confirming) return; // double-click se dohri deduction prevent
+    setConfirming(true);
+
     // User info for Telegram message
     const userName   = user?.name     || 'Unknown';
     const userHandle = user?.username ? `@${user.username}` : 'No username';
@@ -266,6 +274,7 @@ export default function Store() {
     const deducted = await deductCoins(coinsRequired);
     if (!deducted) {
       setConfirmPending(false);
+      setConfirming(false);
       showToast(`❌ Balance kam hai! Order cancel ho gaya. Pehle coins kamao.`);
       return;
     }
@@ -287,6 +296,7 @@ export default function Store() {
     }
 
     setConfirmPending(false);
+    setConfirming(false);
     showToast(`✅ ₹${total} ka order place ho gaya! Telegram pe confirm karo.`);
     closeModal();
   };
@@ -552,9 +562,10 @@ export default function Store() {
                   <button className="confirm-cancel-btn" onClick={() => setConfirmPending(false)}>Cancel</button>
                   <button
                     className="confirm-go-btn"
-                    style={{ background: `linear-gradient(135deg, ${effectiveColor}, ${effectiveColor}bb)`, boxShadow: `0 4px 16px ${effectiveColor}55` }}
+                    style={{ background: `linear-gradient(135deg, ${effectiveColor}, ${effectiveColor}bb)`, boxShadow: `0 4px 16px ${effectiveColor}55`, opacity: confirming ? 0.6 : 1 }}
                     onClick={handleConfirmOrder}
-                  >📲 Telegram Kholo</button>
+                    disabled={confirming}
+                  >{confirming ? '⏳ Processing...' : '📲 Telegram Kholo'}</button>
                 </div>
               </div>
             </div>

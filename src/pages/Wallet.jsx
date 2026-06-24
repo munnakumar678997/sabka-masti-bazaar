@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useApp } from '../context/AppContext';
 import BottomNav from '../components/BottomNav';
 import '../styles/wallet.css';
@@ -26,6 +26,9 @@ export default function Wallet() {
   const [histLoading, setHistLoading] = useState(true);
   const [toast,       setToast]       = useState('');
   const [toastType,   setToastType]   = useState('success');
+
+  const toastTimerRef = useRef(null);
+  useEffect(() => () => { if (toastTimerRef.current) clearTimeout(toastTimerRef.current); }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -56,14 +59,15 @@ export default function Wallet() {
   }, [user?.id]);
 
   const showToast = (msg, type = 'success') => {
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
     setToast(msg);
     setToastType(type);
-    setTimeout(() => setToast(''), 3200);
+    toastTimerRef.current = setTimeout(() => setToast(''), 3200);
   };
 
   const amountNum  = parseInt(amount) || 0;
   const inrValue   = (amountNum / 100).toFixed(2);
-  const canSubmit  = amountNum >= MIN_WITHDRAW && upiId.trim().length > 4 && balance >= amountNum;
+  const canSubmit  = amountNum >= MIN_WITHDRAW && upiId.trim().length > 4 && upiId.includes('@') && balance >= amountNum;
 
   // Progress toward minimum withdrawal
   const progressPct = Math.min(100, Math.round((balance / MIN_WITHDRAW) * 100));

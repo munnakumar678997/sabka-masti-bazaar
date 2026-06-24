@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import DailyCheckIn from './DailyCheckIn';
@@ -33,6 +33,17 @@ export default function Home() {
 
   const [showWithdraw, setShowWithdraw] = useState(false);
   const [avatarError,  setAvatarError]  = useState(false);
+
+  // Popup open hone pe body scroll lock karo
+  useEffect(() => {
+    if (showWithdraw) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => { document.body.style.overflow = ''; };
+  }, [showWithdraw]);
+
   const [taskDone,     setTaskDone]     = useState(() =>
     Object.fromEntries(TASKS.map(t => [t.id, getTaskUsed(t.id)]))
   );

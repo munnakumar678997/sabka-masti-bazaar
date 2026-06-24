@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import '../styles/referral.css';
@@ -18,6 +18,8 @@ export default function Referral() {
   const navigate   = useNavigate();
   const { user, referrals } = useApp();
   const [copied, setCopied] = useState(false);
+  const copyTimerRef = useRef(null);
+  useEffect(() => () => { if (copyTimerRef.current) clearTimeout(copyTimerRef.current); }, []);
 
   // Accurate total calculation — base coins + milestone bonuses jo award ho chuke
   const referralCoinsTotal = useMemo(() => {
@@ -34,8 +36,9 @@ export default function Referral() {
 
   const handleCopy = () => {
     navigator.clipboard?.writeText(refLink).catch(() => {});
+    if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
     setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    copyTimerRef.current = setTimeout(() => setCopied(false), 2000);
   };
 
   const handleShare = () => {

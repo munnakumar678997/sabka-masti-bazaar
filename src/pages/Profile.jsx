@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import BottomNav from '../components/BottomNav';
@@ -28,13 +28,20 @@ export default function Profile() {
   const [toast,       setToast]       = useState('');
   const [avatarError, setAvatarError] = useState(false);
 
+  const toastTimerRef = useRef(null);
+  useEffect(() => () => { if (toastTimerRef.current) clearTimeout(toastTimerRef.current); }, []);
+
   const badges      = ALL_BADGES(balance, streak, tasksCompleted);
   const earned      = badges.filter(b => b.earned).length;
   const displayName = user?.name?.trim() || user?.username || 'User';
   const avatarLetter = displayName.charAt(0).toUpperCase();
   const photoUrl    = (!avatarError && user?.photo_url) || null;
 
-  const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(''), 3000); };
+  const showToast = (msg) => {
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    setToast(msg);
+    toastTimerRef.current = setTimeout(() => setToast(''), 3000);
+  };
 
   const handleSaveName = async () => {
     if (!editName.trim() || saving) return;

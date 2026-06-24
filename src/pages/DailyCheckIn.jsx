@@ -36,10 +36,10 @@ export default function DailyCheckIn() {
 
   const todayIST = getISTDateStr();
 
-  const checkedInSupabase = user?.last_checkin_date === todayIST;
-  const checkedInLocal    = typeof localStorage !== 'undefined'
+  const checkedInFirestore = user?.last_checkin_date === todayIST;
+  const checkedInLocal     = typeof localStorage !== 'undefined'
     && localStorage.getItem(CHECKIN_BACKUP_KEY) === todayIST;
-  const checkedIn = checkedInSupabase || checkedInLocal;
+  const checkedIn = checkedInFirestore || checkedInLocal;
 
   const dayIndex    = Math.max(0, (streak - 1)) % 7;
   const todayReward = DAY_REWARDS[checkedIn ? dayIndex : (streak % 7)];

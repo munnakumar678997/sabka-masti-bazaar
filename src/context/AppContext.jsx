@@ -49,8 +49,9 @@ export function AppProvider({ children }) {
       if (userSnap.exists()) {
         const existing = userSnap.data();
 
+        // name sirf tab update karo jab user ne custom naam nahi set kiya ho
+        // (Telegram naam se custom naam overwrite nahi hona chahiye)
         const updatePayload = {
-          name:      tgUser.name,
           username:  tgUser.username  ?? null,
           photo_url: tgUser.photo_url ?? null,
         };

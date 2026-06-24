@@ -183,6 +183,7 @@ export default function Login() {
       widgetRef.current.appendChild(script);
     }
     return () => { delete window.onTelegramAuth; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // ── Mini App: button → phone maango ──

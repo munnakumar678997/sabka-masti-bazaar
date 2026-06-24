@@ -91,7 +91,12 @@ export default function Games() {
   const [toast,     setToast]     = useState('');
   const [tick,      setTick]      = useState(0); // force re-render for used counts
 
-  const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(''), 3000); };
+  const toastTimerRef = useRef(null); // unmount pe clear karo
+  const showToast = (msg) => {
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    setToast(msg);
+    toastTimerRef.current = setTimeout(() => setToast(''), 3000);
+  };
   const refresh   = ()    => setTick(t => t + 1);
 
   /* ── SPIN state ── */
@@ -118,6 +123,7 @@ export default function Games() {
     return () => {
       if (spinTimeoutRef.current)  clearTimeout(spinTimeoutRef.current);
       if (flipIntervalRef.current) clearInterval(flipIntervalRef.current);
+      if (toastTimerRef.current)   clearTimeout(toastTimerRef.current);
     };
   }, []);
 

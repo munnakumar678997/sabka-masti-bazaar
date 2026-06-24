@@ -159,7 +159,7 @@ export default function FAQ() {
             onChange={e => { setSearch(e.target.value); setOpenIdx(null); }}
           />
           {search && (
-            <button className="faq-search-clear" onClick={() => setSearch('')}>✕</button>
+            <button className="faq-search-clear" onClick={() => { setSearch(''); setOpenIdx(null); }}>✕</button>
           )}
         </div>
 

@@ -69,8 +69,13 @@ export default function Notifications() {
     setMarking(true);
     const unreadIds = notifs.filter(n => !n.read).map(n => n.id);
     setNotifs(prev => prev.map(n => ({ ...n, read: true })));
-    await markAllNotifsRead(unreadIds);
-    setMarking(false);
+    try {
+      await markAllNotifsRead(unreadIds);
+    } catch {
+      // Firestore fail — optimistic update already done, badge count context mein reset ho gaya
+    } finally {
+      setMarking(false); // hamesha false karo — chahe Firestore fail ho ya succeed
+    }
   };
 
   const displayed   = filter === 'unread' ? notifs.filter(n => !n.read) : notifs;
