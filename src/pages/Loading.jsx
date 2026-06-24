@@ -14,19 +14,19 @@ export default function Loading() {
 
     let navigated = false;
 
-    const goHome = async (tgData) => {
+    const goHome = async (tgData, referredBy = null) => {
       if (navigated) return;
       navigated = true;
-      await loadUser(tgData);
+      await loadUser(tgData, null, referredBy);
       sessionStorage.setItem('smb_session', '1');
       navigate('/home');
     };
 
-    const goLogin = (tgData = null, mode = 'new') => {
+    const goLogin = (tgData = null, mode = 'new', referredBy = null) => {
       if (navigated) return;
       navigated = true;
       sessionStorage.setItem('smb_session', '1');
-      navigate('/login', { state: { tgData, mode } });
+      navigate('/login', { state: { tgData, mode, referredBy } });
     };
 
     const minTimer = new Promise(res => setTimeout(res, 2500));
@@ -41,6 +41,11 @@ export default function Loading() {
         tg.setHeaderColor('#1a1a2e');
         tg.setBackgroundColor('#1a1a2e');
         const user = tg.initDataUnsafe?.user;
+
+        // Referral code capture — start_param mein hota hai (e.g. "SMB12345")
+        const startParam  = tg.initDataUnsafe?.start_param || null;
+        const referredBy  = startParam && /^SMB\d+$/i.test(startParam) ? startParam : null;
+
         if (user) {
           const tgData = {
             id:        user.id,
@@ -52,11 +57,11 @@ export default function Loading() {
           const userSnap = await getDoc(doc(db, 'users', String(tgData.id)));
 
           if (!userSnap.exists()) {
-            return { action: 'login', tgData, mode: 'new' };
+            return { action: 'login', tgData, mode: 'new', referredBy };
           } else if (!userSnap.data().mobile) {
-            return { action: 'login', tgData, mode: 'need_mobile' };
+            return { action: 'login', tgData, mode: 'need_mobile', referredBy: null };
           } else {
-            return { action: 'home', tgData };
+            return { action: 'home', tgData, referredBy: null };
           }
         }
       }
@@ -75,26 +80,26 @@ export default function Loading() {
             photo_url: data.photo_url,
           };
           if (!data.mobile) {
-            return { action: 'login', tgData, mode: 'need_mobile' };
+            return { action: 'login', tgData, mode: 'need_mobile', referredBy: null };
           }
-          return { action: 'home', tgData };
+          return { action: 'home', tgData, referredBy: null };
         } else {
           localStorage.removeItem('smb_tg_id');
         }
       }
 
-      return { action: 'login', tgData: null, mode: 'new' };
+      return { action: 'login', tgData: null, mode: 'new', referredBy: null };
     };
 
     Promise.all([minTimer, checkUser()]).then(([, result]) => {
       if (result.action === 'home') {
-        goHome(result.tgData);
+        goHome(result.tgData, result.referredBy);
       } else {
-        goLogin(result.tgData, result.mode);
+        goLogin(result.tgData, result.mode, result.referredBy);
       }
     });
 
-    const fallback = setTimeout(() => goLogin(null, 'new'), 10000);
+    const fallback = setTimeout(() => goLogin(null, 'new', null), 10000);
     return () => clearTimeout(fallback);
   }, []);
 

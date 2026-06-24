@@ -28,20 +28,11 @@ export function AppProvider({ children }) {
     setUser(data);
   };
 
-  const _setBalance = (val) => {
-    balanceRef.current = val;
-    setBalance(val);
-  };
-
-  const _setTasks = (val) => {
-    tasksRef.current = val;
-    setTasksCompleted(val);
-  };
-
   // ─────────────────────────────────────────────
   // loadUser — Firestore se real data lo
+  // referredBy: optional — jis user ne refer kiya uska code (e.g. "SMB12345")
   // ─────────────────────────────────────────────
-  const loadUser = async (tgUser, mobile = null) => {
+  const loadUser = async (tgUser, mobile = null, referredBy = null) => {
     setLoading(true);
     try {
       const userRef  = doc(db, 'users', String(tgUser.id));
@@ -60,10 +51,14 @@ export function AppProvider({ children }) {
         await updateDoc(userRef, updatePayload);
 
         const updated = { id: String(tgUser.id), ...existing, ...updatePayload };
-        _setUser(updated);
-        _setBalance(updated.balance          || 0);
+        userIdRef.current  = updated.id;
+        balanceRef.current = updated.balance || 0;
+        tasksRef.current   = updated.tasks_completed || 0;
+
+        setUser(updated);
+        setBalance(updated.balance          || 0);
         setStreak(updated.streak             || 0);
-        _setTasks(updated.tasks_completed    || 0);
+        setTasksCompleted(updated.tasks_completed || 0);
         setReferrals(updated.referral_count  || 0);
         setRedeemedCodes(updated.redeemed_codes || []);
 
@@ -74,6 +69,7 @@ export function AppProvider({ children }) {
         }
 
       } else {
+        // ── NAYA USER ──
         const WELCOME_BONUS = 50;
         const newUser = {
           id:                String(tgUser.id),
@@ -88,18 +84,43 @@ export function AppProvider({ children }) {
           last_checkin_date: null,
           referral_count:    0,
           redeemed_codes:    [],
+          referred_by:       referredBy       ?? null,
         };
 
         await setDoc(userRef, newUser);
 
-        _setUser(newUser);
-        _setBalance(WELCOME_BONUS);
+        userIdRef.current  = newUser.id;
+        balanceRef.current = WELCOME_BONUS;
+        tasksRef.current   = 0;
+
+        setUser(newUser);
+        setBalance(WELCOME_BONUS);
         setStreak(0);
-        _setTasks(0);
+        setTasksCompleted(0);
         setReferrals(0);
         setRedeemedCodes([]);
         localStorage.removeItem(CHECKIN_BACKUP_KEY);
         localStorage.setItem('smb_welcome_shown', '1');
+
+        // ── Referrer ko coins aur count update karo ──
+        if (referredBy) {
+          try {
+            // referredBy format: "SMB<userId>" — pehle validate karo
+            const referrerId = String(referredBy).replace(/^SMB/i, '');
+            if (referrerId && referrerId !== String(tgUser.id)) {
+              const referrerRef = doc(db, 'users', referrerId);
+              const referrerSnap = await getDoc(referrerRef);
+              if (referrerSnap.exists()) {
+                await updateDoc(referrerRef, {
+                  referral_count: increment(1),
+                  balance:        increment(50),
+                });
+              }
+            }
+          } catch (refErr) {
+            console.error('Referral update error:', refErr);
+          }
+        }
       }
 
     } catch (err) {
@@ -120,15 +141,13 @@ export function AppProvider({ children }) {
   };
 
   // ─────────────────────────────────────────────
-  // addCoins — functional update + Firestore increment (atomic, no race condition)
+  // addCoins — synchronous ref update (no stale closure)
   // ─────────────────────────────────────────────
   const addCoins = async (amount) => {
-    setBalance(prev => {
-      const n = prev + amount;
-      balanceRef.current = n;
-      return n;
-    });
-    setUser(prev => prev ? { ...prev, balance: balanceRef.current } : prev);
+    const newBalance       = balanceRef.current + amount;
+    balanceRef.current     = newBalance;
+    setBalance(newBalance);
+    setUser(prev => prev ? { ...prev, balance: newBalance } : prev);
 
     if (userIdRef.current) {
       try {
@@ -143,53 +162,56 @@ export function AppProvider({ children }) {
   // deductCoins — Firestore transaction (negative balance prevent, race-condition safe)
   // ─────────────────────────────────────────────
   const deductCoins = async (amount) => {
-    if (!userIdRef.current) return;
+    if (!userIdRef.current) return false;
 
     try {
       const userRef = doc(db, 'users', String(userIdRef.current));
       let actualDeducted = 0;
+      let success = false;
 
       await runTransaction(db, async (txn) => {
         const snap = await txn.get(userRef);
         if (!snap.exists()) throw new Error('User not found');
         const currentBalance = snap.data().balance || 0;
-        // Kabhi bhi negative nahi hoga — max 0
-        const newBalance = Math.max(0, currentBalance - amount);
-        actualDeducted  = currentBalance - newBalance;
+        if (currentBalance < amount) {
+          // Balance nahi hai — transaction cancel karo
+          return;
+        }
+        const newBalance = currentBalance - amount;
+        actualDeducted   = amount;
+        success          = true;
         txn.update(userRef, { balance: newBalance });
       });
 
+      if (!success) return false;
+
       // Transaction ke baad UI update karo (confirmed value)
-      setBalance(prev => {
-        const n = Math.max(0, prev - actualDeducted);
-        balanceRef.current = n;
-        return n;
-      });
-      setUser(prev => prev ? { ...prev, balance: balanceRef.current } : prev);
+      const newBalance       = Math.max(0, balanceRef.current - actualDeducted);
+      balanceRef.current     = newBalance;
+      setBalance(newBalance);
+      setUser(prev => prev ? { ...prev, balance: newBalance } : prev);
+      return true;
 
     } catch (e) {
       console.error('deductCoins Firestore err:', e);
+      return false;
     }
   };
 
   // ─────────────────────────────────────────────
-  // completeTask — functional update, no stale closure
+  // completeTask — synchronous ref update (no stale closure)
   // ─────────────────────────────────────────────
   const completeTask = async (coins) => {
-    setBalance(prev => {
-      const n = prev + coins;
-      balanceRef.current = n;
-      return n;
-    });
-    setTasksCompleted(prev => {
-      const n = prev + 1;
-      tasksRef.current = n;
-      return n;
-    });
+    const newBalance       = balanceRef.current + coins;
+    const newTasks         = tasksRef.current + 1;
+    balanceRef.current     = newBalance;
+    tasksRef.current       = newTasks;
+    setBalance(newBalance);
+    setTasksCompleted(newTasks);
     setUser(prev => prev ? {
       ...prev,
-      balance:         balanceRef.current,
-      tasks_completed: tasksRef.current,
+      balance:         newBalance,
+      tasks_completed: newTasks,
     } : prev);
 
     if (userIdRef.current) {
@@ -203,20 +225,18 @@ export function AppProvider({ children }) {
   };
 
   // ─────────────────────────────────────────────
-  // updateCheckIn — 3-layer protection, functional update
+  // updateCheckIn — synchronous ref update (no stale closure)
   // ─────────────────────────────────────────────
   const updateCheckIn = async (newStreak, totalDays, lastDate, coinsEarned) => {
-    setBalance(prev => {
-      const n = prev + coinsEarned;
-      balanceRef.current = n;
-      return n;
-    });
+    const newBalance       = balanceRef.current + coinsEarned;
+    balanceRef.current     = newBalance;
+    setBalance(newBalance);
     setStreak(newStreak);
     setUser(prev => {
       const base = prev ?? {};
       return {
         ...base,
-        balance:           balanceRef.current,
+        balance:           newBalance,
         streak:            newStreak,
         total_checkins:    totalDays,
         last_checkin_date: lastDate,
@@ -282,6 +302,7 @@ export function AppProvider({ children }) {
       });
     } catch (e) {
       console.error('saveWithdrawal Firestore err:', e);
+      throw e; // Caller ko pata chale ki save fail hua
     }
   };
 
@@ -306,15 +327,12 @@ export function AppProvider({ children }) {
   const fetchWithdrawals = async () => {
     if (!userIdRef.current) return [];
     try {
-      // orderBy hata diya — composite index ki zaroorat nahi
-      // Client-side sort karo createdAt se
       const q = query(
         collection(db, 'withdrawals'),
         where('userId', '==', String(userIdRef.current)),
       );
       const snap = await getDocs(q);
       const results = snap.docs.map(d => ({ firestoreId: d.id, ...d.data() }));
-      // Newest first — client-side sort
       results.sort((a, b) => {
         const ta = a.createdAt || '';
         const tb = b.createdAt || '';

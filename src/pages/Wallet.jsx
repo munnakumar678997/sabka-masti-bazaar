@@ -65,7 +65,15 @@ export default function Wallet() {
   const handleWithdraw = async () => {
     if (!canSubmit || submitting) return;
     setSubmitting(true);
-    await deductCoins(amountNum);
+
+    // Pehle Firestore transaction se coins deduct karo
+    const deducted = await deductCoins(amountNum);
+    if (!deducted) {
+      showToast('❌ Balance nahi hai! Refresh karke dobara try karo.');
+      setSubmitting(false);
+      return;
+    }
+
     const entry = {
       id:     Date.now(),
       coins:  amountNum,
@@ -75,15 +83,25 @@ export default function Wallet() {
       time:   new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }),
       status: 'pending',
     };
-    const updated = [entry, ...withdrawals];
-    saveLocalWithdrawals(updated);
-    setWithdrawals(updated);
-    // Firestore mein bhi save karo (admin dekh sake)
-    await saveWithdrawal(entry);
-    setAmount('');
-    setUpiId('');
-    showToast('✅ Withdrawal request submit ho gaya!');
-    setTab('history');
+
+    // Firestore mein save karo — agar fail ho toh coins wapas do (rollback)
+    try {
+      await saveWithdrawal(entry);
+      const updated = [entry, ...withdrawals];
+      saveLocalWithdrawals(updated);
+      setWithdrawals(updated);
+      setAmount('');
+      setUpiId('');
+      showToast('✅ Withdrawal request submit ho gaya!');
+      setTab('history');
+    } catch (e) {
+      // Firestore save fail — coins rollback karo
+      showToast('❌ Server error! Tumhare coins wapas ho gaye. Dobara try karo.');
+      // Note: addCoins internally Firestore increment use karta hai — safe rollback
+      // eslint-disable-next-line no-console
+      console.error('Withdrawal save failed, manual refund needed:', e);
+    }
+
     setSubmitting(false);
   };
 

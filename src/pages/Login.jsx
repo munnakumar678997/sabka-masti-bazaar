@@ -127,8 +127,9 @@ export default function Login() {
   const { loadUser } = useApp();
 
   // Loading.jsx se state aata hai
-  const passedTgData = location.state?.tgData || null;
-  const mode         = location.state?.mode   || 'new';
+  const passedTgData = location.state?.tgData     || null;
+  const mode         = location.state?.mode        || 'new';
+  const referredBy   = location.state?.referredBy  || null;
   // mode: 'new' | 'need_mobile'
 
   const [isMiniApp,  setIsMiniApp]  = useState(false);
@@ -184,7 +185,7 @@ export default function Login() {
     return () => { delete window.onTelegramAuth; };
   }, []);
 
-  // ── Mini App: "Create New Account" button → phone maango ──
+  // ── Mini App: button → phone maango ──
   // Dono cases (new + need_mobile) mein same flow
   const handleMiniAppBtn = () => {
     const tg = window.Telegram?.WebApp;
@@ -205,8 +206,8 @@ export default function Login() {
         }
       } catch (_) {}
 
-      // Naya ho ya purana — dono ke liye loadUser (mobile save hoga)
-      await loadUser(tgUser, phone);
+      // Naya ho ya purana — dono ke liye loadUser (mobile + referral save hoga)
+      await loadUser(tgUser, phone, referredBy);
       sessionStorage.setItem('smb_session', '1');
       navigate('/home');
     };
@@ -219,11 +220,16 @@ export default function Login() {
   const handleWebBtn = async () => {
     if (!tgUser || btnLoading) return;
     setBtnLoading(true);
-    await loadUser(tgUser, null);
+    await loadUser(tgUser, null, referredBy);
     localStorage.setItem('smb_tg_id', String(tgUser.id));
     sessionStorage.setItem('smb_session', '1');
     navigate('/home');
   };
+
+  // ── Button text — mode ke hisab se ──
+  const btnText = mode === 'need_mobile'
+    ? '📱 Mobile Number Dao & Jao'
+    : '🚀 Account Banao & Shuru Karo';
 
   return (
     <div style={S.page}>
@@ -305,13 +311,15 @@ export default function Login() {
                 style={S.createBtn}
                 onClick={isMiniApp ? handleMiniAppBtn : handleWebBtn}
               >
-                🚀 Create New Account
+                {btnText}
               </button>
             )}
             <div style={S.termsText}>
-              {isMiniApp
-                ? 'Apna Telegram number share karke account banao — 100% free!'
-                : 'Telegram verified — tumhara account ready hai! 🎉'}
+              {mode === 'need_mobile'
+                ? '📱 Mobile number share karo — yeh sirf ek baar puchha jaayega!'
+                : isMiniApp
+                  ? 'Apna Telegram number share karke account banao — 100% free!'
+                  : 'Telegram verified — tumhara account ready hai! 🎉'}
             </div>
           </>
         )}
