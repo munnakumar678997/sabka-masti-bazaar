@@ -16,18 +16,22 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* React root — full screen */
+/* React root — center karke rakh */
 #root {
   width: 100%;
   min-height: 100dvh;
   display: flex;
   justify-content: center;
+  align-items: flex-start;
 }
 
-/* App container — har jagah full screen */
+/* App container — mobile phone jaisa frame */
 #app-root {
   width: 100%;
+  max-width: 430px;
   min-height: 100dvh;
   position: relative;
   overflow: hidden;
+  box-shadow: 0 0 80px rgba(0, 0, 0, 0.45),
+              0 0 0 1px rgba(255,255,255,0.06);
 }
