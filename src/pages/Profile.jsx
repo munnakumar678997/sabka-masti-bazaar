@@ -4,47 +4,52 @@ import { useApp } from '../context/AppContext';
 import BottomNav from '../components/BottomNav';
 import '../styles/profile.css';
 
-// level: 1=Beginner, 2=Growing, 3=Committed, 4=Elite
-const ALL_BADGES = (balance, streak, tasksCompleted, referrals, totalCheckins, redeemedCount) => [
-
-  /* ── LEVEL 1 — Beginner (easy start) ── */
-  { icon: '⭐', name: 'Starter',         desc: 'App join kiya',            level: 1, earned: true                    },
-  { icon: '✅', name: 'First Task',      desc: 'Pehla task complete kiya', level: 1, earned: tasksCompleted >= 1     },
-  { icon: '📅', name: 'Check-in Debut', desc: 'Pehli baar check-in kiya', level: 1, earned: totalCheckins >= 1      },
-  { icon: '🎟️', name: 'Code Hunter',    desc: '1 bonus code redeem kiya', level: 1, earned: redeemedCount >= 1      },
-  { icon: '👥', name: 'Inviter',         desc: 'Pehla dost refer kiya',    level: 1, earned: referrals >= 1          },
-
-  /* ── LEVEL 2 — Growing (medium-easy) ── */
-  { icon: '🔥', name: 'Streak Star',     desc: '3 din ki streak',          level: 2, earned: streak >= 3             },
-  { icon: '💰', name: 'Coin Saver',      desc: '500+ coins jode',          level: 2, earned: balance >= 500         },
-  { icon: '🏆', name: 'Task Hero',       desc: '10 tasks done',            level: 2, earned: tasksCompleted >= 10   },
-  { icon: '📆', name: 'Regular Player',  desc: '7 baar check-in kiya',     level: 2, earned: totalCheckins >= 7     },
-  { icon: '🤝', name: 'Squad Builder',   desc: '3 dost refer kiye',        level: 2, earned: referrals >= 3         },
-
-  /* ── LEVEL 3 — Committed (medium-hard) ── */
-  { icon: '🌟', name: 'Week Warrior',    desc: '7 din ki streak',          level: 3, earned: streak >= 7             },
-  { icon: '💎', name: 'Rich Bhai',       desc: '2,000+ coins',             level: 3, earned: balance >= 2000        },
-  { icon: '💪', name: 'Task Master',     desc: '25 tasks done',            level: 3, earned: tasksCompleted >= 25   },
-  { icon: '🗓️', name: 'Dedicated',      desc: '30 baar check-in kiya',    level: 3, earned: totalCheckins >= 30    },
-  { icon: '🌍', name: 'Community Star',  desc: '10 dost refer kiye',       level: 3, earned: referrals >= 10        },
-
-  /* ── LEVEL 4 — Elite (hard) ── */
-  { icon: '👑', name: 'Streak King',     desc: '30 din ki streak',         level: 4, earned: streak >= 30            },
-  { icon: '🚀', name: 'High Roller',     desc: '5,000+ coins',             level: 4, earned: balance >= 5000        },
-  { icon: '🦁', name: 'Grind God',       desc: '50 tasks done',            level: 4, earned: tasksCompleted >= 50   },
-  { icon: '🌈', name: 'Legend',          desc: '20,000+ coins',            level: 4, earned: balance >= 20000       },
+/* ═══════════════════════════════════════
+   LEVEL SYSTEM — coins + tasks ke basis pe
+═══════════════════════════════════════ */
+const LEVELS = [
+  { min: 0,     max: 499,   icon: '🌱', name: 'Naya Khiladi', color: '#64748b', next: 500   },
+  { min: 500,   max: 1999,  icon: '🎮', name: 'Kamau Yaar',   color: '#22c55e', next: 2000  },
+  { min: 2000,  max: 4999,  icon: '💫', name: 'Mast Player',  color: '#0088cc', next: 5000  },
+  { min: 5000,  max: 9999,  icon: '🔥', name: 'Coin Pro',     color: '#f97316', next: 10000 },
+  { min: 10000, max: 19999, icon: '👑', name: 'Legend Boss',  color: '#a855f7', next: 20000 },
+  { min: 20000, max: Infinity, icon: '🌈', name: 'Supreme',   color: '#ffd700', next: null  },
 ];
 
-const LEVEL_META = {
-  1: { label: 'Level 1 · Beginner',  color: '#22c55e' },
-  2: { label: 'Level 2 · Growing',   color: '#0088cc' },
-  3: { label: 'Level 3 · Committed', color: '#a855f7' },
-  4: { label: 'Level 4 · Elite',     color: '#ffd700' },
-};
+function getLevel(balance) {
+  return LEVELS.find(l => balance >= l.min && balance <= l.max) || LEVELS[0];
+}
+function getNextLevel(balance) {
+  const idx = LEVELS.findIndex(l => balance >= l.min && balance <= l.max);
+  return idx < LEVELS.length - 1 ? LEVELS[idx + 1] : null;
+}
+
+/* ═══════════════════════════════════════
+   DAILY ACTIVITY — localStorage se aaj ka status
+═══════════════════════════════════════ */
+function getTodayKey() {
+  const istMs = Date.now() + 5.5 * 60 * 60 * 1000;
+  return new Date(istMs).toISOString().split('T')[0];
+}
+function getDailyGamePlays() {
+  const today = getTodayKey();
+  const spin    = parseInt(localStorage.getItem(`smb_game_spin_${today}`)    || '0');
+  const scratch = parseInt(localStorage.getItem(`smb_game_scratch_${today}`) || '0');
+  const flip    = parseInt(localStorage.getItem(`smb_game_flip_${today}`)    || '0');
+  return { spin, scratch, flip, total: spin + scratch + flip, max: 18 };
+}
+function getDailyTasks() {
+  const today = getTodayKey();
+  let done = 0;
+  for (let i = 1; i <= 5; i++) {
+    if (localStorage.getItem(`smb_task_${i}_${today}`) === '1') done++;
+  }
+  return { done, max: 5 };
+}
 
 export default function Profile() {
   const navigate = useNavigate();
-  const { user, balance, streak, tasksCompleted, referrals, updateUserName, redeemedCodes } = useApp();
+  const { user, balance, streak, tasksCompleted, referrals, updateUserName } = useApp();
 
   const [showEdit,    setShowEdit]    = useState(false);
   const [editName,    setEditName]    = useState('');
@@ -55,22 +60,24 @@ export default function Profile() {
   const toastTimerRef = useRef(null);
   useEffect(() => () => { if (toastTimerRef.current) clearTimeout(toastTimerRef.current); }, []);
 
-  const totalCheckins  = user?.total_checkins  || 0;
-  const redeemedCount  = redeemedCodes?.length || 0;
+  /* ── Level data ── */
+  const currentLevel = getLevel(balance);
+  const nextLevel    = getNextLevel(balance);
+  const levelPct     = nextLevel
+    ? Math.round(((balance - currentLevel.min) / (currentLevel.max - currentLevel.min + 1)) * 100)
+    : 100;
 
-  const badges = ALL_BADGES(balance, streak, tasksCompleted, referrals, totalCheckins, redeemedCount);
-  const earned = badges.filter(b => b.earned).length;
+  /* ── Daily activity ── */
+  const todayIST   = getTodayKey();
+  const checkedIn  = user?.last_checkin_date === todayIST
+    || localStorage.getItem('smb_checkin_ist') === todayIST;
+  const games      = getDailyGamePlays();
+  const tasks      = getDailyTasks();
 
-  // Level groups ke liye
-  const levels = [1, 2, 3, 4];
-  const badgesByLevel = levels.map(lvl => ({
-    lvl,
-    meta:   LEVEL_META[lvl],
-    badges: badges.filter(b => b.level === lvl),
-  }));
-  const displayName = user?.name?.trim() || user?.username || 'User';
+  /* ── Profile display ── */
+  const displayName  = user?.name?.trim() || user?.username || 'User';
   const avatarLetter = displayName.charAt(0).toUpperCase();
-  const photoUrl    = (!avatarError && user?.photo_url) || null;
+  const photoUrl     = (!avatarError && user?.photo_url) || null;
 
   const showToast = (msg) => {
     if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
@@ -89,12 +96,11 @@ export default function Profile() {
     setSaving(false);
   };
 
-
   const quickActions = [
-    { icon: '🎟️', label: 'Bonus Code',    sub: 'Extra coins redeem karo',  action: () => navigate('/bonus-code'), color: '#ffd700' },
-    { icon: '👥', label: 'Refer & Earn',  sub: '+50 coins per referral',    action: () => navigate('/referral'),   color: '#00d4ff' },
-    { icon: '🎮', label: 'Games Hub',     sub: 'Daily coins kamao',         action: () => navigate('/games'),     color: '#a855f7' },
-    { icon: '❓', label: 'FAQ / Help',    sub: 'Sawalon ke jawab',          action: () => navigate('/faq'),       color: '#22c55e' },
+    { icon: '🎟️', label: 'Bonus Code',   sub: 'Extra coins redeem karo', action: () => navigate('/bonus-code'), color: '#ffd700' },
+    { icon: '👥', label: 'Refer & Earn', sub: '+50 coins per referral',   action: () => navigate('/referral'),   color: '#00d4ff' },
+    { icon: '🎮', label: 'Games Hub',    sub: 'Daily coins kamao',        action: () => navigate('/games'),      color: '#a855f7' },
+    { icon: '❓', label: 'FAQ / Help',   sub: 'Sawalon ke jawab',         action: () => navigate('/faq'),        color: '#22c55e' },
   ];
 
   return (
@@ -115,31 +121,18 @@ export default function Profile() {
         {/* ── HERO CARD ── */}
         <div className="profile-hero-card">
           <div className="profile-hero-bg" />
-
           <div className="profile-avatar-row">
             <div className="profile-avatar-wrap">
               {photoUrl ? (
-                <img
-                  src={photoUrl}
-                  alt="dp"
-                  className="profile-avatar-img"
-                  onError={() => setAvatarError(true)}
-                />
+                <img src={photoUrl} alt="dp" className="profile-avatar-img" onError={() => setAvatarError(true)} />
               ) : (
-                <span className="profile-avatar-letter" style={{ display: 'flex' }}>
-                  {avatarLetter}
-                </span>
+                <span className="profile-avatar-letter" style={{ display: 'flex' }}>{avatarLetter}</span>
               )}
-              {/* Online dot */}
               <span className="profile-online-dot" />
             </div>
-
           </div>
-
           <div className="profile-name">{displayName}</div>
           {user?.username && <div className="profile-handle">@{user.username}</div>}
-
-          {/* Balance pill */}
           <div className="profile-balance-pill">
             <span className="profile-balance-pill-icon">🪙</span>
             <span className="profile-balance-pill-val">{balance.toLocaleString()}</span>
@@ -151,10 +144,10 @@ export default function Profile() {
         {/* ── STATS ROW ── */}
         <div className="profile-stats-row">
           {[
-            { icon: '🏆', val: tasksCompleted, lbl: 'Tasks'    },
-            { icon: '🔥', val: streak,          lbl: 'Streak'   },
-            { icon: '👥', val: referrals,        lbl: 'Referrals'},
-            { icon: '🎖️', val: `${earned}/${badges.length}`, lbl: 'Badges' },
+            { icon: '🏆', val: tasksCompleted,          lbl: 'Tasks'     },
+            { icon: '🔥', val: streak,                  lbl: 'Streak'    },
+            { icon: '👥', val: referrals,               lbl: 'Referrals' },
+            { icon: '📅', val: user?.total_checkins||0, lbl: 'Check-ins' },
           ].map((s, i) => (
             <div key={i} className="profile-stat-pill">
               <div className="profile-stat-pill-icon">{s.icon}</div>
@@ -164,14 +157,135 @@ export default function Profile() {
           ))}
         </div>
 
+        {/* ══════════════════════════════
+            MERA LEVEL — dynamic level card
+        ══════════════════════════════ */}
+        <div className="profile-section-title">⚡ Mera Level</div>
+        <div className="lvl-card" style={{ borderColor: `${currentLevel.color}44` }}>
+          <div className="lvl-card-glow" style={{ background: `radial-gradient(ellipse 80% 60% at 50% 0%, ${currentLevel.color}22 0%, transparent 70%)` }} />
+
+          <div className="lvl-top-row">
+            <div className="lvl-icon-wrap" style={{ background: `${currentLevel.color}20`, border: `2px solid ${currentLevel.color}66` }}>
+              <span className="lvl-icon">{currentLevel.icon}</span>
+            </div>
+            <div className="lvl-info">
+              <div className="lvl-name" style={{ color: currentLevel.color }}>{currentLevel.name}</div>
+              <div className="lvl-coins-label">
+                {nextLevel
+                  ? `${(currentLevel.max + 1 - balance).toLocaleString()} coins aur — ${nextLevel.icon} ${nextLevel.name}`
+                  : '🌈 Maximum level pe pohonch gaye!'}
+              </div>
+            </div>
+            <div className="lvl-pct-badge" style={{ background: `${currentLevel.color}22`, color: currentLevel.color }}>
+              {levelPct}%
+            </div>
+          </div>
+
+          <div className="lvl-bar-wrap">
+            <div className="lvl-bar-track">
+              <div
+                className="lvl-bar-fill"
+                style={{ width: `${levelPct}%`, background: `linear-gradient(90deg, ${currentLevel.color}99, ${currentLevel.color})` }}
+              />
+            </div>
+            <div className="lvl-bar-labels">
+              <span style={{ color: currentLevel.color }}>{currentLevel.min.toLocaleString()}</span>
+              {nextLevel && <span style={{ color: 'rgba(255,255,255,0.3)' }}>{(currentLevel.max + 1).toLocaleString()}</span>}
+            </div>
+          </div>
+
+          {/* Level milestones row */}
+          <div className="lvl-milestones">
+            {LEVELS.map((l, i) => {
+              const reached = balance >= l.min;
+              const isCurrent = l.name === currentLevel.name;
+              return (
+                <div key={i} className={`lvl-dot-wrap ${isCurrent ? 'lvl-dot-active' : ''}`}>
+                  <div
+                    className="lvl-dot"
+                    style={{
+                      background: reached ? l.color : 'rgba(255,255,255,0.08)',
+                      border: isCurrent ? `2px solid ${l.color}` : '2px solid transparent',
+                      boxShadow: isCurrent ? `0 0 8px ${l.color}88` : 'none',
+                    }}
+                  >
+                    <span style={{ fontSize: 10 }}>{l.icon}</span>
+                  </div>
+                  <div className="lvl-dot-name" style={{ color: reached ? l.color : 'rgba(255,255,255,0.2)' }}>
+                    {l.name.split(' ')[0]}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* ══════════════════════════════
+            AAJ KI ACTIVITY — daily tracker
+        ══════════════════════════════ */}
+        <div className="profile-section-title">📊 Aaj Ki Activity</div>
+        <div className="activity-grid">
+
+          {/* Check-in tile */}
+          <div className={`act-tile ${checkedIn ? 'act-done' : 'act-pending'}`} onClick={() => navigate('/home')}>
+            <div className="act-tile-icon">{checkedIn ? '✅' : '📅'}</div>
+            <div className="act-tile-label">Daily Check-in</div>
+            <div className="act-tile-status" style={{ color: checkedIn ? '#22c55e' : '#fbbf24' }}>
+              {checkedIn ? 'Ho gaya!' : 'Baaki hai'}
+            </div>
+            {!checkedIn && <div className="act-tile-cta">→ Jao</div>}
+          </div>
+
+          {/* Games tile */}
+          <div className="act-tile act-games" onClick={() => navigate('/games')}>
+            <div className="act-tile-icon">🎮</div>
+            <div className="act-tile-label">Games</div>
+            <div className="act-tile-bar-wrap">
+              <div className="act-tile-bar">
+                <div className="act-tile-bar-fill act-fill-games" style={{ width: `${Math.min(100, (games.total / games.max) * 100)}%` }} />
+              </div>
+            </div>
+            <div className="act-tile-status" style={{ color: '#a855f7' }}>
+              {games.total}/{games.max} played
+            </div>
+          </div>
+
+          {/* Tasks tile */}
+          <div className="act-tile act-tasks" onClick={() => navigate('/home')}>
+            <div className="act-tile-icon">⚡</div>
+            <div className="act-tile-label">Tasks</div>
+            <div className="act-tile-bar-wrap">
+              <div className="act-tile-bar">
+                <div className="act-tile-bar-fill act-fill-tasks" style={{ width: `${(tasks.done / tasks.max) * 100}%` }} />
+              </div>
+            </div>
+            <div className="act-tile-status" style={{ color: '#f97316' }}>
+              {tasks.done}/{tasks.max} done
+            </div>
+          </div>
+
+          {/* Streak tile */}
+          <div className={`act-tile ${streak >= 3 ? 'act-done' : 'act-pending'}`} onClick={() => navigate('/home')}>
+            <div className="act-tile-icon">{streak >= 7 ? '🔥' : streak >= 3 ? '⚡' : '🌱'}</div>
+            <div className="act-tile-label">Streak</div>
+            <div className="act-tile-status" style={{ color: streak >= 3 ? '#ff6a00' : '#fbbf24' }}>
+              {streak} din
+            </div>
+            <div className="act-tile-cta" style={{ color: streak >= 7 ? '#ff6a00' : 'rgba(255,255,255,0.3)' }}>
+              {streak >= 7 ? '🔥 Hot!' : streak >= 3 ? '⚡ Good' : 'Start karo'}
+            </div>
+          </div>
+
+        </div>
+
         {/* ── ACCOUNT INFO ── */}
         <div className="profile-section-title">ℹ️ Account Info</div>
         <div className="profile-info-card">
           {[
-            { label: 'Naam',        val: displayName,    icon: '👤' },
-            { label: 'Telegram ID', val: user?.id || '—', icon: '🆔' },
-            { label: 'Username',    val: user?.username ? `@${user.username}` : '—', icon: '📛' },
-            { label: 'Mobile',      val: user?.mobile || 'Add nahi kiya', icon: '📱' },
+            { label: 'Naam',        val: displayName,                                   icon: '👤' },
+            { label: 'Telegram ID', val: user?.id || '—',                               icon: '🆔' },
+            { label: 'Username',    val: user?.username ? `@${user.username}` : '—',    icon: '📛' },
+            { label: 'Mobile',      val: user?.mobile || 'Add nahi kiya',               icon: '📱' },
           ].map((row, i) => (
             <div key={i} className="profile-info-row">
               <div className="profile-info-left">
@@ -182,45 +296,6 @@ export default function Profile() {
             </div>
           ))}
         </div>
-
-        {/* ── BADGES ── */}
-        <div className="profile-section-title">
-          🎖️ Badges
-          <span className="profile-section-count">{earned}/{badges.length} earned</span>
-        </div>
-
-        {badgesByLevel.map(({ lvl, meta, badges: lvlBadges }) => {
-          const lvlEarned = lvlBadges.filter(b => b.earned).length;
-          const allDone   = lvlEarned === lvlBadges.length;
-          return (
-            <div key={lvl} className="badge-level-group">
-              <div className="badge-level-header">
-                <span className="badge-level-label" style={{ color: meta.color }}>
-                  {allDone ? '✅' : `${lvlEarned}/${lvlBadges.length}`} &nbsp;{meta.label}
-                </span>
-                <div className="badge-level-bar">
-                  <div
-                    className="badge-level-fill"
-                    style={{
-                      width: `${(lvlEarned / lvlBadges.length) * 100}%`,
-                      background: meta.color,
-                    }}
-                  />
-                </div>
-              </div>
-              <div className="profile-badges-grid">
-                {lvlBadges.map((b, i) => (
-                  <div key={i} className={`profile-badge-card ${b.earned ? 'badge-earned' : 'badge-locked'}`}
-                    style={b.earned ? { borderColor: `${meta.color}66`, boxShadow: `0 0 12px ${meta.color}22` } : {}}>
-                    <div className="profile-badge-icon">{b.earned ? b.icon : '🔒'}</div>
-                    <div className="profile-badge-name">{b.name}</div>
-                    <div className="profile-badge-desc">{b.desc}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          );
-        })}
 
         {/* ── QUICK ACTIONS ── */}
         <div className="profile-section-title">⚡ Quick Actions</div>

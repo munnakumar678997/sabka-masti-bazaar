@@ -180,51 +180,106 @@
 }
 
 /* ══════════════════════════════════════════
-   BADGES — Earned has golden glow
+   MERA LEVEL CARD
 ══════════════════════════════════════════ */
-/* ── Level group wrapper ── */
-.badge-level-group {
+.lvl-card {
+  position: relative; overflow: hidden;
+  background: linear-gradient(145deg, #1a1a38, #111128);
+  border: 1.5px solid rgba(255,255,255,0.08);
+  border-radius: 22px; padding: 18px 16px 16px;
   margin-bottom: 18px;
+  box-shadow: 0 6px 28px rgba(0,0,0,0.35);
 }
-.badge-level-header {
-  display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
+.lvl-card-glow {
+  position: absolute; inset: 0; pointer-events: none;
 }
-.badge-level-label {
-  font-size: 11px; font-weight: 800; white-space: nowrap; letter-spacing: 0.3px;
+.lvl-top-row {
+  display: flex; align-items: center; gap: 12px; margin-bottom: 14px; position: relative;
 }
-.badge-level-bar {
-  flex: 1; height: 4px; border-radius: 99px;
+.lvl-icon-wrap {
+  width: 54px; height: 54px; border-radius: 16px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.lvl-icon { font-size: 28px; line-height: 1; }
+.lvl-info { flex: 1; min-width: 0; }
+.lvl-name { font-size: 17px; font-weight: 900; letter-spacing: 0.2px; line-height: 1.2; margin-bottom: 4px; }
+.lvl-coins-label { font-size: 11px; color: rgba(255,255,255,0.4); line-height: 1.4; }
+.lvl-pct-badge {
+  flex-shrink: 0; border-radius: 12px; padding: 5px 10px;
+  font-size: 13px; font-weight: 900;
+}
+
+/* Progress bar */
+.lvl-bar-wrap { position: relative; margin-bottom: 14px; }
+.lvl-bar-track {
+  height: 7px; border-radius: 99px;
+  background: rgba(255,255,255,0.07); overflow: hidden; margin-bottom: 5px;
+}
+.lvl-bar-fill { height: 100%; border-radius: 99px; transition: width 0.7s cubic-bezier(.4,0,.2,1); }
+.lvl-bar-labels {
+  display: flex; justify-content: space-between;
+  font-size: 10px; font-weight: 700; padding: 0 2px;
+}
+
+/* Milestone dots */
+.lvl-milestones {
+  display: flex; justify-content: space-between; align-items: flex-end;
+  position: relative; padding-top: 4px;
+}
+.lvl-milestones::before {
+  content: ''; position: absolute; top: 17px; left: 0; right: 0;
+  height: 1px; background: rgba(255,255,255,0.06); z-index: 0;
+}
+.lvl-dot-wrap {
+  display: flex; flex-direction: column; align-items: center; gap: 5px; z-index: 1;
+}
+.lvl-dot {
+  width: 30px; height: 30px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  transition: box-shadow 0.3s;
+}
+.lvl-dot-name {
+  font-size: 8px; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 0.3px; text-align: center; white-space: nowrap;
+}
+.lvl-dot-active .lvl-dot { transform: scale(1.15); }
+
+/* ══════════════════════════════════════════
+   AAJ KI ACTIVITY — 2×2 grid
+══════════════════════════════════════════ */
+.activity-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 10px; margin-bottom: 18px;
+}
+.act-tile {
+  border-radius: 20px; padding: 16px 14px;
+  display: flex; flex-direction: column; gap: 5px;
+  cursor: pointer; transition: transform 0.15s;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.07);
+  position: relative; overflow: hidden;
+}
+.act-tile:active { transform: scale(0.96); }
+
+.act-done    { border-color: rgba(34,197,94,0.25); background: rgba(34,197,94,0.05); }
+.act-pending { border-color: rgba(251,191,36,0.2); background: rgba(251,191,36,0.04); }
+.act-games   { border-color: rgba(168,85,247,0.22); background: rgba(168,85,247,0.05); }
+.act-tasks   { border-color: rgba(249,115,22,0.22); background: rgba(249,115,22,0.05); }
+
+.act-tile-icon  { font-size: 26px; line-height: 1; }
+.act-tile-label { font-size: 12px; font-weight: 800; color: rgba(255,255,255,0.6); }
+.act-tile-status { font-size: 13px; font-weight: 900; }
+.act-tile-cta   { font-size: 10px; color: rgba(255,255,255,0.28); font-weight: 700; margin-top: 2px; }
+
+/* Mini progress bar inside game/task tiles */
+.act-tile-bar-wrap { margin: 3px 0 1px; }
+.act-tile-bar {
+  height: 4px; border-radius: 99px;
   background: rgba(255,255,255,0.08); overflow: hidden;
 }
-.badge-level-fill {
-  height: 100%; border-radius: 99px; transition: width 0.6s ease;
-}
-
-.profile-badges-grid {
-  display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
-  margin-bottom: 4px;
-}
-.profile-badge-card {
-  border-radius: 18px; padding: 14px 8px;
-  display: flex; flex-direction: column; align-items: center; gap: 5px;
-  text-align: center; transition: transform 0.15s;
-  cursor: default;
-}
-.profile-badge-card:active { transform: scale(0.95); }
-
-.badge-earned {
-  background: linear-gradient(145deg, rgba(255,215,0,0.1), rgba(255,150,0,0.06));
-  border: 1px solid rgba(255,215,0,0.28);
-  box-shadow: 0 0 18px rgba(255,215,0,0.1), inset 0 1px 0 rgba(255,255,255,0.08);
-}
-.badge-locked {
-  background: rgba(255,255,255,0.02);
-  border: 1px solid rgba(255,255,255,0.05);
-  opacity: 0.38;
-}
-.profile-badge-icon { font-size: 28px; line-height: 1; }
-.profile-badge-name { font-size: 11px; font-weight: 800; color: #fff; }
-.profile-badge-desc { font-size: 9px; color: rgba(255,255,255,0.38); line-height: 1.4; }
+.act-tile-bar-fill { height: 100%; border-radius: 99px; transition: width 0.5s ease; }
+.act-fill-games { background: linear-gradient(90deg, #7c3aed, #a855f7); }
+.act-fill-tasks { background: linear-gradient(90deg, #ea580c, #f97316); }
 
 /* ══════════════════════════════════════════
    QUICK ACTIONS
