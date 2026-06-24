@@ -1,12 +1,13 @@
 import { createContext, useContext, useState, useRef } from 'react';
 import { db } from '../lib/firebase';
 import {
-  doc, getDoc, setDoc, updateDoc
+  doc, getDoc, setDoc, updateDoc, collection, addDoc, increment
 } from 'firebase/firestore';
 
 const AppContext = createContext(null);
 
 const CHECKIN_BACKUP_KEY = 'smb_checkin_ist';
+const SESSION_KEY        = 'smb_session';
 
 export function AppProvider({ children }) {
   const [user,           setUser]           = useState(null);
@@ -16,11 +17,23 @@ export function AppProvider({ children }) {
   const [streak,         setStreak]         = useState(0);
   const [loading,        setLoading]        = useState(false);
 
-  const userIdRef = useRef(null);
+  const userIdRef  = useRef(null);
+  const balanceRef = useRef(0);
+  const tasksRef   = useRef(0);
 
   const _setUser = (data) => {
     userIdRef.current = data?.id ?? null;
     setUser(data);
+  };
+
+  const _setBalance = (val) => {
+    balanceRef.current = val;
+    setBalance(val);
+  };
+
+  const _setTasks = (val) => {
+    tasksRef.current = val;
+    setTasksCompleted(val);
   };
 
   // ─────────────────────────────────────────────
@@ -46,9 +59,9 @@ export function AppProvider({ children }) {
 
         const updated = { id: String(tgUser.id), ...existing, ...updatePayload };
         _setUser(updated);
-        setBalance(updated.balance          || 0);
-        setStreak(updated.streak            || 0);
-        setTasksCompleted(updated.tasks_completed || 0);
+        _setBalance(updated.balance          || 0);
+        setStreak(updated.streak             || 0);
+        _setTasks(updated.tasks_completed    || 0);
 
         if (updated.last_checkin_date) {
           localStorage.setItem(CHECKIN_BACKUP_KEY, updated.last_checkin_date);
@@ -74,9 +87,9 @@ export function AppProvider({ children }) {
         await setDoc(userRef, newUser);
 
         _setUser(newUser);
-        setBalance(WELCOME_BONUS);
+        _setBalance(WELCOME_BONUS);
         setStreak(0);
-        setTasksCompleted(0);
+        _setTasks(0);
         localStorage.removeItem(CHECKIN_BACKUP_KEY);
         localStorage.setItem('smb_welcome_shown', '1');
       }
@@ -99,62 +112,90 @@ export function AppProvider({ children }) {
   };
 
   // ─────────────────────────────────────────────
-  // addCoins
+  // addCoins — functional update + Firestore increment (atomic, no race condition)
   // ─────────────────────────────────────────────
   const addCoins = async (amount) => {
-    const newBalance = balance + amount;
-    setBalance(newBalance);
-    setUser(prev => prev ? { ...prev, balance: newBalance } : prev);
+    setBalance(prev => {
+      const n = prev + amount;
+      balanceRef.current = n;
+      return n;
+    });
+    setUser(prev => prev ? { ...prev, balance: balanceRef.current } : prev);
 
     if (userIdRef.current) {
-      await updateDoc(doc(db, 'users', String(userIdRef.current)), { balance: newBalance });
+      try {
+        await updateDoc(doc(db, 'users', String(userIdRef.current)), {
+          balance: increment(amount),
+        });
+      } catch (e) { console.error('addCoins Firestore err:', e); }
     }
   };
 
   // ─────────────────────────────────────────────
-  // deductCoins
+  // deductCoins — functional update + Firestore increment (atomic)
   // ─────────────────────────────────────────────
   const deductCoins = async (amount) => {
-    const newBalance = Math.max(0, balance - amount);
-    setBalance(newBalance);
-    setUser(prev => prev ? { ...prev, balance: newBalance } : prev);
+    setBalance(prev => {
+      const n = Math.max(0, prev - amount);
+      balanceRef.current = n;
+      return n;
+    });
+    setUser(prev => prev ? { ...prev, balance: balanceRef.current } : prev);
 
     if (userIdRef.current) {
-      await updateDoc(doc(db, 'users', String(userIdRef.current)), { balance: newBalance });
+      try {
+        await updateDoc(doc(db, 'users', String(userIdRef.current)), {
+          balance: increment(-amount),
+        });
+      } catch (e) { console.error('deductCoins Firestore err:', e); }
     }
   };
 
   // ─────────────────────────────────────────────
-  // completeTask
+  // completeTask — functional update, no stale closure
   // ─────────────────────────────────────────────
   const completeTask = async (coins) => {
-    const newCount   = tasksCompleted + 1;
-    const newBalance = balance + coins;
-    setBalance(newBalance);
-    setTasksCompleted(newCount);
-    setUser(prev => prev ? { ...prev, balance: newBalance, tasks_completed: newCount } : prev);
+    setBalance(prev => {
+      const n = prev + coins;
+      balanceRef.current = n;
+      return n;
+    });
+    setTasksCompleted(prev => {
+      const n = prev + 1;
+      tasksRef.current = n;
+      return n;
+    });
+    setUser(prev => prev ? {
+      ...prev,
+      balance:         balanceRef.current,
+      tasks_completed: tasksRef.current,
+    } : prev);
 
     if (userIdRef.current) {
-      await updateDoc(doc(db, 'users', String(userIdRef.current)), {
-        balance:         newBalance,
-        tasks_completed: newCount,
-      });
+      try {
+        await updateDoc(doc(db, 'users', String(userIdRef.current)), {
+          balance:         increment(coins),
+          tasks_completed: increment(1),
+        });
+      } catch (e) { console.error('completeTask Firestore err:', e); }
     }
   };
 
   // ─────────────────────────────────────────────
-  // updateCheckIn — 3-layer protection
+  // updateCheckIn — 3-layer protection, functional update
   // ─────────────────────────────────────────────
   const updateCheckIn = async (newStreak, totalDays, lastDate, coinsEarned) => {
-    const newBalance = balance + coinsEarned;
-
-    setBalance(newBalance);
+    setBalance(prev => {
+      const n = prev + coinsEarned;
+      balanceRef.current = n;
+      return n;
+    });
     setStreak(newStreak);
     setUser(prev => {
       const base = prev ?? {};
       return {
         ...base,
-        balance:           newBalance,
+        balance:           balanceRef.current,
         streak:            newStreak,
         total_checkins:    totalDays,
         last_checkin_date: lastDate,
@@ -166,7 +207,7 @@ export function AppProvider({ children }) {
     if (userIdRef.current) {
       try {
         await updateDoc(doc(db, 'users', String(userIdRef.current)), {
-          balance:           newBalance,
+          balance:           increment(coinsEarned),
           streak:            newStreak,
           total_checkins:    totalDays,
           last_checkin_date: lastDate,
@@ -174,6 +215,24 @@ export function AppProvider({ children }) {
       } catch (error) {
         console.error('Check-in Firestore save failed:', error);
       }
+    }
+  };
+
+  // ─────────────────────────────────────────────
+  // saveWithdrawal — Firestore mein save karo
+  // ─────────────────────────────────────────────
+  const saveWithdrawal = async (entry) => {
+    if (!userIdRef.current) return;
+    try {
+      await addDoc(collection(db, 'withdrawals'), {
+        ...entry,
+        userId:    String(userIdRef.current),
+        userName:  user?.name     || null,
+        userPhone: user?.mobile   || null,
+        createdAt: new Date().toISOString(),
+      });
+    } catch (e) {
+      console.error('saveWithdrawal Firestore err:', e);
     }
   };
 
@@ -191,7 +250,9 @@ export function AppProvider({ children }) {
       deductCoins,
       completeTask,
       updateCheckIn,
+      saveWithdrawal,
       CHECKIN_BACKUP_KEY,
+      SESSION_KEY,
     }}>
       {children}
     </AppContext.Provider>
