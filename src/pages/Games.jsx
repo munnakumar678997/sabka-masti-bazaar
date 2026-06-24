@@ -243,20 +243,6 @@ export default function Games() {
           })}
         </div>
 
-        {/* ── COINS TABLE ── */}
-        <div className="games-prize-table">
-          <div className="games-prize-title">🏆 Prize Table</div>
-          <div className="games-prize-rows">
-            {[['🎰 Spin Wheel','5 – 200 coins','5x/day'],['🎁 Scratch Card','5 – 200 coins','3x/day'],['🪙 Coin Flip','+15 coins on win','10x/day']].map(([g,p,l])=>(
-              <div key={g} className="games-prize-row">
-                <span className="gpr-game">{g}</span>
-                <span className="gpr-prize">{p}</span>
-                <span className="gpr-limit">{l}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
         <div style={{ height: 100 }} />
       </div>
 

@@ -3,10 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import '../styles/bonusCode.css';
 
-/* ── Valid Bonus Codes ─────────────────────────────────────────
-   Format: code → { coins, desc }
-   Codes case-insensitive hain — .toUpperCase() se match hoga
-──────────────────────────────────────────────────────────────── */
 const VALID_CODES = {
   'MASTI50':    { coins: 50,   desc: 'Masti Bonus'        },
   'WELCOME100': { coins: 100,  desc: 'Welcome Special'    },
@@ -18,79 +14,68 @@ const VALID_CODES = {
   'SUPER300':   { coins: 300,  desc: 'Super Reward'       },
 };
 
-/* ── Used codes localStorage key ── */
-const usedCodesKey = (userId) => `smb_codes_${userId}`;
+const usedCodesKey   = (uid) => `smb_codes_${uid}`;
+const historyKey     = (uid) => `smb_code_history_${uid}`;
 
-function getUsedCodes(userId) {
-  if (!userId) return [];
-  try { return JSON.parse(localStorage.getItem(usedCodesKey(userId)) || '[]'); }
+function getUsedCodes(uid) {
+  if (!uid) return [];
+  try { return JSON.parse(localStorage.getItem(usedCodesKey(uid)) || '[]'); }
   catch { return []; }
 }
-
-function markCodeUsed(userId, code) {
-  if (!userId) return;
-  const used = getUsedCodes(userId);
+function markUsed(uid, code) {
+  const used = getUsedCodes(uid);
   used.push(code);
-  localStorage.setItem(usedCodesKey(userId), JSON.stringify(used));
+  localStorage.setItem(usedCodesKey(uid), JSON.stringify(used));
 }
 
 export default function BonusCode() {
-  const navigate  = useNavigate();
+  const navigate       = useNavigate();
   const { user, addCoins } = useApp();
 
   const [code,    setCode]    = useState('');
-  const [status,  setStatus]  = useState(null);   // null | 'success' | 'error'
+  const [status,  setStatus]  = useState(null);
   const [msg,     setMsg]     = useState('');
   const [reward,  setReward]  = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const usedCodes = getUsedCodes(user?.id);
-
-  /* ── Recent redeemed history (last 5) ── */
   const [history, setHistory] = useState(() => {
-    try { return JSON.parse(localStorage.getItem(`smb_code_history_${user?.id}`) || '[]'); }
+    try { return JSON.parse(localStorage.getItem(historyKey(user?.id)) || '[]'); }
     catch { return []; }
   });
 
   const saveHistory = (entry) => {
     const updated = [entry, ...history].slice(0, 10);
     setHistory(updated);
-    localStorage.setItem(`smb_code_history_${user?.id}`, JSON.stringify(updated));
+    localStorage.setItem(historyKey(user?.id), JSON.stringify(updated));
   };
 
   const handleRedeem = async () => {
     const trimmed = code.trim().toUpperCase();
-    if (!trimmed) {
-      setStatus('error'); setMsg('⚠️ Pehle code likho!'); return;
-    }
+    if (!trimmed) { setStatus('error'); setMsg('⚠️ Pehle code daalo!'); return; }
 
     setLoading(true);
     setStatus(null);
+    setReward(null);
 
-    await new Promise(r => setTimeout(r, 800));
+    await new Promise(r => setTimeout(r, 700));
 
     if (!VALID_CODES[trimmed]) {
-      setStatus('error');
-      setMsg('❌ Galat code! Dobara check karo.');
-      setLoading(false);
-      return;
+      setStatus('error'); setMsg('❌ Galat code! Dobara check karo.');
+      setLoading(false); return;
     }
-
-    if (usedCodes.includes(trimmed)) {
-      setStatus('error');
-      setMsg('⚠️ Yeh code pehle hi use ho chuka hai!');
-      setLoading(false);
-      return;
+    if (getUsedCodes(user?.id).includes(trimmed)) {
+      setStatus('error'); setMsg('⚠️ Yeh code pehle hi use ho chuka hai!');
+      setLoading(false); return;
     }
 
     const { coins, desc } = VALID_CODES[trimmed];
     await addCoins(coins);
-    markCodeUsed(user?.id, trimmed);
+    markUsed(user?.id, trimmed);
     saveHistory({ code: trimmed, coins, desc, date: new Date().toLocaleDateString('en-IN') });
 
     setReward({ coins, desc });
     setStatus('success');
-    setMsg(`🎉 ${desc} — +${coins} coins mile!`);
+    setMsg('');
     setCode('');
     setLoading(false);
   };
@@ -115,87 +100,95 @@ export default function BonusCode() {
 
       <div className="bc-scroll">
 
-        {/* ── HERO ── */}
-        <div className="bc-hero">
-          <div className="bc-hero-icon">🎟️</div>
-          <div className="bc-hero-title">Bonus Code Daalo</div>
-          <div className="bc-hero-sub">Special codes se extra coins kamao!</div>
-        </div>
-
-        {/* ── INPUT BOX ── */}
-        <div className="bc-card">
-          <div className="bc-card-label">Code Yahan Likho</div>
-          <div className="bc-input-row">
-            <input
-              className="bc-input"
-              value={code}
-              onChange={e => { setCode(e.target.value); setStatus(null); }}
-              placeholder="e.g. MASTI50"
-              maxLength={20}
-              onKeyDown={e => e.key === 'Enter' && handleRedeem()}
-              autoCapitalize="characters"
-            />
-            <button
-              className={`bc-redeem-btn ${loading ? 'loading' : ''}`}
-              onClick={handleRedeem}
-              disabled={loading}
-            >
-              {loading ? '⏳' : '✅ Redeem'}
+        {/* ── SUCCESS STATE ── */}
+        {status === 'success' && reward ? (
+          <div className="bc-success-full">
+            <div className="bc-success-ring">
+              <div className="bc-success-inner">
+                <div className="bc-success-emoji">🎉</div>
+                <div className="bc-success-coins">+{reward.coins}</div>
+                <div className="bc-success-unit">Coins</div>
+              </div>
+            </div>
+            <div className="bc-success-desc">{reward.desc}</div>
+            <div className="bc-success-hint">Wallet mein add ho gaye!</div>
+            <button className="bc-try-again-btn" onClick={() => { setStatus(null); setReward(null); }}>
+              🎟️ Aur Code Try Karo
             </button>
           </div>
+        ) : (
 
-          {/* Status message */}
-          {status && (
-            <div className={`bc-status ${status}`}>
-              {msg}
-            </div>
-          )}
-        </div>
-
-        {/* ── SUCCESS CARD ── */}
-        {status === 'success' && reward && (
-          <div className="bc-success-card">
-            <div className="bc-success-burst">🎉</div>
-            <div className="bc-success-amount">+{reward.coins} Coins</div>
-            <div className="bc-success-label">{reward.desc}</div>
-            <div className="bc-success-hint">Wallet mein add ho gaye!</div>
-          </div>
-        )}
-
-        {/* ── HOW TO GET CODES ── */}
-        <div className="bc-section-title">📢 Code Kahan Se Milega?</div>
-        <div className="bc-tips-card">
-          {[
-            { icon: '📱', text: 'Telegram channel pe join karo — @SabkaMastiBazaar' },
-            { icon: '👥', text: 'Friends ko refer karo — special codes milenge' },
-            { icon: '🎮', text: 'Games mein top karo — bonus codes reward mein' },
-            { icon: '🎉', text: 'Festival days pe special codes announce hote hain' },
-          ].map((tip, i) => (
-            <div key={i} className="bc-tip-row">
-              <span className="bc-tip-icon">{tip.icon}</span>
-              <span className="bc-tip-text">{tip.text}</span>
-            </div>
-          ))}
-        </div>
-
-        {/* ── REDEMPTION HISTORY ── */}
-        {history.length > 0 && (
           <>
-            <div className="bc-section-title">📋 Redeem History</div>
-            <div className="bc-history-list">
-              {history.map((h, i) => (
-                <div key={i} className="bc-history-row">
-                  <div className="bc-history-left">
-                    <div className="bc-history-code">{h.code}</div>
-                    <div className="bc-history-desc">{h.desc}</div>
-                  </div>
-                  <div className="bc-history-right">
-                    <div className="bc-history-coins">+{h.coins} 🪙</div>
-                    <div className="bc-history-date">{h.date}</div>
-                  </div>
+            {/* ── HEADER ── */}
+            <div className="bc-header">
+              <div className="bc-header-icon">🎟️</div>
+              <div className="bc-header-title">Bonus Code Daalo</div>
+              <div className="bc-header-sub">Special codes se extra coins kamao instantly!</div>
+            </div>
+
+            {/* ── INPUT SECTION ── */}
+            <div className="bc-input-card">
+              <div className="bc-input-label">Code Yahan Daalo</div>
+              <input
+                className={`bc-input ${status === 'error' ? 'bc-input-error' : ''}`}
+                value={code}
+                onChange={e => { setCode(e.target.value); setStatus(null); }}
+                placeholder="e.g. MASTI50"
+                maxLength={20}
+                onKeyDown={e => e.key === 'Enter' && handleRedeem()}
+                autoCapitalize="characters"
+              />
+              {status === 'error' && (
+                <div className="bc-error-msg">{msg}</div>
+              )}
+              <button
+                className={`bc-redeem-btn ${loading ? 'bc-loading' : ''}`}
+                onClick={handleRedeem}
+                disabled={loading}
+              >
+                {loading ? (
+                  <span className="bc-spinner">⏳ Checking...</span>
+                ) : (
+                  '✅ Redeem Karo'
+                )}
+              </button>
+            </div>
+
+            {/* ── WHERE TO GET CODES ── */}
+            <div className="bc-section-title">📢 Code Kahan Se Milega?</div>
+            <div className="bc-sources-grid">
+              {[
+                { icon: '📱', title: 'Telegram Channel',  sub: 'Join @SabkaMastiBazaar' },
+                { icon: '👥', title: 'Referral Bonus',    sub: 'Dost ko invite karo'     },
+                { icon: '🎮', title: 'Games Top Rank',    sub: 'Top players ko code'     },
+                { icon: '🎉', title: 'Festival Special',  sub: 'Events pe announce hote' },
+              ].map((s, i) => (
+                <div key={i} className="bc-source-card">
+                  <div className="bc-source-icon">{s.icon}</div>
+                  <div className="bc-source-title">{s.title}</div>
+                  <div className="bc-source-sub">{s.sub}</div>
                 </div>
               ))}
             </div>
+
+            {/* ── HISTORY ── */}
+            {history.length > 0 && (
+              <>
+                <div className="bc-section-title">📋 Redeem History</div>
+                <div className="bc-history-card">
+                  {history.map((h, i) => (
+                    <div key={i} className="bc-history-row">
+                      <div className="bc-history-badge">{h.coins}</div>
+                      <div className="bc-history-info">
+                        <div className="bc-history-code">{h.code}</div>
+                        <div className="bc-history-desc">{h.desc} · {h.date}</div>
+                      </div>
+                      <div className="bc-history-coins">+{h.coins} 🪙</div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
           </>
         )}
 

@@ -4,25 +4,18 @@ import { useApp } from '../context/AppContext';
 import { supabase } from '../lib/supabase';
 import '../styles/profile.css';
 
-function getLevel(balance) {
-  if (balance >= 20000) return { name: 'Diamond', icon: '💎', color: '#00d4ff', next: null,   progress: 100,   nextName: '' };
-  if (balance >= 5000)  return { name: 'Gold',    icon: '🥇', color: '#ffd700', next: 20000, progress: Math.min(100, Math.floor(((balance - 5000)  / 15000) * 100)), nextName: 'Diamond' };
-  if (balance >= 1000)  return { name: 'Silver',  icon: '🥈', color: '#c0c0c0', next: 5000,  progress: Math.min(100, Math.floor(((balance - 1000)  / 4000)  * 100)), nextName: 'Gold'    };
-  return               { name: 'Bronze',  icon: '🥉', color: '#cd7f32', next: 1000,  progress: Math.min(100, Math.floor((balance / 1000) * 100)),                  nextName: 'Silver'  };
-}
-
 const ALL_BADGES = (balance, streak, tasksCompleted) => [
-  { icon: '⭐', name: 'Starter',      desc: 'App join kiya',          earned: true              },
-  { icon: '✅', name: 'First Task',   desc: 'Pehla task complete',    earned: tasksCompleted>=1  },
-  { icon: '🔥', name: 'Streak Star',  desc: '3 din ki streak',        earned: streak>=3          },
-  { icon: '🌟', name: 'Week Warrior', desc: '7 din ki streak',        earned: streak>=7          },
-  { icon: '👑', name: 'Streak King',  desc: '30 din ki streak',       earned: streak>=30         },
-  { icon: '🏆', name: 'Task Hero',    desc: '10 tasks complete',      earned: tasksCompleted>=10 },
-  { icon: '💪', name: 'Task Master',  desc: '50 tasks complete',      earned: tasksCompleted>=50 },
-  { icon: '💰', name: 'Coin Saver',   desc: '100+ coins',             earned: balance>=100       },
-  { icon: '💎', name: 'Rich Bhai',    desc: '1,000+ coins',           earned: balance>=1000      },
-  { icon: '🚀', name: 'High Roller',  desc: '5,000+ coins',           earned: balance>=5000      },
-  { icon: '🌈', name: 'Legend',       desc: '20,000+ coins',          earned: balance>=20000     },
+  { icon: '⭐', name: 'Starter',      desc: 'App join kiya',       earned: true               },
+  { icon: '✅', name: 'First Task',   desc: 'Pehla task done',     earned: tasksCompleted >= 1 },
+  { icon: '🔥', name: 'Streak Star',  desc: '3 din ki streak',     earned: streak >= 3         },
+  { icon: '🌟', name: 'Week Warrior', desc: '7 din ki streak',     earned: streak >= 7         },
+  { icon: '👑', name: 'Streak King',  desc: '30 din ki streak',    earned: streak >= 30        },
+  { icon: '🏆', name: 'Task Hero',    desc: '10 tasks done',       earned: tasksCompleted >= 10},
+  { icon: '💪', name: 'Task Master',  desc: '50 tasks done',       earned: tasksCompleted >= 50},
+  { icon: '💰', name: 'Coin Saver',   desc: '100+ coins',          earned: balance >= 100      },
+  { icon: '💎', name: 'Rich Bhai',    desc: '1,000+ coins',        earned: balance >= 1000     },
+  { icon: '🚀', name: 'High Roller',  desc: '5,000+ coins',        earned: balance >= 5000     },
+  { icon: '🌈', name: 'Legend',       desc: '20,000+ coins',       earned: balance >= 20000    },
 ];
 
 export default function Profile() {
@@ -34,13 +27,11 @@ export default function Profile() {
   const [saving,   setSaving]   = useState(false);
   const [toast,    setToast]    = useState('');
 
-  const level   = getLevel(balance);
-  const badges  = ALL_BADGES(balance, streak, tasksCompleted);
-  const earned  = badges.filter(b => b.earned).length;
-
-  const displayName  = user?.name?.trim() || user?.username || 'User';
+  const badges      = ALL_BADGES(balance, streak, tasksCompleted);
+  const earned      = badges.filter(b => b.earned).length;
+  const displayName = user?.name?.trim() || user?.username || 'User';
   const avatarLetter = displayName.charAt(0).toUpperCase();
-  const photoUrl     = user?.photo_url || null;
+  const photoUrl    = user?.photo_url || null;
 
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(''), 3000); };
 
@@ -63,66 +54,102 @@ export default function Profile() {
     { key: 'profile', icon: '👤', label: 'Profile', path: '/profile' },
   ];
 
+  const quickActions = [
+    { icon: '🎟️', label: 'Bonus Code',    sub: 'Extra coins redeem karo',  action: () => navigate('/bonus-code'), color: '#ffd700' },
+    { icon: '👥', label: 'Refer & Earn',  sub: '+50 coins per referral',    action: () => navigate('/referral'),   color: '#00d4ff' },
+    { icon: '🎮', label: 'Games Hub',     sub: 'Daily coins kamao',         action: () => navigate('/games'),     color: '#a855f7' },
+    { icon: '❓', label: 'FAQ / Help',    sub: 'Sawalon ke jawab',          action: () => navigate('/faq'),       color: '#22c55e' },
+  ];
+
   return (
     <div className="profile-page">
 
+      {/* ── TOPBAR ── */}
       <div className="profile-topbar">
         <button className="profile-back-btn" onClick={() => navigate('/home')}>← Back</button>
-        <div className="profile-topbar-title">👤 Profile</div>
+        <div className="profile-topbar-title">👤 My Profile</div>
         <div style={{ width: 70 }} />
       </div>
 
       <div className="profile-scroll">
 
-        {/* ── HERO ── */}
-        <div className="profile-hero">
-          <div className="profile-avatar-wrap" style={{ borderColor: level.color, boxShadow: `0 0 24px ${level.color}55` }}>
-            {photoUrl
-              ? <img src={photoUrl} alt="dp" className="profile-avatar-img"
-                  onError={e => { e.target.style.display='none'; e.target.nextSibling.style.display='flex'; }} />
-              : null}
-            <span className="profile-avatar-letter" style={{ display: photoUrl ? 'none' : 'flex' }}>{avatarLetter}</span>
+        {/* ── HERO CARD ── */}
+        <div className="profile-hero-card">
+          <div className="profile-hero-bg" />
+
+          <div className="profile-avatar-row">
+            <div className="profile-avatar-wrap">
+              {photoUrl
+                ? <img src={photoUrl} alt="dp" className="profile-avatar-img"
+                    onError={e => { e.target.style.display='none'; e.target.nextSibling.style.display='flex'; }} />
+                : null}
+              <span className="profile-avatar-letter" style={{ display: photoUrl ? 'none' : 'flex' }}>
+                {avatarLetter}
+              </span>
+              {/* Online dot */}
+              <span className="profile-online-dot" />
+            </div>
+
+            {/* Settings gear — right of avatar */}
+            <button className="profile-settings-gear"
+              title="Naam Edit Karo"
+              onClick={() => { setEditName(displayName); setShowEdit(true); }}>
+              ⚙️
+            </button>
           </div>
-          <div className="profile-level-badge" style={{ background: `linear-gradient(135deg, ${level.color}cc, ${level.color}88)`, boxShadow: `0 4px 14px ${level.color}55` }}>
-            {level.icon} {level.name}
-          </div>
+
           <div className="profile-name">{displayName}</div>
           {user?.username && <div className="profile-handle">@{user.username}</div>}
 
-          <div className="profile-xp-box">
-            <div className="profile-xp-label">
-              <span style={{ color: level.color, fontWeight: 800 }}>{level.name}</span>
-              {level.next && <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11 }}>→ {level.nextName} ({level.next.toLocaleString()} coins)</span>}
-              {!level.next && <span style={{ color: '#ffd700', fontSize: 11 }}>Max Level! 🎉</span>}
-            </div>
-            <div className="profile-xp-bar">
-              <div className="profile-xp-fill" style={{ width: `${level.progress}%`, background: `linear-gradient(90deg, ${level.color}66, ${level.color})` }} />
-            </div>
-            <div className="profile-xp-pct">{level.progress}% complete</div>
+          {/* Balance pill */}
+          <div className="profile-balance-pill">
+            <span className="profile-balance-pill-icon">🪙</span>
+            <span className="profile-balance-pill-val">{balance.toLocaleString()}</span>
+            <span className="profile-balance-pill-sep">·</span>
+            <span className="profile-balance-pill-inr">₹{(balance / 100).toFixed(2)}</span>
           </div>
         </div>
 
-        {/* ── STATS ── */}
-        <div className="profile-section-title">📊 Meri Stats</div>
-        <div className="profile-stats-grid">
+        {/* ── STATS ROW ── */}
+        <div className="profile-stats-row">
           {[
-            { icon: '🪙', val: balance.toLocaleString(), lbl: 'Total Coins'   },
-            { icon: '💵', val: `₹${(balance/100).toFixed(2)}`, lbl: 'INR Value' },
-            { icon: '🏆', val: tasksCompleted,            lbl: 'Tasks Done'   },
-            { icon: '🔥', val: streak,                    lbl: 'Day Streak'   },
-            { icon: '👥', val: referrals,                 lbl: 'Referrals'    },
-            { icon: '🎖️', val: `${earned}/${badges.length}`, lbl: 'Badges'   },
+            { icon: '🏆', val: tasksCompleted, lbl: 'Tasks'    },
+            { icon: '🔥', val: streak,          lbl: 'Streak'   },
+            { icon: '👥', val: referrals,        lbl: 'Referrals'},
+            { icon: '🎖️', val: `${earned}/${badges.length}`, lbl: 'Badges' },
           ].map((s, i) => (
-            <div key={i} className="profile-stat-box">
-              <div className="profile-stat-icon">{s.icon}</div>
-              <div className="profile-stat-val">{s.val}</div>
-              <div className="profile-stat-lbl">{s.lbl}</div>
+            <div key={i} className="profile-stat-pill">
+              <div className="profile-stat-pill-icon">{s.icon}</div>
+              <div className="profile-stat-pill-val">{s.val}</div>
+              <div className="profile-stat-pill-lbl">{s.lbl}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* ── ACCOUNT INFO ── */}
+        <div className="profile-section-title">ℹ️ Account Info</div>
+        <div className="profile-info-card">
+          {[
+            { label: 'Naam',        val: displayName,    icon: '👤' },
+            { label: 'Telegram ID', val: user?.id || '—', icon: '🆔' },
+            { label: 'Username',    val: user?.username ? `@${user.username}` : '—', icon: '📛' },
+            { label: 'Mobile',      val: user?.mobile || 'Add nahi kiya', icon: '📱' },
+          ].map((row, i) => (
+            <div key={i} className="profile-info-row">
+              <div className="profile-info-left">
+                <span className="profile-info-icon">{row.icon}</span>
+                <span className="profile-info-label">{row.label}</span>
+              </div>
+              <span className="profile-info-val">{row.val}</span>
             </div>
           ))}
         </div>
 
         {/* ── BADGES ── */}
-        <div className="profile-section-title">🎖️ Badges <span style={{ color:'rgba(255,255,255,0.35)', fontSize:13 }}>({earned}/{badges.length} earned)</span></div>
+        <div className="profile-section-title">
+          🎖️ Badges
+          <span className="profile-section-count">{earned}/{badges.length} earned</span>
+        </div>
         <div className="profile-badges-grid">
           {badges.map((b, i) => (
             <div key={i} className={`profile-badge-card ${b.earned ? 'badge-earned' : 'badge-locked'}`}>
@@ -133,36 +160,19 @@ export default function Profile() {
           ))}
         </div>
 
-        {/* ── ACCOUNT INFO ── */}
-        <div className="profile-section-title">ℹ️ Account Info</div>
-        <div className="profile-info-card">
-          {[
-            { label: 'Naam',        val: displayName              },
-            { label: 'Telegram ID', val: user?.id || '—'          },
-            { label: 'Username',    val: user?.username ? `@${user.username}` : '—' },
-            { label: 'Mobile',      val: user?.mobile || 'Add nahi kiya' },
-          ].map((row, i) => (
-            <div key={i} className="profile-info-row">
-              <span className="profile-info-label">{row.label}</span>
-              <span className="profile-info-val">{row.val}</span>
-            </div>
-          ))}
-        </div>
-
-        {/* ── SETTINGS ── */}
-        <div className="profile-section-title">⚙️ Settings</div>
-        <div className="profile-actions">
-          {[
-            { icon: '✏️', label: 'Naam Edit Karo',    action: () => { setEditName(displayName); setShowEdit(true); } },
-            { icon: '🎟️', label: 'Bonus Code Redeem', action: () => navigate('/bonus-code') },
-            { icon: '👥', label: 'Referral Program',  action: () => navigate('/referral') },
-            { icon: '🎮', label: 'Games Hub',         action: () => navigate('/games')    },
-            { icon: '❓', label: 'FAQ / Help',        action: () => navigate('/faq')      },
-          ].map((btn, i) => (
-            <button key={i} className="profile-action-btn" onClick={btn.action}>
-              <span className="profile-action-icon">{btn.icon}</span>
-              <span>{btn.label}</span>
-              <span className="profile-action-arrow">›</span>
+        {/* ── QUICK ACTIONS ── */}
+        <div className="profile-section-title">⚡ Quick Actions</div>
+        <div className="profile-quick-actions">
+          {quickActions.map((a, i) => (
+            <button key={i} className="profile-qa-btn" onClick={a.action}>
+              <div className="profile-qa-icon-wrap" style={{ background: `${a.color}18`, border: `1px solid ${a.color}33` }}>
+                <span className="profile-qa-icon">{a.icon}</span>
+              </div>
+              <div className="profile-qa-text">
+                <div className="profile-qa-label">{a.label}</div>
+                <div className="profile-qa-sub">{a.sub}</div>
+              </div>
+              <span className="profile-qa-arrow">›</span>
             </button>
           ))}
         </div>
@@ -188,7 +198,8 @@ export default function Profile() {
             <div className="profile-modal-title">✏️ Naam Edit Karo</div>
             <input className="profile-modal-input" value={editName}
               onChange={e => setEditName(e.target.value)}
-              placeholder="Apna naam likho..." maxLength={30} />
+              placeholder="Apna naam likho..." maxLength={30}
+              autoFocus />
             <div className="profile-modal-btns">
               <button className="profile-modal-cancel" onClick={() => setShowEdit(false)}>Cancel</button>
               <button className="profile-modal-save" onClick={handleSaveName} disabled={saving}>

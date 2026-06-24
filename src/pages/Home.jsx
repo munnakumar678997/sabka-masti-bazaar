@@ -140,36 +140,6 @@ export default function Home() {
           ))}
         </div>
 
-        {/* ── GAMES BANNER ── */}
-        <div className="games-banner" onClick={() => navigate('/games')}>
-          <div className="games-banner-left">
-            <div className="games-banner-title">🎮 Games Hub</div>
-            <div className="games-banner-desc">Spin, Scratch, Quiz — daily coins kamao!</div>
-          </div>
-          <button className="games-banner-btn">Khelo ▶</button>
-        </div>
-
-        {/* ── REFER BANNER ── */}
-        <div className="refer-banner" onClick={() => navigate('/referral')}>
-          <div className="refer-text">
-            <div className="refer-title">👥 Dosto ko Invite karo!</div>
-            <div className="refer-desc">Har referral pe +50 coins kamao!</div>
-          </div>
-          <button className="refer-btn" onClick={e => { e.stopPropagation(); navigate('/referral'); }}>Share 🔗</button>
-        </div>
-
-        {/* ── BONUS CODE BANNER ── */}
-        <div className="bonus-code-banner" onClick={() => navigate('/bonus-code')}>
-          <div className="bonus-code-left">
-            <div className="bonus-code-icon">🎟️</div>
-            <div>
-              <div className="bonus-code-title">Bonus Code Hai?</div>
-              <div className="bonus-code-desc">Redeem karo — extra coins pao!</div>
-            </div>
-          </div>
-          <button className="bonus-code-btn">Redeem ▶</button>
-        </div>
-
         <div style={{ height: 90 }} />
       </div>
 
