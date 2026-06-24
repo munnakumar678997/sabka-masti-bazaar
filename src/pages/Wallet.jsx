@@ -25,14 +25,13 @@ export default function Wallet() {
   const [withdrawals, setWithdrawals] = useState(() => getLocalWithdrawals(withdrawKey));
   const [histLoading, setHistLoading] = useState(true);
   const [toast,       setToast]       = useState('');
+  const [toastType,   setToastType]   = useState('success');
 
-  // Firestore se history load karo (Firestore > localStorage)
   useEffect(() => {
     let cancelled = false;
     fetchWithdrawals().then(fsData => {
       if (cancelled) return;
       if (fsData && fsData.length > 0) {
-        // Firestore data zyada reliable hai — use karo
         const mapped = fsData.map(d => ({
           id:     d.id     || d.firestoreId || Date.now(),
           coins:  d.coins  || 0,
@@ -45,7 +44,6 @@ export default function Wallet() {
         setWithdrawals(mapped);
         saveLocalWithdrawals(withdrawKey, mapped);
       } else {
-        // Firestore empty → localStorage use karo
         setWithdrawals(getLocalWithdrawals(withdrawKey));
       }
       setHistLoading(false);
@@ -57,25 +55,34 @@ export default function Wallet() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
 
-  const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(''), 3200); };
+  const showToast = (msg, type = 'success') => {
+    setToast(msg);
+    setToastType(type);
+    setTimeout(() => setToast(''), 3200);
+  };
 
-  // 1 coin = ₹0.01 (÷100) — Store + Home ke saath consistent
   const amountNum  = parseInt(amount) || 0;
   const inrValue   = (amountNum / 100).toFixed(2);
   const canSubmit  = amountNum >= MIN_WITHDRAW && upiId.trim().length > 4 && balance >= amountNum;
 
+  // Progress toward minimum withdrawal
+  const progressPct = Math.min(100, Math.round((balance / MIN_WITHDRAW) * 100));
+  const needMore    = Math.max(0, MIN_WITHDRAW - balance);
+
+  // Stats
+  const totalWithdrawn  = withdrawals.reduce((s, w) => s + (w.coins || 0), 0);
+  const pendingCount    = withdrawals.filter(w => w.status === 'pending').length;
+  const completedCount  = withdrawals.filter(w => w.status === 'completed').length;
+
   const handleWithdraw = async () => {
     if (!canSubmit || submitting) return;
     setSubmitting(true);
-
-    // Pehle Firestore transaction se coins deduct karo
     const deducted = await deductCoins(amountNum);
     if (!deducted) {
-      showToast('❌ Balance nahi hai! Refresh karke dobara try karo.');
+      showToast('❌ Balance nahi hai! Refresh karke dobara try karo.', 'error');
       setSubmitting(false);
       return;
     }
-
     const entry = {
       id:     Date.now(),
       coins:  amountNum,
@@ -85,8 +92,6 @@ export default function Wallet() {
       time:   new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }),
       status: 'pending',
     };
-
-    // Firestore mein save karo — agar fail ho toh coins ACTUALLY wapas do
     try {
       await saveWithdrawal(entry);
       const updated = [entry, ...withdrawals];
@@ -94,146 +99,303 @@ export default function Wallet() {
       setWithdrawals(updated);
       setAmount('');
       setUpiId('');
-      showToast('✅ Withdrawal request submit ho gaya!');
+      showToast('✅ Withdrawal request submit ho gaya!', 'success');
       setTab('history');
     } catch (e) {
-      // Firestore save fail — ACTUAL rollback: coins wapas karo
       try { await addCoins(amountNum); } catch { /* ignore */ }
-      showToast('❌ Server error! Tumhare coins wapas kar diye gaye. Dobara try karo.');
-      console.error('Withdrawal save failed, coins refunded:', e);
+      showToast('❌ Server error! Coins wapas kar diye gaye.', 'error');
+      console.error('Withdrawal failed, coins refunded:', e);
     }
-
     setSubmitting(false);
   };
 
-  const statusColor = (s) => s === 'completed' ? '#22c55e' : s === 'rejected' ? '#ff4444' : '#fbbf24';
-  const statusLabel = (s) => s === 'completed' ? '✅ Completed' : s === 'rejected' ? '❌ Rejected' : '⏳ Pending';
-
+  const statusInfo = (s) => {
+    if (s === 'completed') return { color: '#22c55e', bg: 'rgba(34,197,94,0.1)', border: 'rgba(34,197,94,0.25)', label: 'Completed', icon: '✅' };
+    if (s === 'rejected')  return { color: '#f87171', bg: 'rgba(248,113,113,0.1)', border: 'rgba(248,113,113,0.25)', label: 'Rejected',  icon: '❌' };
+    return                        { color: '#fbbf24', bg: 'rgba(251,191,36,0.1)',  border: 'rgba(251,191,36,0.25)',  label: 'Pending',   icon: '⏳' };
+  };
 
   return (
-    <div className="wallet-page">
+    <div className="wlt-page">
 
-      <div className="wallet-topbar">
-        <div className="wallet-topbar-title">💰 Wallet</div>
-        <div className="wallet-balance-chip">🪙 {balance.toLocaleString()}</div>
+      {/* ══ TOPBAR ══ */}
+      <div className="wlt-topbar">
+        <div className="wlt-topbar-left">
+          <div className="wlt-topbar-icon">💰</div>
+          <div className="wlt-topbar-title">Wallet</div>
+        </div>
+        <div className="wlt-topbar-chip">
+          <span className="wlt-chip-coin">🪙</span>
+          <span className="wlt-chip-val">{balance.toLocaleString()}</span>
+        </div>
       </div>
 
-      <div className="wallet-scroll">
+      <div className="wlt-scroll">
 
-        {/* ── BALANCE CARD ── */}
-        <div className="wallet-balance-card">
-          <div className="wallet-balance-label">Tumhara Balance</div>
-          <div className="wallet-balance-amount">
-            <span className="wallet-coin-icon">🪙</span>
-            <span className="wallet-coins">{balance.toLocaleString()}</span>
-            <span className="wallet-coins-unit">Coins</span>
+        {/* ══ HERO BALANCE CARD ══ */}
+        <div className="wlt-hero">
+          <div className="wlt-hero-glow" />
+          <div className="wlt-hero-orb wlt-orb-1" />
+          <div className="wlt-hero-orb wlt-orb-2" />
+
+          <div className="wlt-hero-top">
+            <div className="wlt-hero-label">Tumhara Balance</div>
+            <div className="wlt-hero-inr-pill">₹{(balance / 100).toFixed(2)} INR</div>
           </div>
-          <div className="wallet-inr-val">≈ ₹{(balance / 100).toFixed(2)} INR</div>
-          <div className="wallet-min-note">Minimum Withdrawal: {MIN_WITHDRAW.toLocaleString()} Coins (₹{(MIN_WITHDRAW / 100).toFixed(0)})</div>
+
+          <div className="wlt-hero-amount">
+            <div className="wlt-hero-coin-wrap">
+              <span className="wlt-hero-coin-emoji">🪙</span>
+              <div className="wlt-hero-coin-ring" />
+            </div>
+            <div className="wlt-hero-num">{balance.toLocaleString()}</div>
+            <div className="wlt-hero-unit">Coins</div>
+          </div>
+
+          {/* Progress bar */}
+          <div className="wlt-progress-wrap">
+            <div className="wlt-progress-label">
+              <span>{balance >= MIN_WITHDRAW ? '🎉 Withdraw karne layak!' : `${MIN_WITHDRAW - balance} coins aur chahiye`}</span>
+              <span>{progressPct}%</span>
+            </div>
+            <div className="wlt-progress-track">
+              <div className="wlt-progress-fill" style={{ width: `${progressPct}%` }} />
+              <div className="wlt-progress-glow" style={{ left: `${progressPct}%` }} />
+            </div>
+            <div className="wlt-progress-sub">Min {MIN_WITHDRAW} coins = ₹5 withdraw</div>
+          </div>
         </div>
 
-        {/* ── TABS ── */}
-        <div className="wallet-tabs">
-          <button className={`wallet-tab ${tab === 'withdraw' ? 'active' : ''}`} onClick={() => setTab('withdraw')}>
-            💸 Withdraw
+        {/* ══ STATS ROW ══ */}
+        <div className="wlt-stats-row">
+          <div className="wlt-stat-card wlt-stat-green">
+            <div className="wlt-stat-icon">💸</div>
+            <div className="wlt-stat-val">{totalWithdrawn.toLocaleString()}</div>
+            <div className="wlt-stat-lbl">Total Withdraw</div>
+          </div>
+          <div className="wlt-stat-card wlt-stat-yellow">
+            <div className="wlt-stat-icon">⏳</div>
+            <div className="wlt-stat-val">{pendingCount}</div>
+            <div className="wlt-stat-lbl">Pending</div>
+          </div>
+          <div className="wlt-stat-card wlt-stat-blue">
+            <div className="wlt-stat-icon">✅</div>
+            <div className="wlt-stat-val">{completedCount}</div>
+            <div className="wlt-stat-lbl">Completed</div>
+          </div>
+        </div>
+
+        {/* ══ TABS ══ */}
+        <div className="wlt-tabs">
+          <button
+            className={`wlt-tab ${tab === 'withdraw' ? 'active' : ''}`}
+            onClick={() => setTab('withdraw')}
+          >
+            <span className="wlt-tab-icon">💸</span>
+            <span>Withdraw</span>
           </button>
-          <button className={`wallet-tab ${tab === 'history' ? 'active' : ''}`} onClick={() => setTab('history')}>
-            📋 History {withdrawals.length > 0 && <span className="wallet-hist-badge">{withdrawals.length}</span>}
+          <button
+            className={`wlt-tab ${tab === 'history' ? 'active' : ''}`}
+            onClick={() => setTab('history')}
+          >
+            <span className="wlt-tab-icon">📋</span>
+            <span>History</span>
+            {withdrawals.length > 0 && (
+              <span className="wlt-tab-badge">{withdrawals.length}</span>
+            )}
           </button>
         </div>
 
-        {/* ── WITHDRAW FORM ── */}
+        {/* ══ WITHDRAW FORM ══ */}
         {tab === 'withdraw' && (
-          <div className="wallet-form">
+          <div className="wlt-form">
 
-            <div className="wallet-form-group">
-              <div className="wallet-form-label">💰 Coins Amount</div>
-              <input className="wallet-form-input" type="number" value={amount}
-                onChange={e => setAmount(e.target.value)}
-                placeholder={`Min ${MIN_WITHDRAW} coins`} min={MIN_WITHDRAW} />
+            {/* Balance alert */}
+            {balance < MIN_WITHDRAW && (
+              <div className="wlt-alert wlt-alert-warn">
+                <div className="wlt-alert-icon">🎯</div>
+                <div className="wlt-alert-body">
+                  <div className="wlt-alert-title">Thoda aur kamao!</div>
+                  <div className="wlt-alert-desc">
+                    Bas <strong>{needMore} coins</strong> aur chahiye (₹{(needMore/100).toFixed(2)}) withdraw karne ke liye
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Coins Input */}
+            <div className="wlt-field">
+              <div className="wlt-field-label">
+                <span className="wlt-field-icon">🪙</span>
+                Coins Amount
+              </div>
+              <div className="wlt-input-wrap">
+                <input
+                  className="wlt-input"
+                  type="number"
+                  value={amount}
+                  onChange={e => setAmount(e.target.value)}
+                  placeholder={`Minimum ${MIN_WITHDRAW} coins`}
+                  min={MIN_WITHDRAW}
+                />
+                {amountNum > 0 && (
+                  <div className={`wlt-input-badge ${amountNum > balance ? 'error' : 'ok'}`}>
+                    {amountNum > balance ? '❌' : `₹${inrValue}`}
+                  </div>
+                )}
+              </div>
               {amountNum > 0 && (
-                <div className={`wallet-form-hint ${amountNum > balance ? 'error' : ''}`}>
+                <div className={`wlt-field-hint ${amountNum > balance ? 'error' : amountNum < MIN_WITHDRAW ? 'warn' : 'ok'}`}>
                   {amountNum > balance
-                    ? `❌ Balance nahi hai (tumhare paas: ${balance.toLocaleString()} coins)`
-                    : `= ₹${inrValue} INR deduct hoga`}
+                    ? `❌ Sirf ${balance.toLocaleString()} coins available hain`
+                    : amountNum < MIN_WITHDRAW
+                    ? `⚠️ Minimum ${MIN_WITHDRAW} coins chahiye`
+                    : `✅ ₹${inrValue} tumhare UPI pe aayega`}
                 </div>
               )}
             </div>
 
-            <div className="wallet-form-group">
-              <div className="wallet-form-label">📱 UPI ID</div>
-              <input className="wallet-form-input" type="text" value={upiId}
-                onChange={e => setUpiId(e.target.value)}
-                placeholder="example@upi / 9876543210@paytm" />
-            </div>
-
-            {/* Quick amount buttons */}
-            <div className="wallet-quick-row">
+            {/* Quick chips */}
+            <div className="wlt-quick-label">⚡ Quick Select</div>
+            <div className="wlt-quick-row">
               {[500, 1000, 2000, 5000].map(v => (
-                <button key={v} className="wallet-quick-btn" onClick={() => setAmount(String(v))}>
-                  {v.toLocaleString()}
+                <button
+                  key={v}
+                  className={`wlt-quick-chip ${parseInt(amount) === v ? 'selected' : ''} ${balance < v ? 'disabled' : ''}`}
+                  onClick={() => balance >= v && setAmount(String(v))}
+                >
+                  <span className="wlt-chip-label">{v >= 1000 ? `${v/1000}K` : v}</span>
+                  <span className="wlt-chip-inr">₹{(v/100).toFixed(0)}</span>
                 </button>
               ))}
             </div>
 
-            {balance < MIN_WITHDRAW && (
-              <div className="wallet-low-box">
-                🪙 Abhi balance kam hai!<br />
-                {MIN_WITHDRAW - balance} aur coins kamao phir withdraw karo.
+            {/* UPI Input */}
+            <div className="wlt-field">
+              <div className="wlt-field-label">
+                <span className="wlt-field-icon">📱</span>
+                UPI ID
               </div>
-            )}
+              <div className="wlt-input-wrap">
+                <input
+                  className="wlt-input"
+                  type="text"
+                  value={upiId}
+                  onChange={e => setUpiId(e.target.value)}
+                  placeholder="example@upi · 9876543210@paytm"
+                />
+                {upiId.length > 4 && (
+                  <div className="wlt-input-badge ok">✓</div>
+                )}
+              </div>
+              <div className="wlt-field-hint neutral">
+                💡 Galat UPI ID pe coins wapas nahi honge — dhyan se likhna
+              </div>
+            </div>
 
-            <button className="wallet-submit-btn" onClick={handleWithdraw}
+            {/* Submit */}
+            <button
+              className={`wlt-submit ${canSubmit ? 'active' : ''} ${submitting ? 'loading' : ''}`}
+              onClick={handleWithdraw}
               disabled={!canSubmit || submitting}
-              style={{ opacity: canSubmit ? 1 : 0.45 }}>
-              {submitting ? '⏳ Processing...' : '💸 Withdraw Request Bhejo'}
+            >
+              {submitting ? (
+                <>
+                  <span className="wlt-submit-spinner" />
+                  Processing...
+                </>
+              ) : (
+                <>
+                  <span>💸</span>
+                  Withdraw Request Bhejo
+                </>
+              )}
             </button>
 
-            <div className="wallet-note">
-              ⚠️ Request submit hone ke baad 24-48 ghante mein process hogi. Galat UPI ID pe coins wapas nahi honge.
+            {/* Info cards */}
+            <div className="wlt-info-grid">
+              <div className="wlt-info-card">
+                <div className="wlt-info-icon">⏰</div>
+                <div className="wlt-info-text">24-48 ghante mein process hota hai</div>
+              </div>
+              <div className="wlt-info-card">
+                <div className="wlt-info-icon">🎯</div>
+                <div className="wlt-info-text">100 Coins = ₹1 — koi hidden charges nahi</div>
+              </div>
             </div>
           </div>
         )}
 
-        {/* ── HISTORY ── */}
+        {/* ══ HISTORY ══ */}
         {tab === 'history' && (
-          <div className="wallet-history">
+          <div className="wlt-history">
             {histLoading ? (
-              <div className="wallet-empty">
-                <div className="wallet-empty-icon">⏳</div>
-                <div className="wallet-empty-text">History load ho rahi hai...</div>
+              <div className="wlt-empty">
+                <div className="wlt-empty-anim">
+                  <div className="wlt-empty-ring" />
+                  <span className="wlt-empty-ico">⏳</span>
+                </div>
+                <div className="wlt-empty-title">Load ho raha hai...</div>
               </div>
             ) : withdrawals.length === 0 ? (
-              <div className="wallet-empty">
-                <div className="wallet-empty-icon">📋</div>
-                <div className="wallet-empty-text">Abhi koi withdrawal nahi<br />Pehla withdraw karo!</div>
+              <div className="wlt-empty">
+                <div className="wlt-empty-anim">
+                  <div className="wlt-empty-ring" />
+                  <span className="wlt-empty-ico">📋</span>
+                </div>
+                <div className="wlt-empty-title">Koi withdrawal nahi abhi tak</div>
+                <div className="wlt-empty-sub">Coins kamao aur pehla withdraw karo!</div>
+                <button className="wlt-empty-btn" onClick={() => setTab('withdraw')}>
+                  💸 Withdraw Karo
+                </button>
               </div>
             ) : (
-              withdrawals.map(w => (
-                <div key={w.id} className="wallet-hist-card">
-                  <div className="wallet-hist-top">
-                    <div className="wallet-hist-coins">🪙 {w.coins.toLocaleString()} coins</div>
-                    <div className="wallet-hist-status" style={{ color: statusColor(w.status) }}>
-                      {statusLabel(w.status)}
+              <div className="wlt-hist-list">
+                {withdrawals.map((w, idx) => {
+                  const si = statusInfo(w.status);
+                  return (
+                    <div key={w.id} className="wlt-hist-card" style={{ animationDelay: `${idx * 0.05}s` }}>
+                      <div className="wlt-hist-left">
+                        <div className="wlt-hist-status-icon" style={{ background: si.bg, border: `1px solid ${si.border}` }}>
+                          {si.icon}
+                        </div>
+                        <div className="wlt-hist-divider" />
+                      </div>
+                      <div className="wlt-hist-body">
+                        <div className="wlt-hist-row1">
+                          <div className="wlt-hist-coins">🪙 {w.coins.toLocaleString()} Coins</div>
+                          <div className="wlt-hist-inr">₹{w.inr}</div>
+                        </div>
+                        <div className="wlt-hist-upi">📱 {w.upi}</div>
+                        <div className="wlt-hist-row2">
+                          <div
+                            className="wlt-hist-badge"
+                            style={{ color: si.color, background: si.bg, border: `1px solid ${si.border}` }}
+                          >
+                            {si.label}
+                          </div>
+                          <div className="wlt-hist-date">{w.date} · {w.time}</div>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                  <div className="wallet-hist-upi">UPI: {w.upi}</div>
-                  <div className="wallet-hist-bottom">
-                    <span className="wallet-hist-inr">₹{w.inr}</span>
-                    <span className="wallet-hist-date">{w.date} · {w.time}</span>
-                  </div>
-                </div>
-              ))
+                  );
+                })}
+              </div>
             )}
           </div>
         )}
 
-        <div style={{ height: 90 }} />
+        <div style={{ height: 100 }} />
       </div>
 
       <BottomNav />
 
-      {toast && <div className="wallet-toast">{toast}</div>}
+      {/* ══ TOAST ══ */}
+      {toast && (
+        <div className={`wlt-toast wlt-toast-${toastType}`}>
+          {toast}
+        </div>
+      )}
     </div>
   );
 }
