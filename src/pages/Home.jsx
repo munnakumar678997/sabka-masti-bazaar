@@ -13,7 +13,10 @@ const TASKS = [
 ];
 
 // Daily task limit — localStorage based daily tracking
-function getTodayKey() { return new Date().toISOString().split('T')[0]; }
+function getTodayKey() {
+  const istMs = Date.now() + 5.5 * 60 * 60 * 1000;
+  return new Date(istMs).toISOString().split('T')[0];
+}
 function getTaskUsed(taskId) {
   try { return localStorage.getItem(`smb_task_${taskId}_${getTodayKey()}`) === '1'; }
   catch { return false; }

@@ -10,7 +10,7 @@ export default function Loading() {
   const { loadUser } = useApp();
 
   useEffect(() => {
-    localStorage.removeItem('smb_session');
+    sessionStorage.removeItem('smb_session');
 
     let navigated = false;
 
@@ -18,14 +18,14 @@ export default function Loading() {
       if (navigated) return;
       navigated = true;
       await loadUser(tgData);
-      localStorage.setItem('smb_session', '1');
+      sessionStorage.setItem('smb_session', '1');
       navigate('/home');
     };
 
     const goLogin = (tgData = null, mode = 'new') => {
       if (navigated) return;
       navigated = true;
-      localStorage.setItem('smb_session', '1');
+      sessionStorage.setItem('smb_session', '1');
       navigate('/login', { state: { tgData, mode } });
     };
 

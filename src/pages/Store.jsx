@@ -237,7 +237,7 @@ export default function Store() {
     setConfirmPending(true);
   };
 
-  const handleConfirmOrder = () => {
+  const handleConfirmOrder = async () => {
     // User info for Telegram message
     const userName   = user?.name     || 'Unknown';
     const userHandle = user?.username ? `@${user.username}` : 'No username';
@@ -264,8 +264,8 @@ export default function Store() {
 
     const url = `https://t.me/${TELEGRAM_AGENT}?text=${tgMsg}`;
 
-    // Coins deduct karo
-    deductCoins(coinsRequired);
+    // Coins deduct karo (await — Firestore confirm hone ke baad hi Telegram open)
+    await deductCoins(coinsRequired);
 
     // Firestore mein order save karo (admin tracking ke liye)
     saveOrder({

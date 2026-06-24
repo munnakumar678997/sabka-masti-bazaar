@@ -12,10 +12,10 @@ import BonusCode from './pages/BonusCode';
 import { AppProvider } from './context/AppContext';
 import './styles/global.css';
 
-// localStorage use karo — sessionStorage se refresh pe logout ho jaata tha
+// sessionStorage use karo — refresh pe user data reload ho (Loading se)
 function SessionGuard({ children }) {
   const location      = useLocation();
-  const sessionActive = localStorage.getItem('smb_session');
+  const sessionActive = sessionStorage.getItem('smb_session');
   if (!sessionActive && location.pathname !== '/loading') {
     return <Navigate to="/loading" replace />;
   }

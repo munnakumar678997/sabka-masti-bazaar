@@ -1,7 +1,8 @@
 import { createContext, useContext, useState, useRef } from 'react';
 import { db } from '../lib/firebase';
 import {
-  doc, getDoc, setDoc, updateDoc, collection, addDoc, increment
+  doc, getDoc, setDoc, updateDoc, collection, addDoc, increment,
+  getDocs, query, where, orderBy,
 } from 'firebase/firestore';
 
 const AppContext = createContext(null);
@@ -108,7 +109,7 @@ export function AppProvider({ children }) {
     if (!userIdRef.current || !mobile) return;
     const userRef = doc(db, 'users', String(userIdRef.current));
     await updateDoc(userRef, { mobile });
-    _setUser(prev => prev ? { ...prev, mobile } : prev);
+    setUser(prev => prev ? { ...prev, mobile } : prev);
   };
 
   // ─────────────────────────────────────────────
@@ -243,7 +244,7 @@ export function AppProvider({ children }) {
   const updateUserName = async (newName) => {
     if (!userIdRef.current || !newName) return;
     await updateDoc(doc(db, 'users', String(userIdRef.current)), { name: newName });
-    _setUser(prev => prev ? { ...prev, name: newName } : prev);
+    setUser(prev => prev ? { ...prev, name: newName } : prev);
   };
 
   // ─────────────────────────────────────────────
@@ -264,6 +265,25 @@ export function AppProvider({ children }) {
     }
   };
 
+  // ─────────────────────────────────────────────
+  // fetchWithdrawals — Firestore se user ki history lo
+  // ─────────────────────────────────────────────
+  const fetchWithdrawals = async () => {
+    if (!userIdRef.current) return [];
+    try {
+      const q = query(
+        collection(db, 'withdrawals'),
+        where('userId', '==', String(userIdRef.current)),
+        orderBy('createdAt', 'desc'),
+      );
+      const snap = await getDocs(q);
+      return snap.docs.map(d => ({ firestoreId: d.id, ...d.data() }));
+    } catch (e) {
+      console.error('fetchWithdrawals err:', e);
+      return [];
+    }
+  };
+
   return (
     <AppContext.Provider value={{
       user,
@@ -281,6 +301,7 @@ export function AppProvider({ children }) {
       updateUserName,
       saveOrder,
       saveWithdrawal,
+      fetchWithdrawals,
       CHECKIN_BACKUP_KEY,
       SESSION_KEY,
     }}>

@@ -204,7 +204,7 @@ export default function Login() {
 
       // Naya ho ya purana — dono ke liye loadUser (mobile save hoga)
       await loadUser(tgUser, phone);
-      localStorage.setItem('smb_session', '1');
+      sessionStorage.setItem('smb_session', '1');
       navigate('/home');
     });
 
@@ -217,7 +217,7 @@ export default function Login() {
     setBtnLoading(true);
     await loadUser(tgUser, null);
     localStorage.setItem('smb_tg_id', String(tgUser.id));
-    localStorage.setItem('smb_session', '1');
+    sessionStorage.setItem('smb_session', '1');
     navigate('/home');
   };
 

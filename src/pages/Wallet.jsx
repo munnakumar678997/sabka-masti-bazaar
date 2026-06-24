@@ -6,23 +6,54 @@ import '../styles/wallet.css';
 const WITHDRAW_KEY  = 'smb_withdrawals';
 const MIN_WITHDRAW  = 500;
 
-function getWithdrawals() {
+function getLocalWithdrawals() {
   try { return JSON.parse(localStorage.getItem(WITHDRAW_KEY) || '[]'); } catch { return []; }
 }
-function saveWithdrawals(list) {
+function saveLocalWithdrawals(list) {
   localStorage.setItem(WITHDRAW_KEY, JSON.stringify(list));
 }
 
 export default function Wallet() {
   const navigate = useNavigate();
-  const { balance, deductCoins, saveWithdrawal } = useApp();
+  const { balance, deductCoins, saveWithdrawal, fetchWithdrawals } = useApp();
 
   const [tab,         setTab]         = useState('withdraw');
   const [amount,      setAmount]      = useState('');
   const [upiId,       setUpiId]       = useState('');
   const [submitting,  setSubmitting]  = useState(false);
-  const [withdrawals, setWithdrawals] = useState(getWithdrawals());
+  const [withdrawals, setWithdrawals] = useState(getLocalWithdrawals());
+  const [histLoading, setHistLoading] = useState(true);
   const [toast,       setToast]       = useState('');
+
+  // Firestore se history load karo (Firestore > localStorage)
+  useEffect(() => {
+    let cancelled = false;
+    fetchWithdrawals().then(fsData => {
+      if (cancelled) return;
+      if (fsData && fsData.length > 0) {
+        // Firestore data zyada reliable hai — use karo
+        const mapped = fsData.map(d => ({
+          id:     d.id     || d.firestoreId || Date.now(),
+          coins:  d.coins  || 0,
+          inr:    d.inr    || (d.coins / 100).toFixed(2),
+          upi:    d.upi    || '—',
+          date:   d.date   || (d.createdAt ? d.createdAt.split('T')[0] : '—'),
+          time:   d.time   || '—',
+          status: d.status || 'pending',
+        }));
+        setWithdrawals(mapped);
+        saveLocalWithdrawals(mapped);
+      } else {
+        // Firestore empty → localStorage use karo
+        setWithdrawals(getLocalWithdrawals());
+      }
+      setHistLoading(false);
+    }).catch(() => {
+      setWithdrawals(getLocalWithdrawals());
+      setHistLoading(false);
+    });
+    return () => { cancelled = true; };
+  }, []);
 
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(''), 3200); };
 
@@ -45,7 +76,7 @@ export default function Wallet() {
       status: 'pending',
     };
     const updated = [entry, ...withdrawals];
-    saveWithdrawals(updated);
+    saveLocalWithdrawals(updated);
     setWithdrawals(updated);
     // Firestore mein bhi save karo (admin dekh sake)
     await saveWithdrawal(entry);
