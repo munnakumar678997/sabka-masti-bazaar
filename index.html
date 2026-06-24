@@ -19,10 +19,12 @@
     <!-- Yeh script bfcache restore pe TURANT fire hota hai -->
     <script>
       (function () {
+        // Layer 1: bfcache restore detect karo — standard browsers ke liye
         window.addEventListener('pageshow', function (e) {
           if (e.persisted) {
             try { sessionStorage.removeItem('smb_session'); } catch (_) {}
-            window.location.reload(true);
+            // reload(true) deprecated hai — location.replace zyada reliable hai
+            window.location.replace(window.location.href);
           }
         });
       })();
