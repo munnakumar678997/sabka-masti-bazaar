@@ -1,7 +1,0 @@
-- [Project rules & deployment setup](project-rules.md) — Supabase=backend, Firebase=hosting, free tier only, Replit=testing only, auto-deploy via GitHub Actions
-- [Unlimited check-in bug fix](checkin-bug.md) — useRef for userId + localStorage backup = triple protection; if(user) stale closure was root cause
-- [_setUser functional update bug](set-user-bug.md) — _setUser(fn) corrupts userIdRef.current; always use setUser(fn) directly for functional updates
-- [Session storage pattern](session-storage.md) — smb_session must be sessionStorage (not localStorage) so refresh re-runs Loading and reloads user data from Firestore
-- [Multi-device anti-cheat pattern](anti-cheat-pattern.md) — bonus codes, used-codes tracking must be in Firestore (arrayUnion), not localStorage
-- [Stale ref bug in addCoins/completeTask/updateCheckIn](stale-ref-bug.md) — React functional updater (setBalance(prev=>...)) does NOT update refs synchronously; compute new value first, then set ref + state directly
-- [Referral system implementation](referral-system.md) — start_param from tg.initDataUnsafe captures referral code; loadUser(tgUser, mobile, referredBy) awards referrer +50 coins + referral_count increment
