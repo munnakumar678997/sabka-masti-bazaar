@@ -61,7 +61,11 @@ export default function Profile() {
       {/* ── TOPBAR ── */}
       <div className="profile-topbar">
         <div className="profile-topbar-title">👤 My Profile</div>
-        <div style={{ width: 70 }} />
+        <button
+          className="profile-settings-gear"
+          title="Naam Edit Karo"
+          onClick={() => { setEditName(displayName); setShowEdit(true); }}
+        >⚙️</button>
       </div>
 
       <div className="profile-scroll">
@@ -88,12 +92,6 @@ export default function Profile() {
               <span className="profile-online-dot" />
             </div>
 
-            {/* Settings gear — right of avatar */}
-            <button className="profile-settings-gear"
-              title="Naam Edit Karo"
-              onClick={() => { setEditName(displayName); setShowEdit(true); }}>
-              ⚙️
-            </button>
           </div>
 
           <div className="profile-name">{displayName}</div>

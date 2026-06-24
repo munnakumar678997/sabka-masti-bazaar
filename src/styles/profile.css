@@ -87,17 +87,17 @@
   box-shadow: 0 0 8px rgba(34,197,94,0.6);
 }
 
-/* Gear */
+/* Gear — topbar right mein */
 .profile-settings-gear {
-  position: absolute; bottom: 0; right: -38px;
-  width: 32px; height: 32px; border-radius: 50%;
-  background: rgba(255,255,255,0.1);
-  border: 1px solid rgba(255,255,255,0.18);
-  color: #fff; font-size: 16px;
+  width: 38px; height: 38px; border-radius: 12px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.14);
+  color: #fff; font-size: 18px;
   display: flex; align-items: center; justify-content: center;
-  cursor: pointer; transition: background 0.2s, transform 0.3s;
+  cursor: pointer; transition: background 0.2s, transform 0.35s;
+  flex-shrink: 0;
 }
-.profile-settings-gear:active { background: rgba(255,255,255,0.2); transform: rotate(60deg); }
+.profile-settings-gear:active { background: rgba(255,255,255,0.16); transform: rotate(90deg); }
 
 .profile-name {
   font-size: 21px; font-weight: 900; color: #fff;

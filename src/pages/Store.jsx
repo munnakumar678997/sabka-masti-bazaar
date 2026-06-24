@@ -229,7 +229,7 @@ export default function Store() {
   const handleOrder = () => {
     if (!currentPlan) return;
     if (!canAfford) {
-      showToast(`❌ Coins kam hain! Chahiye: ${coinsRequired.toLocaleString()}, tumhare paas: ${balance.toLocaleString()}`);
+      showToast(`❌ Balance kam hai! Pehle coins kamao.`);
       return;
     }
     setConfirmPending(true);
@@ -287,7 +287,7 @@ export default function Store() {
     }
 
     setConfirmPending(false);
-    showToast(`✅ ${coinsRequired.toLocaleString()} coins deduct ho gaye! Order process ho raha hai...`);
+    showToast(`✅ ₹${total} ka order place ho gaya! Telegram pe confirm karo.`);
     closeModal();
   };
 
@@ -299,7 +299,7 @@ export default function Store() {
       <div className="store-topbar">
         <div className="store-topbar-title">🛒 Store</div>
         <div className="store-balance-chip">
-          🪙 <span>{balance.toLocaleString()}</span>
+          ₹<span>{(balance / 100).toFixed(2)}</span>
         </div>
       </div>
 
@@ -476,7 +476,6 @@ export default function Store() {
                             className="plan-price"
                             style={{ color: isSelected ? effectiveColor : '#bbb' }}
                           >₹{plan.price}</div>
-                          <div className="plan-coins">{(plan.price * 100).toLocaleString()} coins</div>
                         </div>
                       </div>
                     </div>
@@ -499,14 +498,6 @@ export default function Store() {
                   <div>
                     <div className="order-summary-name">{openProduct.name} · {activeType}</div>
                     <div className="order-summary-sub">Plan: {currentPlan.label} · Qty: {qty}</div>
-                    <div
-                      className="order-summary-coins"
-                      style={{ color: canAfford ? '#00ff88' : '#ff4444' }}
-                    >
-                      🪙 {canAfford
-                        ? `${coinsRequired.toLocaleString()} coins ✓`
-                        : `${(coinsRequired - balance).toLocaleString()} coins aur chahiye`}
-                    </div>
                   </div>
                   <div
                     className="order-total-price"
@@ -536,7 +527,7 @@ export default function Store() {
                 ? '⬆️ PLAN CHUNNO'
                 : canAfford
                   ? '✈️ TELEGRAM PE ORDER KARO'
-                  : `❌ ${(coinsRequired - balance).toLocaleString()} COINS AUR CHAHIYE`}
+                  : '❌ BALANCE KAM HAI — PEHLE KAMAO'}
             </button>
           </div>
 
@@ -548,15 +539,15 @@ export default function Store() {
                 <div className="confirm-title">Order Confirm Karo</div>
                 <div className="confirm-sub">{openProduct.name} · {activeType} · {currentPlan.label} × {qty}</div>
                 <div className="confirm-deduct-box" style={{ border: `1px solid ${effectiveColor}33` }}>
-                  <div className="confirm-deduct-lbl">DEDUCT HOGA</div>
+                  <div className="confirm-deduct-lbl">TOTAL AMOUNT</div>
                   <div className="confirm-deduct-coins" style={{ color: effectiveColor }}>
-                    🪙 {coinsRequired.toLocaleString()} coins
+                    ₹{total}
                   </div>
                   <div className="confirm-deduct-sub">
-                    Baaki bachega: {Math.max(0, balance - coinsRequired).toLocaleString()} coins
+                    {openProduct.name} · {currentPlan.label} × {qty}
                   </div>
                 </div>
-                <div className="confirm-note">⚠️ "Telegram Kholo" dabate hi coins deduct ho jaayenge aur order Telegram pe bheja jaayega</div>
+                <div className="confirm-note">⚠️ "Telegram Kholo" dabate hi order Munna Agent ko Telegram pe bheja jaayega</div>
                 <div className="confirm-btns">
                   <button className="confirm-cancel-btn" onClick={() => setConfirmPending(false)}>Cancel</button>
                   <button

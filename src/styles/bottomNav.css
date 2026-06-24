@@ -36,18 +36,6 @@
   background: rgba(255, 106, 0, 0.13);
 }
 
-/* Top accent bar */
-.bnav-tab.bnav-active::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 28%;
-  right: 28%;
-  height: 2.5px;
-  background: linear-gradient(90deg, #ff6a00, #ee0979);
-  border-radius: 0 0 4px 4px;
-  box-shadow: 0 0 8px rgba(238, 9, 121, 0.6);
-}
 
 .bnav-icon {
   font-size: 20px;
