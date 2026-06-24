@@ -275,25 +275,6 @@
   flex-shrink: 0;
 }
 
-/* ── BOTTOM NAV ── */
-.bottom-nav {
-  position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
-  width: 100%; max-width: 430px;
-  display: flex; background: #0d0d20;
-  border-top: 1px solid rgba(255,255,255,0.08);
-  padding: 8px 0 14px; z-index: 100;
-  box-shadow: 0 -8px 30px rgba(0,0,0,0.4);
-}
-.nav-tab {
-  flex: 1; display: flex; flex-direction: column;
-  align-items: center; gap: 3px;
-  background: none; border: none; cursor: pointer;
-  padding: 4px 0;
-}
-.nav-icon  { font-size: 19px; transition: transform 0.15s; }
-.nav-label { font-size: 9px; color: rgba(255,255,255,0.35); font-weight: 700; letter-spacing: 0.2px; }
-.nav-tab.active .nav-icon  { transform: scale(1.15); filter: drop-shadow(0 0 6px rgba(255,106,0,0.7)); }
-.nav-tab.active .nav-label { color: #ff6a00; }
 
 /* ── NOTIFICATION PANEL ── */
 .notif-overlay {

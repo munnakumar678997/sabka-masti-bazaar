@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
+import BottomNav from '../components/BottomNav';
 import '../styles/bonusCode.css';
 
 const historyKey = (uid) => uid ? `smb_code_history_${uid}` : null;
@@ -63,13 +64,6 @@ export default function BonusCode() {
     setLoading(false);
   };
 
-  const navTabs = [
-    { key: 'home',    icon: '🏠', label: 'Home',    path: '/home'    },
-    { key: 'games',   icon: '🎮', label: 'Games',   path: '/games'   },
-    { key: 'store',   icon: '🛒', label: 'Store',   path: '/store'   },
-    { key: 'wallet',  icon: '💰', label: 'Wallet',  path: '/wallet'  },
-    { key: 'profile', icon: '👤', label: 'Profile', path: '/profile' },
-  ];
 
   return (
     <div className="bc-page">
@@ -178,16 +172,7 @@ export default function BonusCode() {
         <div style={{ height: 90 }} />
       </div>
 
-      {/* ── BOTTOM NAV ── */}
-      <div className="bc-bottom-nav">
-        {navTabs.map(tab => (
-          <button key={tab.key} className="bc-nav-tab"
-            onClick={() => navigate(tab.path)}>
-            <span>{tab.icon}</span>
-            <span className="bc-nav-label">{tab.label}</span>
-          </button>
-        ))}
-      </div>
+      <BottomNav />
     </div>
   );
 }

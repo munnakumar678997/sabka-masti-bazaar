@@ -107,16 +107,3 @@
 .ref-per-ref-title { font-size: 13px; color: rgba(255,255,255,0.6); }
 .ref-per-ref-coins { font-size: 22px; font-weight: 900; color: #ffd700; }
 
-.ref-bottom-nav {
-  display: flex; justify-content: space-around; align-items: center;
-  padding: 8px 0 calc(8px + env(safe-area-inset-bottom));
-  background: rgba(15,15,26,0.97);
-  border-top: 1px solid rgba(255,255,255,0.08); flex-shrink: 0;
-}
-.ref-nav-tab {
-  display: flex; flex-direction: column; align-items: center; gap: 2px;
-  background: none; border: none; color: rgba(255,255,255,0.4);
-  font-size: 19px; cursor: pointer; padding: 3px 8px;
-  flex: 1;
-}
-.ref-nav-label { font-size: 9px; font-weight: 700; }

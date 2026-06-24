@@ -108,13 +108,6 @@ export default function Wallet() {
   const statusColor = (s) => s === 'completed' ? '#22c55e' : s === 'rejected' ? '#ff4444' : '#fbbf24';
   const statusLabel = (s) => s === 'completed' ? '✅ Completed' : s === 'rejected' ? '❌ Rejected' : '⏳ Pending';
 
-  const navTabs = [
-    { key: 'home',    icon: '🏠', label: 'Home',    path: '/home'    },
-    { key: 'games',   icon: '🎮', label: 'Games',   path: '/games'   },
-    { key: 'store',   icon: '🛒', label: 'Store',   path: '/store'   },
-    { key: 'wallet',  icon: '💰', label: 'Wallet',  path: '/wallet'  },
-    { key: 'profile', icon: '👤', label: 'Profile', path: '/profile' },
-  ];
 
   return (
     <div className="wallet-page">

@@ -130,21 +130,6 @@
 .wallet-hist-inr { font-size: 15px; font-weight: 800; color: #22c55e; }
 .wallet-hist-date { font-size: 11px; color: rgba(255,255,255,0.35); }
 
-/* ── BOTTOM NAV ── */
-.wallet-bottom-nav {
-  display: flex; justify-content: space-around; align-items: center;
-  padding: 8px 0 calc(8px + env(safe-area-inset-bottom));
-  background: rgba(15,15,26,0.97);
-  border-top: 1px solid rgba(255,255,255,0.08); flex-shrink: 0;
-}
-.wallet-nav-tab {
-  display: flex; flex-direction: column; align-items: center; gap: 2px;
-  background: none; border: none; color: rgba(255,255,255,0.4);
-  font-size: 19px; cursor: pointer; padding: 3px 8px;
-  flex: 1;
-}
-.wallet-nav-tab.active { color: #ff6a00; }
-.wallet-nav-label { font-size: 9px; font-weight: 700; }
 
 .wallet-toast {
   position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%);

@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
+import BottomNav from '../components/BottomNav';
 import '../styles/referral.css';
 
 const MILESTONE_COINS = { 1: 50, 3: 200, 5: 500, 10: 1200, 25: 3500, 50: 8000 };
@@ -50,13 +51,6 @@ export default function Referral() {
     else window.open(url, '_blank');
   };
 
-  const navTabs = [
-    { key: 'home',    icon: '🏠', label: 'Home',    path: '/home'    },
-    { key: 'games',   icon: '🎮', label: 'Games',   path: '/games'   },
-    { key: 'store',   icon: '🛒', label: 'Store',   path: '/store'   },
-    { key: 'wallet',  icon: '💰', label: 'Wallet',  path: '/wallet'  },
-    { key: 'profile', icon: '👤', label: 'Profile', path: '/profile' },
-  ];
 
   return (
     <div className="ref-page">
@@ -152,14 +146,7 @@ export default function Referral() {
         <div style={{ height: 90 }} />
       </div>
 
-      <div className="ref-bottom-nav">
-        {navTabs.map(t => (
-          <button key={t.key} className="ref-nav-tab" onClick={() => navigate(t.path)}>
-            <span>{t.icon}</span>
-            <span className="ref-nav-label">{t.label}</span>
-          </button>
-        ))}
-      </div>
+      <BottomNav />
     </div>
   );
 }

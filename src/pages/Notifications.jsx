@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
+import BottomNav from '../components/BottomNav';
 import '../styles/notifications.css';
 
 function timeAgo(isoString) {
@@ -68,13 +69,6 @@ export default function Notifications() {
   const displayed   = filter === 'unread' ? notifs.filter(n => !n.read) : notifs;
   const localUnread = notifs.filter(n => !n.read).length;
 
-  const navTabs = [
-    { key: 'home',    icon: '🏠', label: 'Home',    path: '/home'    },
-    { key: 'games',   icon: '🎮', label: 'Games',   path: '/games'   },
-    { key: 'store',   icon: '🛒', label: 'Store',   path: '/store'   },
-    { key: 'wallet',  icon: '💰', label: 'Wallet',  path: '/wallet'  },
-    { key: 'profile', icon: '👤', label: 'Profile', path: '/profile' },
-  ];
 
   return (
     <div className="notif-page">
@@ -165,19 +159,7 @@ export default function Notifications() {
         <div style={{ height: 90 }} />
       </div>
 
-      {/* ── BOTTOM NAV ── */}
-      <div className="notif-bottom-nav">
-        {navTabs.map(tab => (
-          <button
-            key={tab.key}
-            className={`notif-nav-tab ${tab.key === 'home' ? 'active' : ''}`}
-            onClick={() => navigate(tab.path)}
-          >
-            <span>{tab.icon}</span>
-            <span className="notif-nav-label">{tab.label}</span>
-          </button>
-        ))}
-      </div>
+      <BottomNav />
     </div>
   );
 }

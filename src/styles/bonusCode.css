@@ -201,17 +201,3 @@
 .bc-history-desc { font-size: 11px; color: rgba(255,255,255,0.4); margin-top: 2px; }
 .bc-history-coins { font-size: 14px; font-weight: 900; color: #4ade80; flex-shrink: 0; }
 
-/* ── BOTTOM NAV ── */
-.bc-bottom-nav {
-  position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
-  width: 100%; max-width: 430px;
-  background: rgba(10,10,24,0.97);
-  border-top: 1px solid rgba(255,255,255,0.08);
-  display: flex; z-index: 100;
-}
-.bc-nav-tab {
-  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px;
-  padding: 10px 0 8px; background: none; border: none;
-  color: rgba(255,255,255,0.4); font-size: 19px; cursor: pointer;
-}
-.bc-nav-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }

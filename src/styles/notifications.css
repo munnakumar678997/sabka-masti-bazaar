@@ -237,32 +237,3 @@
   cursor: pointer;
 }
 
-/* ── BOTTOM NAV ── */
-.notif-bottom-nav {
-  display: flex;
-  position: sticky;
-  bottom: 0;
-  background: #fff;
-  border-top: 1px solid #eee;
-  z-index: 10;
-}
-.notif-nav-tab {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 3px;
-  padding: 9px 4px;
-  border: none;
-  background: none;
-  cursor: pointer;
-  color: #aaa;
-  transition: color 0.15s;
-  font-size: 20px;
-}
-.notif-nav-tab.active { color: #0088cc; }
-.notif-nav-label {
-  font-size: 10px;
-  font-weight: 600;
-}

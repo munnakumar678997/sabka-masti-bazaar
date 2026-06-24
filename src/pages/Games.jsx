@@ -210,14 +210,6 @@ export default function Games() {
     flipIntervalRef.current = interval; // unmount pe clearInterval ke liye
   };
 
-  /* ── nav tabs — 5 tabs ── */
-  const NAV = [
-    { key: 'home',    icon: '🏠', label: 'Home',    path: '/home'    },
-    { key: 'games',   icon: '🎮', label: 'Games',   path: '/games'   },
-    { key: 'store',   icon: '🛒', label: 'Store',   path: '/store'   },
-    { key: 'wallet',  icon: '💰', label: 'Wallet',  path: '/wallet'  },
-    { key: 'profile', icon: '👤', label: 'Profile', path: '/profile' },
-  ];
 
   /* ── games grid data (only 3) ── */
   const GAMES = [

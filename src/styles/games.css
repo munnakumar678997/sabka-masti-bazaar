@@ -95,21 +95,6 @@
 .gpr-prize  { flex: 1.2; font-size: 12px; color: #ffd700; font-weight: 700; text-align: center; }
 .gpr-limit  { flex: 0.8; font-size: 11px; color: rgba(255,255,255,0.4); text-align: right; }
 
-/* ── BOTTOM NAV ── */
-.games-bottom-nav {
-  display: flex; justify-content: space-around; align-items: center;
-  padding: 7px 0 calc(7px + env(safe-area-inset-bottom));
-  background: rgba(8,8,20,0.98);
-  border-top: 1px solid rgba(255,255,255,0.08); flex-shrink: 0;
-}
-.games-nav-tab {
-  display: flex; flex-direction: column; align-items: center; gap: 2px;
-  background: none; border: none; color: rgba(255,255,255,0.35);
-  cursor: pointer; padding: 3px 10px; transition: color 0.18s;
-}
-.games-nav-tab.active { color: #ff6a00; }
-.gnav-icon  { font-size: 19px; line-height: 1; }
-.gnav-label { font-size: 9px; font-weight: 800; letter-spacing: 0.2px; }
 
 /* ═══ MODALS ═══ */
 .gmodal-overlay {
