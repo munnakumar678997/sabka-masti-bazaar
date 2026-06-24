@@ -1,19 +1,18 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { writeFileSync } from 'fs'
-import { resolve } from 'path'
+import { resolve, dirname } from 'path'
+import { fileURLToPath } from 'url'
 
-// ══ VERSION PLUGIN ══════════════════════════════════════════
-// Har build pe ek naya version.json generate karta hai
-// Jisme unique build timestamp hota hai
-// App yeh check karke detect karta hai ki naya version aaya hai ya nahi
-// ════════════════════════════════════════════════════════════
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
+
 function versionPlugin() {
   return {
     name: 'version-plugin',
     closeBundle() {
       const version = {
-        v: Date.now().toString(36),          // e.g. "lz4abc123" — unique per build
+        v: Date.now().toString(36),
         t: new Date().toISOString(),
       };
       writeFileSync(
