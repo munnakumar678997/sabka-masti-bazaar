@@ -1,9 +1,11 @@
 import { createContext, useContext, useState, useRef } from 'react';
-import { supabase } from '../lib/supabase';
+import { db } from '../lib/firebase';
+import {
+  doc, getDoc, setDoc, updateDoc
+} from 'firebase/firestore';
 
 const AppContext = createContext(null);
 
-// localStorage backup key — unlimited check-in ke against triple protection
 const CHECKIN_BACKUP_KEY = 'smb_checkin_ist';
 
 export function AppProvider({ children }) {
@@ -14,33 +16,25 @@ export function AppProvider({ children }) {
   const [streak,         setStreak]         = useState(0);
   const [loading,        setLoading]        = useState(false);
 
-  // ─── useRef: stale closure ka permanent fix ───
-  // React state async hota hai — ref hamesha latest userId rakhta hai
-  // Bina ref ke: setUser() ke baad bhi 'user' purana value show karta hai (closure trap)
   const userIdRef = useRef(null);
 
-  // Safe setter — state + ref dono ek saath update karo
   const _setUser = (data) => {
     userIdRef.current = data?.id ?? null;
     setUser(data);
   };
 
   // ─────────────────────────────────────────────
-  // loadUser — Supabase se real data lo, localStorage sync karo
+  // loadUser — Firestore se real data lo
   // ─────────────────────────────────────────────
   const loadUser = async (tgUser, mobile = null) => {
     setLoading(true);
     try {
-      const { data: existing, error: fetchErr } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', tgUser.id)
-        .maybeSingle();
+      const userRef  = doc(db, 'users', String(tgUser.id));
+      const userSnap = await getDoc(userRef);
 
-      if (fetchErr) throw fetchErr;
+      if (userSnap.exists()) {
+        const existing = userSnap.data();
 
-      if (existing) {
-        // ── Purana user: profile update + full data wapas lo ──
         const updatePayload = {
           name:      tgUser.name,
           username:  tgUser.username  ?? null,
@@ -48,22 +42,14 @@ export function AppProvider({ children }) {
         };
         if (mobile) updatePayload.mobile = mobile;
 
-        const { data: updated, error: updateErr } = await supabase
-          .from('users')
-          .update(updatePayload)
-          .eq('id', existing.id)
-          .select()
-          .single();
+        await updateDoc(userRef, updatePayload);
 
-        if (updateErr) throw updateErr;
-
+        const updated = { id: String(tgUser.id), ...existing, ...updatePayload };
         _setUser(updated);
-        setBalance(updated.balance         || 0);
-        setStreak(updated.streak           || 0);
+        setBalance(updated.balance          || 0);
+        setStreak(updated.streak            || 0);
         setTasksCompleted(updated.tasks_completed || 0);
 
-        // ── localStorage se Supabase ka last_checkin_date sync karo ──
-        // Yeh tab important hai jab app reload ho — Supabase ka data ground truth hai
         if (updated.last_checkin_date) {
           localStorage.setItem(CHECKIN_BACKUP_KEY, updated.last_checkin_date);
         } else {
@@ -71,33 +57,27 @@ export function AppProvider({ children }) {
         }
 
       } else {
-        // ── Naya user: INSERT — Welcome Bonus 50 coins ──
         const WELCOME_BONUS = 50;
-        const { data: inserted, error: insertErr } = await supabase
-          .from('users')
-          .insert({
-            id:                tgUser.id,
-            name:              tgUser.name,
-            username:          tgUser.username  ?? null,
-            photo_url:         tgUser.photo_url ?? null,
-            mobile:            mobile           ?? null,
-            balance:           WELCOME_BONUS,
-            streak:            0,
-            total_checkins:    0,
-            tasks_completed:   0,
-            last_checkin_date: null,
-          })
-          .select()
-          .single();
+        const newUser = {
+          id:                String(tgUser.id),
+          name:              tgUser.name,
+          username:          tgUser.username  ?? null,
+          photo_url:         tgUser.photo_url ?? null,
+          mobile:            mobile           ?? null,
+          balance:           WELCOME_BONUS,
+          streak:            0,
+          total_checkins:    0,
+          tasks_completed:   0,
+          last_checkin_date: null,
+        };
 
-        if (insertErr) throw insertErr;
+        await setDoc(userRef, newUser);
 
-        _setUser(inserted);
+        _setUser(newUser);
         setBalance(WELCOME_BONUS);
         setStreak(0);
         setTasksCompleted(0);
         localStorage.removeItem(CHECKIN_BACKUP_KEY);
-        // Welcome bonus marker — ek baar hi dikhana
         localStorage.setItem('smb_welcome_shown', '1');
       }
 
@@ -113,17 +93,13 @@ export function AppProvider({ children }) {
   // ─────────────────────────────────────────────
   const saveMobile = async (mobile) => {
     if (!userIdRef.current || !mobile) return;
-    const { data, error } = await supabase
-      .from('users')
-      .update({ mobile })
-      .eq('id', userIdRef.current)
-      .select()
-      .single();
-    if (!error && data) _setUser(data);
+    const userRef = doc(db, 'users', String(userIdRef.current));
+    await updateDoc(userRef, { mobile });
+    _setUser(prev => prev ? { ...prev, mobile } : prev);
   };
 
   // ─────────────────────────────────────────────
-  // addCoins — ref use karo, stale closure nahi
+  // addCoins
   // ─────────────────────────────────────────────
   const addCoins = async (amount) => {
     const newBalance = balance + amount;
@@ -131,15 +107,12 @@ export function AppProvider({ children }) {
     setUser(prev => prev ? { ...prev, balance: newBalance } : prev);
 
     if (userIdRef.current) {
-      await supabase
-        .from('users')
-        .update({ balance: newBalance })
-        .eq('id', userIdRef.current);
+      await updateDoc(doc(db, 'users', String(userIdRef.current)), { balance: newBalance });
     }
   };
 
   // ─────────────────────────────────────────────
-  // deductCoins — ref use karo
+  // deductCoins
   // ─────────────────────────────────────────────
   const deductCoins = async (amount) => {
     const newBalance = Math.max(0, balance - amount);
@@ -147,15 +120,12 @@ export function AppProvider({ children }) {
     setUser(prev => prev ? { ...prev, balance: newBalance } : prev);
 
     if (userIdRef.current) {
-      await supabase
-        .from('users')
-        .update({ balance: newBalance })
-        .eq('id', userIdRef.current);
+      await updateDoc(doc(db, 'users', String(userIdRef.current)), { balance: newBalance });
     }
   };
 
   // ─────────────────────────────────────────────
-  // completeTask — coins + tasks_completed Supabase mein save
+  // completeTask
   // ─────────────────────────────────────────────
   const completeTask = async (coins) => {
     const newCount   = tasksCompleted + 1;
@@ -165,28 +135,19 @@ export function AppProvider({ children }) {
     setUser(prev => prev ? { ...prev, balance: newBalance, tasks_completed: newCount } : prev);
 
     if (userIdRef.current) {
-      await supabase
-        .from('users')
-        .update({ balance: newBalance, tasks_completed: newCount })
-        .eq('id', userIdRef.current);
+      await updateDoc(doc(db, 'users', String(userIdRef.current)), {
+        balance:         newBalance,
+        tasks_completed: newCount,
+      });
     }
   };
 
   // ─────────────────────────────────────────────
-  // updateCheckIn — DEEP FIX
-  //
-  // 3-layer protection against unlimited check-in:
-  //  Layer 1: State mein last_checkin_date update hoti hai (Home.jsx check karta hai)
-  //  Layer 2: localStorage mein backup save hota hai (Supabase fail hone pe bhi kaam kare)
-  //  Layer 3: Supabase mein persist hota hai (next session ke liye)
-  //
-  // Pehle ka bug: user null hone pe state update nahi hoti thi + if(user) false tha
-  // Iska matlab: check-in unlimited baar ho sakta tha bina kuch save hue
+  // updateCheckIn — 3-layer protection
   // ─────────────────────────────────────────────
   const updateCheckIn = async (newStreak, totalDays, lastDate, coinsEarned) => {
     const newBalance = balance + coinsEarned;
 
-    // Layer 1: State update — user null ho toh bhi last_checkin_date set karo
     setBalance(newBalance);
     setStreak(newStreak);
     setUser(prev => {
@@ -200,28 +161,19 @@ export function AppProvider({ children }) {
       };
     });
 
-    // Layer 2: localStorage backup — SABSE ZAROORI
-    // Agar Supabase fail ho ya user null ho — yeh backup check-in rok dega
     localStorage.setItem(CHECKIN_BACKUP_KEY, lastDate);
 
-    // Layer 3: Supabase mein save — userIdRef use karo (stale closure nahi)
     if (userIdRef.current) {
-      const { error } = await supabase
-        .from('users')
-        .update({
+      try {
+        await updateDoc(doc(db, 'users', String(userIdRef.current)), {
           balance:           newBalance,
           streak:            newStreak,
           total_checkins:    totalDays,
           last_checkin_date: lastDate,
-        })
-        .eq('id', userIdRef.current);
-
-      if (error) {
-        console.error('Check-in Supabase save failed:', error);
-        // localStorage backup already set — user protected hai
+        });
+      } catch (error) {
+        console.error('Check-in Firestore save failed:', error);
       }
-    } else {
-      console.warn('Check-in: No user ID — localStorage backup active, will sync on next login');
     }
   };
 
