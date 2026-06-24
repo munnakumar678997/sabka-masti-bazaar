@@ -219,6 +219,34 @@ export function AppProvider({ children }) {
   };
 
   // ─────────────────────────────────────────────
+  // saveOrder — Store order Firestore mein save karo
+  // ─────────────────────────────────────────────
+  const saveOrder = async (orderData) => {
+    if (!userIdRef.current) return;
+    try {
+      await addDoc(collection(db, 'orders'), {
+        ...orderData,
+        userId:    String(userIdRef.current),
+        userName:  user?.name     || null,
+        userPhone: user?.mobile   || null,
+        status:    'pending',
+        createdAt: new Date().toISOString(),
+      });
+    } catch (e) {
+      console.error('saveOrder Firestore err:', e);
+    }
+  };
+
+  // ─────────────────────────────────────────────
+  // updateUserName — name update karo (state + Firestore)
+  // ─────────────────────────────────────────────
+  const updateUserName = async (newName) => {
+    if (!userIdRef.current || !newName) return;
+    await updateDoc(doc(db, 'users', String(userIdRef.current)), { name: newName });
+    _setUser(prev => prev ? { ...prev, name: newName } : prev);
+  };
+
+  // ─────────────────────────────────────────────
   // saveWithdrawal — Firestore mein save karo
   // ─────────────────────────────────────────────
   const saveWithdrawal = async (entry) => {
@@ -250,6 +278,8 @@ export function AppProvider({ children }) {
       deductCoins,
       completeTask,
       updateCheckIn,
+      updateUserName,
+      saveOrder,
       saveWithdrawal,
       CHECKIN_BACKUP_KEY,
       SESSION_KEY,

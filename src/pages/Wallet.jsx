@@ -26,9 +26,9 @@ export default function Wallet() {
 
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(''), 3200); };
 
-  // 1 coin = ₹0.1 (Home.jsx ke saath consistent)
+  // 1 coin = ₹0.01 (÷100) — Store + Home ke saath consistent
   const amountNum  = parseInt(amount) || 0;
-  const inrValue   = (amountNum * 0.1).toFixed(2);
+  const inrValue   = (amountNum / 100).toFixed(2);
   const canSubmit  = amountNum >= MIN_WITHDRAW && upiId.trim().length > 4 && balance >= amountNum;
 
   const handleWithdraw = async () => {
@@ -38,7 +38,7 @@ export default function Wallet() {
     const entry = {
       id:     Date.now(),
       coins:  amountNum,
-      inr:    (amountNum * 0.1).toFixed(2),
+      inr:    (amountNum / 100).toFixed(2),
       upi:    upiId.trim(),
       date:   new Date().toLocaleDateString('en-IN'),
       time:   new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }),
@@ -86,8 +86,8 @@ export default function Wallet() {
             <span className="wallet-coins">{balance.toLocaleString()}</span>
             <span className="wallet-coins-unit">Coins</span>
           </div>
-          <div className="wallet-inr-val">≈ ₹{(balance * 0.1).toFixed(2)} INR</div>
-          <div className="wallet-min-note">Minimum Withdrawal: {MIN_WITHDRAW.toLocaleString()} Coins (₹{(MIN_WITHDRAW * 0.1).toFixed(0)})</div>
+          <div className="wallet-inr-val">≈ ₹{(balance / 100).toFixed(2)} INR</div>
+          <div className="wallet-min-note">Minimum Withdrawal: {MIN_WITHDRAW.toLocaleString()} Coins (₹{(MIN_WITHDRAW / 100).toFixed(0)})</div>
         </div>
 
         {/* ── TABS ── */}

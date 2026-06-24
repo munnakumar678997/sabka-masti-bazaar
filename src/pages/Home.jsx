@@ -12,6 +12,16 @@ const TASKS = [
   { id: 5, icon: '👥', title: 'Friend ko refer karo', desc: 'Dost ko invite karo',            coins: 50, tag: 'Big'  },
 ];
 
+// Daily task limit — localStorage based daily tracking
+function getTodayKey() { return new Date().toISOString().split('T')[0]; }
+function getTaskUsed(taskId) {
+  try { return localStorage.getItem(`smb_task_${taskId}_${getTodayKey()}`) === '1'; }
+  catch { return false; }
+}
+function markTaskUsed(taskId) {
+  try { localStorage.setItem(`smb_task_${taskId}_${getTodayKey()}`, '1'); } catch {}
+}
+
 const NOTIFICATIONS = [
   { id: 1, icon: '🎁', title: 'Check-in Bonus Mila!',      desc: '+25 coins tumhare wallet mein aa gaye.',     time: '2 min pehle',    unread: true  },
   { id: 2, icon: '🔥', title: 'Streak 5 din ka!',           desc: 'Waah! 5 din ki streak maintain kar li.',     time: '1 ghante pehle', unread: true  },
@@ -28,6 +38,9 @@ export default function Home() {
   const [showWithdraw, setShowWithdraw] = useState(false);
   const [showNotif,    setShowNotif]    = useState(false);
   const [notifs,       setNotifs]       = useState(NOTIFICATIONS);
+  const [taskDone,     setTaskDone]     = useState(() =>
+    Object.fromEntries(TASKS.map(t => [t.id, getTaskUsed(t.id)]))
+  );
 
   const unreadCount = notifs.filter(n => n.unread).length;
   const markAllRead = () => setNotifs(prev => prev.map(n => ({ ...n, unread: false })));
@@ -123,21 +136,33 @@ export default function Home() {
         </div>
 
         <div className="tasks-list">
-          {TASKS.map(task => (
-            <div key={task.id} className="task-card">
-              <div className="task-icon-wrap">{task.icon}</div>
-              <div className="task-info">
-                <div className="task-title-row">
-                  <span className="task-title">{task.title}</span>
-                  <span className={`task-tag tag-${task.tag.toLowerCase()}`}>{task.tag}</span>
+          {TASKS.map(task => {
+            const done = taskDone[task.id];
+            return (
+              <div key={task.id} className={`task-card ${done ? 'task-card-done' : ''}`}>
+                <div className="task-icon-wrap">{done ? '✅' : task.icon}</div>
+                <div className="task-info">
+                  <div className="task-title-row">
+                    <span className="task-title">{task.title}</span>
+                    <span className={`task-tag tag-${task.tag.toLowerCase()}`}>{task.tag}</span>
+                  </div>
+                  <div className="task-desc">{done ? 'Aaj ka done! Kal dobara karo.' : task.desc}</div>
                 </div>
-                <div className="task-desc">{task.desc}</div>
+                <button
+                  className={`task-claim-btn ${done ? 'task-claim-done' : ''}`}
+                  disabled={done}
+                  onClick={async () => {
+                    if (done) return;
+                    markTaskUsed(task.id);
+                    setTaskDone(prev => ({ ...prev, [task.id]: true }));
+                    await completeTask(task.coins);
+                  }}
+                >
+                  <span className="task-coins">{done ? '✅ Done' : `+${task.coins} 🪙`}</span>
+                </button>
               </div>
-              <button className="task-claim-btn" onClick={() => completeTask(task.coins)}>
-                <span className="task-coins">+{task.coins} 🪙</span>
-              </button>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         <div style={{ height: 90 }} />
@@ -211,7 +236,7 @@ export default function Home() {
               Tumhare paas abhi <b>{balance.toLocaleString()} Coins</b> hain.
             </div>
             {balance >= 500
-              ? <button className="popup-main-btn">🏦 Withdraw Karo</button>
+              ? <button className="popup-main-btn" onClick={() => { setShowWithdraw(false); navigate('/wallet'); }}>🏦 Wallet Pe Jao</button>
               : <div className="popup-low">Abhi balance kam hai — aur tasks karo!</div>
             }
             <button className="popup-cancel" onClick={() => setShowWithdraw(false)}>

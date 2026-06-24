@@ -183,7 +183,7 @@ function Toast({ msg, onClose }) {
 
 export default function Store() {
   const navigate = useNavigate();
-  const { balance, deductCoins, user } = useApp();
+  const { balance, deductCoins, user, saveOrder } = useApp();
 
   const [activeTab,      setActiveTab]      = useState('store');
   const [openProduct,    setOpenProduct]    = useState(null);
@@ -264,8 +264,18 @@ export default function Store() {
 
     const url = `https://t.me/${TELEGRAM_AGENT}?text=${tgMsg}`;
 
-    // Coins pehle deduct karo — phir Telegram kholo
+    // Coins deduct karo
     deductCoins(coinsRequired);
+
+    // Firestore mein order save karo (admin tracking ke liye)
+    saveOrder({
+      product:  openProduct.name,
+      type:     activeType,
+      plan:     currentPlan.label,
+      qty,
+      totalINR: total,
+      coins:    coinsRequired,
+    });
 
     if (window.Telegram?.WebApp?.openLink) {
       window.Telegram.WebApp.openLink(url);

@@ -1,8 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
-import { db } from '../lib/firebase';
-import { doc, updateDoc } from 'firebase/firestore';
 import '../styles/profile.css';
 
 const ALL_BADGES = (balance, streak, tasksCompleted) => [
@@ -21,7 +19,7 @@ const ALL_BADGES = (balance, streak, tasksCompleted) => [
 
 export default function Profile() {
   const navigate = useNavigate();
-  const { user, balance, streak, tasksCompleted, referrals } = useApp();
+  const { user, balance, streak, tasksCompleted, referrals, updateUserName } = useApp();
 
   const [showEdit, setShowEdit] = useState(false);
   const [editName, setEditName] = useState('');
@@ -40,7 +38,7 @@ export default function Profile() {
     if (!editName.trim() || saving) return;
     setSaving(true);
     try {
-      await updateDoc(doc(db, 'users', String(user?.id)), { name: editName.trim() });
+      await updateUserName(editName.trim());
       showToast('✅ Naam update ho gaya!');
       setShowEdit(false);
     } catch { showToast('❌ Error! Try again.'); }
