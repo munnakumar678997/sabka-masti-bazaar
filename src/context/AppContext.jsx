@@ -2,10 +2,22 @@ import { createContext, useContext, useState, useRef } from 'react';
 import { db } from '../lib/firebase';
 import {
   doc, getDoc, setDoc, updateDoc, collection, addDoc, increment,
-  getDocs, query, where, orderBy, arrayUnion, runTransaction,
+  getDocs, query, where, arrayUnion, runTransaction,
 } from 'firebase/firestore';
 
 const AppContext = createContext(null);
+
+// Component ke bahar — sirf ek baar create hoga (har render pe nahi)
+const VALID_CODES_FALLBACK = {
+  'MASTI50':    { coins: 50,   desc: 'Masti Bonus'        },
+  'WELCOME100': { coins: 100,  desc: 'Welcome Special'    },
+  'SABKA200':   { coins: 200,  desc: 'Sabka Bazaar Bonus' },
+  'LUCKY25':    { coins: 25,   desc: 'Lucky Coins'        },
+  'DIWALI500':  { coins: 500,  desc: 'Diwali Special 🪔'  },
+  'EARN75':     { coins: 75,   desc: 'Earning Reward'     },
+  'BONUS150':   { coins: 150,  desc: 'Special Bonus'      },
+  'SUPER300':   { coins: 300,  desc: 'Super Reward'       },
+};
 
 const CHECKIN_BACKUP_KEY = 'smb_checkin_ist';
 const SESSION_KEY        = 'smb_session';
@@ -337,6 +349,63 @@ export function AppProvider({ children }) {
   };
 
   // ─────────────────────────────────────────────
+  // redeemBonusCode — ATOMIC: validate + mark + add coins ek hi transaction mein
+  // Codes Firestore `bonus_codes/{CODE}` collection mein hone chahiye
+  // VALID_CODES_FALLBACK (file ke upar) sirf backup hai
+  // ─────────────────────────────────────────────
+  const redeemBonusCode = async (code) => {
+    if (!userIdRef.current) throw new Error('NOT_LOGGED_IN');
+
+    const userRef = doc(db, 'users', String(userIdRef.current));
+    const codeRef = doc(db, 'bonus_codes', code);
+
+    let coinsEarned = 0;
+    let codeDesc    = '';
+
+    await runTransaction(db, async (txn) => {
+      const userSnap = await txn.get(userRef);
+      if (!userSnap.exists()) throw new Error('USER_NOT_FOUND');
+
+      // Already redeemed check (Firestore se — multi-device safe)
+      const userRedeemed = userSnap.data().redeemed_codes || [];
+      if (userRedeemed.includes(code)) throw new Error('ALREADY_USED');
+
+      // Pehle Firestore bonus_codes collection check karo (admin-defined codes)
+      let coins = 0, desc = '';
+      const fsCodeSnap = await txn.get(codeRef);
+      if (fsCodeSnap.exists()) {
+        coins = fsCodeSnap.data().coins  || 0;
+        desc  = fsCodeSnap.data().desc   || '';
+      } else {
+        // Firestore mein code nahi — fallback VALID_CODES check
+        const fallback = VALID_CODES_FALLBACK[code];
+        if (!fallback) throw new Error('INVALID_CODE');
+        coins = fallback.coins;
+        desc  = fallback.desc;
+      }
+
+      coinsEarned = coins;
+      codeDesc    = desc;
+
+      const currentBalance = userSnap.data().balance || 0;
+      // Atomically: mark code + add coins — dono fail ya dono success
+      txn.update(userRef, {
+        balance:        currentBalance + coins,
+        redeemed_codes: arrayUnion(code),
+      });
+    });
+
+    // Transaction success — local state update karo
+    const newBalance   = balanceRef.current + coinsEarned;
+    balanceRef.current = newBalance;
+    setBalance(newBalance);
+    setUser(prev => prev ? { ...prev, balance: newBalance } : prev);
+    setRedeemedCodes(prev => [...prev, code]);
+
+    return { coins: coinsEarned, desc: codeDesc };
+  };
+
+  // ─────────────────────────────────────────────
   // fetchWithdrawals — Firestore se user ki history lo
   // ─────────────────────────────────────────────
   const fetchWithdrawals = async () => {
@@ -380,6 +449,7 @@ export function AppProvider({ children }) {
       fetchWithdrawals,
       redeemedCodes,
       markCodeRedeemed,
+      redeemBonusCode,
       CHECKIN_BACKUP_KEY,
       SESSION_KEY,
     }}>

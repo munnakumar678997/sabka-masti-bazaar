@@ -91,13 +91,19 @@ export default function Loading() {
       return { action: 'login', tgData: null, mode: 'new', referredBy: null };
     };
 
-    Promise.all([minTimer, checkUser()]).then(([, result]) => {
-      if (result.action === 'home') {
-        goHome(result.tgData, result.referredBy);
-      } else {
-        goLogin(result.tgData, result.mode, result.referredBy);
-      }
-    });
+    Promise.all([minTimer, checkUser()])
+      .then(([, result]) => {
+        if (result.action === 'home') {
+          goHome(result.tgData, result.referredBy);
+        } else {
+          goLogin(result.tgData, result.mode, result.referredBy);
+        }
+      })
+      .catch((err) => {
+        // Network error ya Firestore fail — login pe le jao
+        console.error('Loading checkUser error:', err);
+        goLogin(null, 'new', null);
+      });
 
     const fallback = setTimeout(() => goLogin(null, 'new', null), 10000);
     return () => clearTimeout(fallback);

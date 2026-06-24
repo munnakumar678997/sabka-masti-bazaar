@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useApp } from '../context/AppContext';
 import '../styles/dailyCheckIn.css';
 
@@ -32,6 +32,7 @@ export default function DailyCheckIn() {
   const [checkInLoading, setCheckInLoading] = useState(false);
   const [showClaimed,    setShowClaimed]    = useState(false);
   const [claimedCoins,   setClaimedCoins]   = useState(0);
+  const claimTimerRef = useRef(null); // unmount pe clear karo
 
   const todayIST = getISTDateStr();
 
@@ -56,6 +57,13 @@ export default function DailyCheckIn() {
     return () => clearInterval(interval);
   }, []);
 
+  // Unmount pe claim popup timer clear karo (memory leak fix)
+  useEffect(() => {
+    return () => {
+      if (claimTimerRef.current) clearTimeout(claimTimerRef.current);
+    };
+  }, []);
+
   const handleCheckIn = async () => {
     if (checkedIn || checkInLoading) return;
     setCheckInLoading(true);
@@ -70,7 +78,8 @@ export default function DailyCheckIn() {
     setCheckInLoading(false);
     setClaimedCoins(coinsEarned);
     setShowClaimed(true);
-    setTimeout(() => setShowClaimed(false), 2500);
+    if (claimTimerRef.current) clearTimeout(claimTimerRef.current);
+    claimTimerRef.current = setTimeout(() => setShowClaimed(false), 2500);
   };
 
   const gridDays = DAY_REWARDS.map((reward, i) => {

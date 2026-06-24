@@ -3,22 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import '../styles/bonusCode.css';
 
-const VALID_CODES = {
-  'MASTI50':    { coins: 50,   desc: 'Masti Bonus'        },
-  'WELCOME100': { coins: 100,  desc: 'Welcome Special'    },
-  'SABKA200':   { coins: 200,  desc: 'Sabka Bazaar Bonus' },
-  'LUCKY25':    { coins: 25,   desc: 'Lucky Coins'        },
-  'DIWALI500':  { coins: 500,  desc: 'Diwali Special 🪔'  },
-  'EARN75':     { coins: 75,   desc: 'Earning Reward'     },
-  'BONUS150':   { coins: 150,  desc: 'Special Bonus'      },
-  'SUPER300':   { coins: 300,  desc: 'Super Reward'       },
-};
-
 const historyKey = (uid) => uid ? `smb_code_history_${uid}` : null;
 
 export default function BonusCode() {
   const navigate = useNavigate();
-  const { user, addCoins, redeemedCodes, markCodeRedeemed } = useApp();
+  const { user, redeemBonusCode } = useApp();
 
   const [code,    setCode]    = useState('');
   const [status,  setStatus]  = useState(null);
@@ -49,29 +38,28 @@ export default function BonusCode() {
     setStatus(null);
     setReward(null);
 
-    await new Promise(r => setTimeout(r, 700));
-
-    if (!VALID_CODES[trimmed]) {
-      setStatus('error'); setMsg('❌ Galat code! Dobara check karo.');
-      setLoading(false); return;
+    try {
+      // Atomic Firestore transaction: validate + mark redeemed + add coins
+      // Agar koi bhi step fail ho → sab rollback — coins waste nahi honge
+      const { coins, desc } = await redeemBonusCode(trimmed);
+      saveHistory({ code: trimmed, coins, desc, date: new Date().toLocaleDateString('en-IN') });
+      setReward({ coins, desc });
+      setStatus('success');
+      setMsg('');
+      setCode('');
+    } catch (err) {
+      const errCode = err?.message || '';
+      if (errCode === 'ALREADY_USED') {
+        setStatus('error'); setMsg('⚠️ Yeh code pehle hi use ho chuka hai!');
+      } else if (errCode === 'INVALID_CODE') {
+        setStatus('error'); setMsg('❌ Galat code! Dobara check karo.');
+      } else if (errCode === 'NOT_LOGGED_IN') {
+        setStatus('error'); setMsg('⚠️ Pehle login karo!');
+      } else {
+        setStatus('error'); setMsg('❌ Server error! Thodi der mein dobara try karo.');
+      }
     }
 
-    // Firestore-backed check — device change pe bhi safe
-    if (redeemedCodes.includes(trimmed)) {
-      setStatus('error'); setMsg('⚠️ Yeh code pehle hi use ho chuka hai!');
-      setLoading(false); return;
-    }
-
-    const { coins, desc } = VALID_CODES[trimmed];
-    // Pehle Firestore mein mark karo, phir coins do
-    await markCodeRedeemed(trimmed);
-    await addCoins(coins);
-    saveHistory({ code: trimmed, coins, desc, date: new Date().toLocaleDateString('en-IN') });
-
-    setReward({ coins, desc });
-    setStatus('success');
-    setMsg('');
-    setCode('');
     setLoading(false);
   };
 

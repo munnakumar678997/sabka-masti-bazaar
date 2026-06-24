@@ -206,10 +206,15 @@ export default function Login() {
         }
       } catch (_) {}
 
-      // Naya ho ya purana — dono ke liye loadUser (mobile + referral save hoga)
-      await loadUser(tgUser, phone, referredBy);
-      sessionStorage.setItem('smb_session', '1');
-      navigate('/home');
+      try {
+        // Naya ho ya purana — dono ke liye loadUser (mobile + referral save hoga)
+        await loadUser(tgUser, phone, referredBy);
+        sessionStorage.setItem('smb_session', '1');
+        navigate('/home');
+      } catch (err) {
+        console.error('loadUser error in miniapp:', err);
+        setBtnLoading(false); // Button phir se enable karo — dobara try kar sake user
+      }
     };
 
     tg.onEvent('contactRequested', onContact);
@@ -220,10 +225,15 @@ export default function Login() {
   const handleWebBtn = async () => {
     if (!tgUser || btnLoading) return;
     setBtnLoading(true);
-    await loadUser(tgUser, null, referredBy);
-    localStorage.setItem('smb_tg_id', String(tgUser.id));
-    sessionStorage.setItem('smb_session', '1');
-    navigate('/home');
+    try {
+      await loadUser(tgUser, null, referredBy);
+      localStorage.setItem('smb_tg_id', String(tgUser.id));
+      sessionStorage.setItem('smb_session', '1');
+      navigate('/home');
+    } catch (err) {
+      console.error('loadUser error in web:', err);
+      setBtnLoading(false); // Button phir se enable karo — dobara try kar sake
+    }
   };
 
   // ── Button text — mode ke hisab se ──
