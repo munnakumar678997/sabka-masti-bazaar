@@ -100,7 +100,8 @@ export default function Games() {
   const [rotateDeg,   setRotateDeg]   = useState(0);
   const [spinResult,  setSpinResult]  = useState(null);
   const [spinTrans,   setSpinTrans]   = useState('none');
-  const rotateDegRef = useRef(0);
+  const rotateDegRef    = useRef(0);
+  const spinTimeoutRef  = useRef(null); // unmount cleanup ke liye
 
   /* ── SCRATCH state ── */
   const [scratchPrizes, setScratchPrizes] = useState([null, null, null]);
@@ -111,15 +112,34 @@ export default function Games() {
   const [flipping,   setFlipping]   = useState(false);
   const [flipResult, setFlipResult] = useState(null);
   const [flipFace,   setFlipFace]   = useState('🪙');
+  const flipIntervalRef = useRef(null); // unmount cleanup ke liye
+
+  /* ── Cleanup on unmount — memory leak prevent ── */
+  useEffect(() => {
+    return () => {
+      if (spinTimeoutRef.current)  clearTimeout(spinTimeoutRef.current);
+      if (flipIntervalRef.current) clearInterval(flipIntervalRef.current);
+    };
+  }, []);
 
   /* ══════════════ SPIN LOGIC ══════════════ */
   const handleSpin = () => {
     if (spinning || getUsed('spin') >= SPIN_LIMIT) return;
     const winIdx    = pickWinner();
     const winner    = SEG[winIdx];
-    const stopAngle = winIdx * SEG_ANGLE + SEG_ANGLE / 2;
-    const fullSpins = 1800 + Math.floor(Math.random() * 360);
-    const newDeg    = rotateDegRef.current + fullSpins - (stopAngle % 360);
+
+    // Pointer (▼) top pe fixed hai (0°). SVG clockwise rotate hota hai.
+    // After rotating newDeg°, pointer wheel ke (360 - newDeg % 360) % 360 angle pe point karta hai.
+    // Hum chahte hain ki pointer segment winIdx ke center pe land kare:
+    //   center = winIdx * SEG_ANGLE + SEG_ANGLE / 2
+    // Toh: (360 - newDeg % 360) % 360 = center
+    // →   newDeg % 360 = (360 - center) % 360
+    const center    = winIdx * SEG_ANGLE + SEG_ANGLE / 2;
+    const targetMod = (360 - center % 360 + 360) % 360;
+    const prevMod   = rotateDegRef.current % 360;
+    let   extraRot  = (targetMod - prevMod + 360) % 360;
+    if (extraRot === 0) extraRot = 360; // kam se kam ek full loop adjustment
+    const newDeg    = rotateDegRef.current + 5 * 360 + extraRot; // 5 full rotations + exact landing
     rotateDegRef.current = newDeg;
 
     setSpinTrans('transform 4s cubic-bezier(0.17,0.67,0.12,0.99)');
@@ -127,7 +147,7 @@ export default function Games() {
     setSpinResult(null);
     setRotateDeg(newDeg);
 
-    setTimeout(async () => {
+    const tid = setTimeout(async () => {
       setSpinTrans('none');
       await addCoins(winner.coins);
       incUsed('spin');
@@ -135,6 +155,9 @@ export default function Games() {
       setSpinning(false);
       refresh();
     }, 4200);
+
+    // Timeout ref mein save karo taaki unmount pe clear kar sakein
+    spinTimeoutRef.current = tid;
   };
 
   /* ══════════════ SCRATCH LOGIC ══════════════ */
@@ -163,14 +186,16 @@ export default function Games() {
     setFlipResult(null);
     setFlipFace('🌀');
     let count = 0;
-    const faces = ['👑', '🔵'];
+    const faces    = ['👑', '🔵'];
+    const myChoice = flipChoice; // closure capture — stale state se bachao
     const interval = setInterval(() => {
       setFlipFace(faces[count % 2]);
       count++;
       if (count >= 8) {
         clearInterval(interval);
+        flipIntervalRef.current = null;
         const result = Math.random() < 0.5 ? 'heads' : 'tails';
-        const won    = result === flipChoice;
+        const won    = result === myChoice;
         setFlipFace(result === 'heads' ? '👑' : '🔵');
         setFlipResult({ result, won });
         if (won) { addCoins(15); showToast('🎉 Sahi! +15 coins!'); }
@@ -181,6 +206,7 @@ export default function Games() {
         refresh();
       }
     }, 120);
+    flipIntervalRef.current = interval; // unmount pe clearInterval ke liye
   };
 
   /* ── nav tabs — 5 tabs ── */

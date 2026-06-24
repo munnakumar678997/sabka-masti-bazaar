@@ -102,19 +102,34 @@ export function AppProvider({ children }) {
         localStorage.removeItem(CHECKIN_BACKUP_KEY);
         localStorage.setItem('smb_welcome_shown', '1');
 
-        // ── Referrer ko coins aur count update karo ──
+        // ── Referrer ko coins, count, aur milestone bonus update karo ──
         if (referredBy) {
           try {
             // referredBy format: "SMB<userId>" — pehle validate karo
             const referrerId = String(referredBy).replace(/^SMB/i, '');
             if (referrerId && referrerId !== String(tgUser.id)) {
-              const referrerRef = doc(db, 'users', referrerId);
+              const referrerRef  = doc(db, 'users', referrerId);
               const referrerSnap = await getDoc(referrerRef);
               if (referrerSnap.exists()) {
-                await updateDoc(referrerRef, {
+                const referrerData    = referrerSnap.data();
+                const newRefCount     = (referrerData.referral_count || 0) + 1;
+                const awardedMilestones = referrerData.awarded_milestones || [];
+
+                // Milestone bonuses — sirf ek baar award hote hain
+                const MILESTONE_COINS = { 1: 50, 3: 200, 5: 500, 10: 1200, 25: 3500, 50: 8000 };
+                const milestoneBonus  = (MILESTONE_COINS[newRefCount] && !awardedMilestones.includes(newRefCount))
+                  ? MILESTONE_COINS[newRefCount]
+                  : 0;
+
+                const updatePayload = {
                   referral_count: increment(1),
-                  balance:        increment(50),
-                });
+                  balance:        increment(50 + milestoneBonus), // base 50 + milestone (agar ho)
+                };
+                if (milestoneBonus > 0) {
+                  updatePayload.awarded_milestones = arrayUnion(newRefCount);
+                }
+
+                await updateDoc(referrerRef, updatePayload);
               }
             }
           } catch (refErr) {

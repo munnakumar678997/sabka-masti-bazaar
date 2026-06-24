@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import '../styles/referral.css';
+
+const MILESTONE_COINS = { 1: 50, 3: 200, 5: 500, 10: 1200, 25: 3500, 50: 8000 };
 
 const MILESTONES = [
   { count: 1,  bonus: 50,   icon: '🌱', label: '1st Referral' },
@@ -16,6 +18,16 @@ export default function Referral() {
   const navigate   = useNavigate();
   const { user, referrals, balance } = useApp();
   const [copied, setCopied] = useState(false);
+
+  // Accurate total calculation — base coins + milestone bonuses jo award ho chuke
+  const referralCoinsTotal = useMemo(() => {
+    const base             = referrals * 50;
+    const awardedMilestones = user?.awarded_milestones || [];
+    const milestoneTotal   = awardedMilestones.reduce(
+      (sum, m) => sum + (MILESTONE_COINS[m] || 0), 0
+    );
+    return base + milestoneTotal;
+  }, [referrals, user?.awarded_milestones]);
 
   const refCode = user?.id ? `SMB${user.id}` : 'SMB0000';
   const refLink = `https://t.me/SabkaMastiBazaar_Bot?start=${refCode}`;
@@ -68,7 +80,7 @@ export default function Referral() {
               <div className="ref-stat-lbl">Total Referrals</div>
             </div>
             <div className="ref-stat-box">
-              <div className="ref-stat-val">🪙 {(referrals * 50).toLocaleString()}</div>
+              <div className="ref-stat-val">🪙 {referralCoinsTotal.toLocaleString()}</div>
               <div className="ref-stat-lbl">Coins Earned</div>
             </div>
           </div>

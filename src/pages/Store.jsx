@@ -264,8 +264,13 @@ export default function Store() {
 
     const url = `https://t.me/${TELEGRAM_AGENT}?text=${tgMsg}`;
 
-    // Coins deduct karo (await — Firestore confirm hone ke baad hi Telegram open)
-    await deductCoins(coinsRequired);
+    // Coins deduct karo — Firestore transaction se (race-condition safe)
+    const deducted = await deductCoins(coinsRequired);
+    if (!deducted) {
+      setConfirmPending(false);
+      showToast(`❌ Balance kam hai! Order cancel ho gaya. Pehle coins kamao.`);
+      return;
+    }
 
     // Firestore mein order save karo (admin tracking ke liye)
     saveOrder({

@@ -154,12 +154,18 @@ export default function Home() {
                   disabled={done}
                   onClick={async () => {
                     if (done) return;
+                    // Task 5 = "Friend ko refer karo" — sirf refer karne pe coins milte hain
+                    // Yahan directly coins nahi milte — user ko referral page pe bhejna hai
+                    if (task.id === 5) {
+                      navigate('/referral');
+                      return;
+                    }
                     markTaskUsed(task.id);
                     setTaskDone(prev => ({ ...prev, [task.id]: true }));
                     await completeTask(task.coins);
                   }}
                 >
-                  <span className="task-coins">{done ? '✅ Done' : `+${task.coins} 🪙`}</span>
+                  <span className="task-coins">{done ? '✅ Done' : task.id === 5 ? '👥 Refer' : `+${task.coins} 🪙`}</span>
                 </button>
               </div>
             );
