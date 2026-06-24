@@ -31,7 +31,7 @@ function pickWinner() {
   return 0;
 }
 
-function SpinWheelSVG({ rotateDeg }) {
+function SpinWheelSVG() {
   const size = 260;
   const cx   = size / 2;
   const cy   = size / 2;
@@ -53,7 +53,7 @@ function SpinWheelSVG({ rotateDeg }) {
 
   return (
     <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}
-      style={{ transform: `rotate(${rotateDeg}deg)`, display: 'block' }}>
+      style={{ display: 'block' }}>
       {SEG.map((s, i) => {
         const midAngle  = i * SEG_ANGLE + SEG_ANGLE / 2;
         const lp        = polarToXY(midAngle, labelR);
@@ -142,7 +142,7 @@ export default function Games() {
     const newDeg    = rotateDegRef.current + 5 * 360 + extraRot; // 5 full rotations + exact landing
     rotateDegRef.current = newDeg;
 
-    setSpinTrans('transform 4s cubic-bezier(0.17,0.67,0.12,0.99)');
+    setSpinTrans('transform 5.5s cubic-bezier(0.17,0.67,0.12,0.99)');
     setSpinning(true);
     setSpinResult(null);
     setRotateDeg(newDeg);
@@ -154,7 +154,7 @@ export default function Games() {
       setSpinResult(winner);
       setSpinning(false);
       refresh();
-    }, 4200);
+    }, 5700);
 
     // Timeout ref mein save karo taaki unmount pe clear kar sakein
     spinTimeoutRef.current = tid;
@@ -298,8 +298,8 @@ export default function Games() {
             {/* POINTER */}
             <div className="spin-wrap">
               <div className="spin-ptr">▼</div>
-              <div style={{ transition: spinTrans }}>
-                <SpinWheelSVG rotateDeg={rotateDeg} />
+              <div style={{ transform: `rotate(${rotateDeg}deg)`, transition: spinTrans }}>
+                <SpinWheelSVG />
               </div>
             </div>
 
