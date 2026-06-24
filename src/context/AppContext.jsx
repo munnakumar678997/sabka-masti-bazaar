@@ -2,7 +2,7 @@ import { createContext, useContext, useState, useRef } from 'react';
 import { db } from '../lib/firebase';
 import {
   doc, getDoc, setDoc, updateDoc, collection, addDoc, increment,
-  getDocs, query, where, orderBy, arrayUnion,
+  getDocs, query, where, orderBy, arrayUnion, runTransaction,
 } from 'firebase/firestore';
 
 const AppContext = createContext(null);
@@ -140,22 +140,35 @@ export function AppProvider({ children }) {
   };
 
   // ─────────────────────────────────────────────
-  // deductCoins — functional update + Firestore increment (atomic)
+  // deductCoins — Firestore transaction (negative balance prevent, race-condition safe)
   // ─────────────────────────────────────────────
   const deductCoins = async (amount) => {
-    setBalance(prev => {
-      const n = Math.max(0, prev - amount);
-      balanceRef.current = n;
-      return n;
-    });
-    setUser(prev => prev ? { ...prev, balance: balanceRef.current } : prev);
+    if (!userIdRef.current) return;
 
-    if (userIdRef.current) {
-      try {
-        await updateDoc(doc(db, 'users', String(userIdRef.current)), {
-          balance: increment(-amount),
-        });
-      } catch (e) { console.error('deductCoins Firestore err:', e); }
+    try {
+      const userRef = doc(db, 'users', String(userIdRef.current));
+      let actualDeducted = 0;
+
+      await runTransaction(db, async (txn) => {
+        const snap = await txn.get(userRef);
+        if (!snap.exists()) throw new Error('User not found');
+        const currentBalance = snap.data().balance || 0;
+        // Kabhi bhi negative nahi hoga — max 0
+        const newBalance = Math.max(0, currentBalance - amount);
+        actualDeducted  = currentBalance - newBalance;
+        txn.update(userRef, { balance: newBalance });
+      });
+
+      // Transaction ke baad UI update karo (confirmed value)
+      setBalance(prev => {
+        const n = Math.max(0, prev - actualDeducted);
+        balanceRef.current = n;
+        return n;
+      });
+      setUser(prev => prev ? { ...prev, balance: balanceRef.current } : prev);
+
+    } catch (e) {
+      console.error('deductCoins Firestore err:', e);
     }
   };
 
@@ -293,13 +306,21 @@ export function AppProvider({ children }) {
   const fetchWithdrawals = async () => {
     if (!userIdRef.current) return [];
     try {
+      // orderBy hata diya — composite index ki zaroorat nahi
+      // Client-side sort karo createdAt se
       const q = query(
         collection(db, 'withdrawals'),
         where('userId', '==', String(userIdRef.current)),
-        orderBy('createdAt', 'desc'),
       );
       const snap = await getDocs(q);
-      return snap.docs.map(d => ({ firestoreId: d.id, ...d.data() }));
+      const results = snap.docs.map(d => ({ firestoreId: d.id, ...d.data() }));
+      // Newest first — client-side sort
+      results.sort((a, b) => {
+        const ta = a.createdAt || '';
+        const tb = b.createdAt || '';
+        return tb.localeCompare(ta);
+      });
+      return results;
     } catch (e) {
       console.error('fetchWithdrawals err:', e);
       return [];
