@@ -15,6 +15,22 @@ const AppContext          = createContext(null);
 const CHECKIN_BACKUP_KEY = 'smb_checkin_ist';
 const SESSION_KEY        = 'smb_session';
 
+// ─── IST date helper ────────────────────────────────────────────────────────
+function getISTDateStr() {
+  const istMs = Date.now() + 5.5 * 60 * 60 * 1000;
+  return new Date(istMs).toISOString().split('T')[0];
+}
+
+// ─── localStorage game play helpers ─────────────────────────────────────────
+function lsGameKey(type, date) { return `smb_game_${type}_${date}`; }
+function lsGetUsed(type)       { return parseInt(localStorage.getItem(lsGameKey(type, getISTDateStr())) || '0'); }
+function lsSetUsed(type, val)  { localStorage.setItem(lsGameKey(type, getISTDateStr()), String(val)); }
+
+// ─── localStorage task helpers ───────────────────────────────────────────────
+function lsTaskKey(id, date) { return `smb_task_${id}_${date}`; }
+function lsGetTaskDone(id)   { return localStorage.getItem(lsTaskKey(id, getISTDateStr())) === '1'; }
+function lsMarkTaskDone(id)  { localStorage.setItem(lsTaskKey(id, getISTDateStr()), '1'); }
+
 export function AppProvider({ children }) {
   const [user,             setUser]             = useState(null);
   const [balance,          setBalance]          = useState(0);
@@ -37,6 +53,32 @@ export function AppProvider({ children }) {
         setNotifUnreadCount(prev => prev + 1);
       }
     } catch (e) { console.error('_addNotification err:', e); }
+  };
+
+  // ─── Firebase se game counts sync karo localStorage mein ─────────────────
+  const _syncGameCountsFromFirestore = (userData) => {
+    const today          = getISTDateStr();
+    const savedDate      = userData.game_date || null;
+    const GAME_TYPES     = ['flip', 'spin', 'scratch'];
+    if (savedDate === today) {
+      GAME_TYPES.forEach(type => {
+        const count = userData[`game_${type}_count`] || 0;
+        lsSetUsed(type, count);
+      });
+    } else {
+      // Naya din — local counts zero karo
+      GAME_TYPES.forEach(type => lsSetUsed(type, 0));
+    }
+  };
+
+  // ─── Firebase se task done sync karo localStorage mein ───────────────────
+  const _syncTasksFromFirestore = (userData) => {
+    const today     = getISTDateStr();
+    const savedDate = userData.task_date || null;
+    if (savedDate === today) {
+      const doneTasks = userData.completed_tasks || [];
+      doneTasks.forEach(id => lsMarkTaskDone(id));
+    }
   };
 
   // ─── loadUser ─────────────────────────────────────────────────────────────
@@ -68,6 +110,10 @@ export function AppProvider({ children }) {
         setReferrals(updated.referral_count || 0);
         setRedeemedCodes(updated.redeemed_codes || []);
 
+        // Firebase se game counts aur tasks localStorage mein sync karo (anti-cheat)
+        _syncGameCountsFromFirestore(updated);
+        _syncTasksFromFirestore(updated);
+
         try {
           const count = await fetchUnreadCountFromDb(tgUser.id);
           setNotifUnreadCount(count);
@@ -96,6 +142,14 @@ export function AppProvider({ children }) {
           referral_count:    0,
           redeemed_codes:    [],
           referred_by:       referredBy       ?? null,
+          // Game tracking fields
+          game_date:         null,
+          game_flip_count:   0,
+          game_spin_count:   0,
+          game_scratch_count: 0,
+          // Task tracking fields
+          task_date:         null,
+          completed_tasks:   [],
         };
         await setDoc(userRef, newUser);
 
@@ -247,6 +301,87 @@ export function AppProvider({ children }) {
     }
   };
 
+  // ─── recordTaskCompletion — Firebase mein task ID save karo (anti-cheat) ──
+  const recordTaskCompletion = async (taskId) => {
+    if (!userIdRef.current) return;
+    const today = getISTDateStr();
+    lsMarkTaskDone(taskId);
+    try {
+      const userRef = doc(db, 'users', String(userIdRef.current));
+      const snap    = await getDoc(userRef);
+      if (!snap.exists()) return;
+      const data = snap.data();
+      const savedDate   = data.task_date || null;
+      const doneTasks   = savedDate === today ? (data.completed_tasks || []) : [];
+      if (doneTasks.includes(taskId)) return;
+      await updateDoc(userRef, {
+        task_date:       today,
+        completed_tasks: arrayUnion(taskId),
+      });
+    } catch (e) { console.error('recordTaskCompletion err:', e); }
+  };
+
+  // ─── checkTaskDone — Firebase se verify karo (anti-cheat) ────────────────
+  const checkTaskDone = async (taskId) => {
+    // Pehle localStorage se check karo (fast)
+    if (lsGetTaskDone(taskId)) return true;
+    // Fir Firebase se confirm karo
+    if (!userIdRef.current) return false;
+    try {
+      const today = getISTDateStr();
+      const snap  = await getDoc(doc(db, 'users', String(userIdRef.current)));
+      if (!snap.exists()) return false;
+      const data = snap.data();
+      if (data.task_date !== today) return false;
+      const done = (data.completed_tasks || []).includes(taskId);
+      if (done) lsMarkTaskDone(taskId);
+      return done;
+    } catch { return lsGetTaskDone(taskId); }
+  };
+
+  // ─── recordGamePlay — Firebase mein game play track karo (anti-cheat) ────
+  const recordGamePlay = async (gameType) => {
+    if (!userIdRef.current) return;
+    const today    = getISTDateStr();
+    const newCount = lsGetUsed(gameType) + 1;
+    lsSetUsed(gameType, newCount);
+    try {
+      const userRef = doc(db, 'users', String(userIdRef.current));
+      const snap    = await getDoc(userRef);
+      if (!snap.exists()) return;
+      const data      = snap.data();
+      const savedDate = data.game_date || null;
+
+      if (savedDate !== today) {
+        // Naya din — sab counts reset karke sirf is game ka 1 save karo
+        await updateDoc(userRef, {
+          game_date:          today,
+          game_flip_count:    gameType === 'flip'    ? 1 : 0,
+          game_spin_count:    gameType === 'spin'    ? 1 : 0,
+          game_scratch_count: gameType === 'scratch' ? 1 : 0,
+        });
+      } else {
+        // Aaj ka din — sirf is game ka count increment karo
+        await updateDoc(userRef, {
+          [`game_${gameType}_count`]: increment(1),
+        });
+      }
+    } catch (e) { console.error('recordGamePlay err:', e); }
+  };
+
+  // ─── getFirestoreGameCount — Firebase se game count verify karo ──────────
+  const getFirestoreGameCount = async (gameType) => {
+    if (!userIdRef.current) return lsGetUsed(gameType);
+    try {
+      const today = getISTDateStr();
+      const snap  = await getDoc(doc(db, 'users', String(userIdRef.current)));
+      if (!snap.exists()) return lsGetUsed(gameType);
+      const data = snap.data();
+      if (data.game_date !== today) return 0;
+      return data[`game_${gameType}_count`] || 0;
+    } catch { return lsGetUsed(gameType); }
+  };
+
   // ─── updateCheckIn ────────────────────────────────────────────────────────
   const updateCheckIn = async (newStreak, totalDays, lastDate, coinsEarned) => {
     const newBalance   = balanceRef.current + coinsEarned;
@@ -323,6 +458,15 @@ export function AppProvider({ children }) {
     setBalance(newBalance);
     setUser(prev => prev ? { ...prev, balance: newBalance } : prev);
     setRedeemedCodes(prev => [...prev, code]);
+
+    // BUG FIX: Notification bhi bhejo bonus code redeem hone pe
+    _addNotification(userIdRef.current, {
+      title: '🎟️ Bonus Code Redeem Hua!',
+      desc:  `Code "${code}" se +${coinsEarned} coins mile! (${codeDesc})`,
+      icon:  '🎟️',
+      type:  'bonus',
+    });
+
     return { coins: coinsEarned, desc: codeDesc };
   };
 
@@ -354,6 +498,10 @@ export function AppProvider({ children }) {
       redeemedCodes, markCodeRedeemed, redeemBonusCode,
       notifUnreadCount, fetchNotifications, markNotifRead, markAllNotifsRead,
       CHECKIN_BACKUP_KEY, SESSION_KEY,
+      // Game tracking (anti-cheat)
+      recordGamePlay, getFirestoreGameCount,
+      // Task tracking (anti-cheat)
+      recordTaskCompletion, checkTaskDone,
     }}>
       {children}
     </AppContext.Provider>

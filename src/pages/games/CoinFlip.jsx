@@ -5,7 +5,7 @@ import { getUsed, incUsed } from './gameUtils';
 export const FLIP_LIMIT = 10;
 
 export default function CoinFlipModal({ onClose, onRefresh }) {
-  const { addCoins } = useApp();
+  const { addCoins, recordGamePlay } = useApp();
 
   const [flipChoice,     setFlipChoice]     = useState(null);
   const [flipping,       setFlipping]       = useState(false);
@@ -41,6 +41,7 @@ export default function CoinFlipModal({ onClose, onRefresh }) {
         setFlipFace(result === 'heads' ? '👑' : '🔵');
         if (won) addCoins(15);
         incUsed('flip');
+        recordGamePlay('flip').catch(() => {});
         setFlipping(false);
         setFlipChoice(null);
         onRefresh();

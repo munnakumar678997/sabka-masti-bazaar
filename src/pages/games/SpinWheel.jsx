@@ -62,7 +62,7 @@ function SpinWheelSVG() {
 }
 
 export default function SpinWheelModal({ onClose, onRefresh }) {
-  const { addCoins } = useApp();
+  const { addCoins, recordGamePlay } = useApp();
 
   const [spinning,   setSpinning]   = useState(false);
   const [rotateDeg,  setRotateDeg]  = useState(0);
@@ -88,6 +88,7 @@ export default function SpinWheelModal({ onClose, onRefresh }) {
     rotateDegRef.current = newDeg;
 
     incUsed('spin');
+    recordGamePlay('spin').catch(() => {});
     setSpinTrans('transform 5.5s cubic-bezier(0.17,0.67,0.12,0.99)');
     setSpinning(true);
     setSpinResult(null);

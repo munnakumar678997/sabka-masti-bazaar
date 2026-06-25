@@ -86,7 +86,7 @@ export default function ProductModal({ product, onClose }) {
       return;
     }
 
-    saveOrder({
+    await saveOrder({
       product:  product.name,
       type:     activeType,
       plan:     currentPlan.label,

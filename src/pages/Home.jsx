@@ -29,7 +29,7 @@ function markTaskUsed(taskId) {
 
 export default function Home() {
   const navigate = useNavigate();
-  const { user, balance, streak, completeTask, tasksCompleted, referrals, notifUnreadCount } = useApp();
+  const { user, balance, streak, completeTask, tasksCompleted, referrals, notifUnreadCount, recordTaskCompletion } = useApp();
 
   const [showWithdraw, setShowWithdraw] = useState(false);
   const [avatarError,  setAvatarError]  = useState(false);
@@ -158,11 +158,13 @@ export default function Home() {
                     if (task.id === 5) {
                       markTaskUsed(task.id);
                       setTaskDone(prev => ({ ...prev, [task.id]: true }));
+                      recordTaskCompletion(task.id).catch(() => {});
                       navigate('/referral');
                       return;
                     }
                     markTaskUsed(task.id);
                     setTaskDone(prev => ({ ...prev, [task.id]: true }));
+                    recordTaskCompletion(task.id).catch(() => {});
                     await completeTask(task.coins);
                   }}
                 >

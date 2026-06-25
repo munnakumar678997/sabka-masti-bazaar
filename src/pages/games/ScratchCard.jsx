@@ -10,7 +10,7 @@ function pickScratch() {
 }
 
 export default function ScratchCardModal({ onClose, onRefresh }) {
-  const { addCoins } = useApp();
+  const { addCoins, recordGamePlay } = useApp();
 
   const [scratchPrizes,   setScratchPrizes]   = useState([null, null, null]);
   const [scratchRevealed, setScratchRevealed] = useState([false, false, false]);
@@ -35,6 +35,7 @@ export default function ScratchCardModal({ onClose, onRefresh }) {
     setScratchPrizes(newP);
     setScratchRevealed(newR);
     incUsed('scratch');
+    recordGamePlay('scratch').catch(() => {});
     showToast(`🎁 +${coins} coins mile!`);
     onRefresh();
     await addCoins(coins);
