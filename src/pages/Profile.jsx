@@ -49,7 +49,7 @@ function getDailyTasks() {
 
 export default function Profile() {
   const navigate = useNavigate();
-  const { user, balance, streak, tasksCompleted, referrals, updateUserName } = useApp();
+  const { user, balance, streak, tasksCompleted, referrals, updateUserName, CHECKIN_BACKUP_KEY } = useApp();
 
   const [showEdit,    setShowEdit]    = useState(false);
   const [editName,    setEditName]    = useState('');
@@ -69,8 +69,9 @@ export default function Profile() {
 
   /* ── Daily activity ── */
   const todayIST   = getTodayKey();
+  // BUG FIX B5: Hardcoded 'smb_checkin_ist' ki jagah CHECKIN_BACKUP_KEY context se liya
   const checkedIn  = user?.last_checkin_date === todayIST
-    || localStorage.getItem('smb_checkin_ist') === todayIST;
+    || localStorage.getItem(CHECKIN_BACKUP_KEY) === todayIST;
   const games      = getDailyGamePlays();
   const tasks      = getDailyTasks();
 

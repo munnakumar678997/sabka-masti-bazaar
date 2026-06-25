@@ -41,9 +41,7 @@ export default function DailyCheckIn() {
     && localStorage.getItem(CHECKIN_BACKUP_KEY) === todayIST;
   const checkedIn = checkedInFirestore || checkedInLocal;
 
-  const dayIndex    = Math.max(0, (streak - 1)) % 7;
-  const todayReward = DAY_REWARDS[checkedIn ? dayIndex : (streak % 7)];
-
+  // isStreakBroken pehle define karo — todayReward mein use hoga
   const isStreakBroken = useCallback(() => {
     if (!user?.last_checkin_date) return false;
     const last     = new Date(user.last_checkin_date + 'T00:00:00+05:30');
@@ -51,6 +49,10 @@ export default function DailyCheckIn() {
     const diffDays = Math.round((today - last) / 86400000);
     return diffDays > 1;
   }, [user?.last_checkin_date, todayIST]);
+
+  const dayIndex    = Math.max(0, (streak - 1)) % 7;
+  // BUG FIX B1: Streak broken hone pe Day 1 reward (10 coins) dikhao — warna UI mein galat amount dikhta tha
+  const todayReward = DAY_REWARDS[checkedIn ? dayIndex : (isStreakBroken() ? 0 : streak % 7)];
 
   useEffect(() => {
     const interval = setInterval(() => setCountdown(getSecsUntilISTMidnight()), 1000);

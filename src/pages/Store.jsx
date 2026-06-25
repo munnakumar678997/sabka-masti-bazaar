@@ -405,7 +405,8 @@ export default function Store() {
               <div className="modal-product-name">{openProduct.name}</div>
               <div className="modal-product-sub">Telegram pe order · BY MUNNA AGENT</div>
             </div>
-            <button className="modal-close-btn" onClick={closeModal}>✕</button>
+            {/* BUG FIX B2: Order processing ke dauraan close button disabled — warna coins deduct hote reh sakte hain */}
+            <button className="modal-close-btn" onClick={closeModal} disabled={confirming} style={{ opacity: confirming ? 0.4 : 1, cursor: confirming ? 'not-allowed' : 'pointer' }}>✕</button>
           </div>
 
           <div className="modal-scroll">

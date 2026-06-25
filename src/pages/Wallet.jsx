@@ -67,7 +67,11 @@ export default function Wallet() {
 
   const amountNum  = parseInt(amount) || 0;
   const inrValue   = (amountNum / 100).toFixed(2);
-  const canSubmit  = amountNum >= MIN_WITHDRAW && upiId.trim().length > 4 && upiId.includes('@') && balance >= amountNum;
+  // BUG FIX B3: UPI validation — '@' start ya end pe nahi hona chahiye (jaise '@abcd' ya 'abc@' invalid hai)
+  const upiTrimmed = upiId.trim();
+  const atIdx      = upiTrimmed.indexOf('@');
+  const validUpi   = atIdx > 0 && atIdx < upiTrimmed.length - 1;
+  const canSubmit  = amountNum >= MIN_WITHDRAW && validUpi && balance >= amountNum;
 
   // Progress toward minimum withdrawal
   const progressPct = Math.min(100, Math.round((balance / MIN_WITHDRAW) * 100));
