@@ -23,9 +23,13 @@ var _hiddenAt = 0;
 var RELOAD_THRESHOLD_MS = 8000;
 
 // ── Force reload helper ──
+// IMPORTANT: window.location.reload() browser cache se serve karta hai
+// isliye hum cache-busting URL use karte hain — ?_r=timestamp
+// Yeh browser ko force karta hai fresh index.html + fresh JS/CSS fetch karne ke liye
 function forceReload() {
   try { sessionStorage.removeItem('smb_session'); } catch (_) {}
-  window.location.reload();
+  var freshUrl = window.location.origin + window.location.pathname + '?_r=' + Date.now();
+  window.location.replace(freshUrl);
 }
 
 // ── Version check (production only — version.json sirf build mein hota hai) ──

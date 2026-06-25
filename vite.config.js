@@ -30,5 +30,10 @@ export default defineConfig({
     port: 5000,
     host: '0.0.0.0',
     allowedHosts: true,
+    headers: {
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0',
+    },
   },
 })

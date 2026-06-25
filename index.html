@@ -23,8 +23,11 @@
         window.addEventListener('pageshow', function (e) {
           if (e.persisted) {
             try { sessionStorage.removeItem('smb_session'); } catch (_) {}
-            // reload(true) deprecated hai — location.replace zyada reliable hai
-            window.location.replace(window.location.href);
+            // Cache-busting URL — ?_r=timestamp force karta hai browser ko
+            // fresh index.html + JS/CSS fetch karne ke liye (browser cache bypass)
+            window.location.replace(
+              window.location.origin + window.location.pathname + '?_r=' + Date.now()
+            );
           }
         });
       })();
