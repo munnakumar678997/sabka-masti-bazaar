@@ -5,7 +5,7 @@ import Home     from './pages/Home';
 import Store    from './pages/Store';
 import Wallet   from './pages/Wallet';
 import Profile  from './pages/Profile';
-import Games    from './pages/Games';
+import Games    from './pages/games/index';
 import Referral from './pages/Referral';
 import FAQ       from './pages/FAQ';
 import BonusCode     from './pages/BonusCode';
