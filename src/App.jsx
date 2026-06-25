@@ -2,7 +2,7 @@ import { useLocation, BrowserRouter, Routes, Route, Navigate } from 'react-route
 import Loading  from './pages/Loading';
 import Login    from './pages/Login';
 import Home     from './pages/Home';
-import Store    from './pages/Store';
+import Store    from './pages/store/index';
 import Wallet   from './pages/Wallet';
 import Profile  from './pages/Profile';
 import Games    from './pages/games/index';

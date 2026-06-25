@@ -1,45 +1,45 @@
 import { createContext, useContext, useState, useRef } from 'react';
 import { db } from '../lib/firebase';
 import {
-  doc, getDoc, setDoc, updateDoc, collection, addDoc, increment,
-  getDocs, query, where, arrayUnion, runTransaction,
+  doc, getDoc, setDoc, updateDoc, collection,
+  increment, getDocs, query, where, arrayUnion,
 } from 'firebase/firestore';
+import {
+  addNotifToDb, fetchUnreadCountFromDb,
+  fetchNotifsFromDb, markNotifReadInDb, markAllNotifsReadInDb,
+} from './services/notifService';
+import { saveOrderToDb, saveWithdrawalToDb, fetchWithdrawalsFromDb } from './services/walletService';
+import { redeemCodeTransaction } from './services/bonusService';
 
-const AppContext = createContext(null);
-
-// Component ke bahar — sirf ek baar create hoga (har render pe nahi)
-const VALID_CODES_FALLBACK = {
-  'MASTI50':    { coins: 50,   desc: 'Masti Bonus'        },
-  'WELCOME100': { coins: 100,  desc: 'Welcome Special'    },
-  'SABKA200':   { coins: 200,  desc: 'Sabka Bazaar Bonus' },
-  'LUCKY25':    { coins: 25,   desc: 'Lucky Coins'        },
-  'DIWALI500':  { coins: 500,  desc: 'Diwali Special 🪔'  },
-  'EARN75':     { coins: 75,   desc: 'Earning Reward'     },
-  'BONUS150':   { coins: 150,  desc: 'Special Bonus'      },
-  'SUPER300':   { coins: 300,  desc: 'Super Reward'       },
-};
-
+const AppContext          = createContext(null);
 const CHECKIN_BACKUP_KEY = 'smb_checkin_ist';
 const SESSION_KEY        = 'smb_session';
 
 export function AppProvider({ children }) {
-  const [user,              setUser]              = useState(null);
-  const [balance,           setBalance]           = useState(0);
-  const [tasksCompleted,    setTasksCompleted]    = useState(0);
-  const [referrals,         setReferrals]         = useState(0);
-  const [streak,            setStreak]            = useState(0);
-  const [loading,           setLoading]           = useState(false);
-  const [redeemedCodes,     setRedeemedCodes]     = useState([]);
-  const [notifUnreadCount,  setNotifUnreadCount]  = useState(0);
+  const [user,             setUser]             = useState(null);
+  const [balance,          setBalance]          = useState(0);
+  const [tasksCompleted,   setTasksCompleted]   = useState(0);
+  const [referrals,        setReferrals]        = useState(0);
+  const [streak,           setStreak]           = useState(0);
+  const [loading,          setLoading]          = useState(false);
+  const [redeemedCodes,    setRedeemedCodes]    = useState([]);
+  const [notifUnreadCount, setNotifUnreadCount] = useState(0);
 
   const userIdRef  = useRef(null);
   const balanceRef = useRef(0);
   const tasksRef   = useRef(0);
 
-  // ─────────────────────────────────────────────
-  // loadUser — Firestore se real data lo
-  // referredBy: optional — jis user ne refer kiya uska code (e.g. "SMB12345")
-  // ─────────────────────────────────────────────
+  // ─── Notification helper — DB write + local badge update ─────────────────
+  const _addNotification = async (userId, data) => {
+    try {
+      await addNotifToDb(userId, data);
+      if (String(userId) === String(userIdRef.current)) {
+        setNotifUnreadCount(prev => prev + 1);
+      }
+    } catch (e) { console.error('_addNotification err:', e); }
+  };
+
+  // ─── loadUser ─────────────────────────────────────────────────────────────
   const loadUser = async (tgUser, mobile = null, referredBy = null) => {
     setLoading(true);
     try {
@@ -47,16 +47,9 @@ export function AppProvider({ children }) {
       const userSnap = await getDoc(userRef);
 
       if (userSnap.exists()) {
-        const existing = userSnap.data();
-
-        // name sirf tab update karo jab user ne custom naam nahi set kiya ho
-        // (Telegram naam se custom naam overwrite nahi hona chahiye)
-        const updatePayload = {
-          username:  tgUser.username  ?? null,
-          photo_url: tgUser.photo_url ?? null,
-        };
+        const existing       = userSnap.data();
+        const updatePayload  = { username: tgUser.username ?? null, photo_url: tgUser.photo_url ?? null };
         if (mobile) updatePayload.mobile = mobile;
-
         await updateDoc(userRef, updatePayload);
 
         const updated = { id: String(tgUser.id), ...existing, ...updatePayload };
@@ -65,21 +58,15 @@ export function AppProvider({ children }) {
         tasksRef.current   = updated.tasks_completed || 0;
 
         setUser(updated);
-        setBalance(updated.balance          || 0);
-        setStreak(updated.streak             || 0);
+        setBalance(updated.balance       || 0);
+        setStreak(updated.streak          || 0);
         setTasksCompleted(updated.tasks_completed || 0);
-        setReferrals(updated.referral_count  || 0);
+        setReferrals(updated.referral_count || 0);
         setRedeemedCodes(updated.redeemed_codes || []);
 
-        // Notifications unread count fetch karo
         try {
-          const notifQ = query(
-            collection(db, 'notifications'),
-            where('userId', '==', String(tgUser.id)),
-            where('read',   '==', false),
-          );
-          const notifSnap = await getDocs(notifQ);
-          setNotifUnreadCount(notifSnap.docs.length);
+          const count = await fetchUnreadCountFromDb(tgUser.id);
+          setNotifUnreadCount(count);
         } catch (_) {}
 
         if (updated.last_checkin_date) {
@@ -89,7 +76,7 @@ export function AppProvider({ children }) {
         }
 
       } else {
-        // ── NAYA USER ──
+        // ── Naya user ──
         const WELCOME_BONUS = 50;
         const newUser = {
           id:                String(tgUser.id),
@@ -106,7 +93,6 @@ export function AppProvider({ children }) {
           redeemed_codes:    [],
           referred_by:       referredBy       ?? null,
         };
-
         await setDoc(userRef, newUser);
 
         userIdRef.current  = newUser.id;
@@ -122,7 +108,6 @@ export function AppProvider({ children }) {
         localStorage.removeItem(CHECKIN_BACKUP_KEY);
         localStorage.setItem('smb_welcome_shown', '1');
 
-        // Welcome notification (async — await nahi karunga taaki login slow na ho)
         _addNotification(newUser.id, {
           title: '🎉 Sabka Masti Bazaar mein Swagat!',
           desc:  '+50 welcome coins tumhare wallet mein aa gaye! Games khelo, tasks karo aur aur kamao!',
@@ -130,58 +115,10 @@ export function AppProvider({ children }) {
           type:  'welcome',
         });
 
-        // ── Referrer ko coins, count, aur milestone bonus update karo ──
         if (referredBy) {
-          try {
-            // referredBy format: "SMB<userId>" — pehle validate karo
-            const referrerId = String(referredBy).replace(/^SMB/i, '');
-            if (referrerId && referrerId !== String(tgUser.id)) {
-              const referrerRef  = doc(db, 'users', referrerId);
-              const referrerSnap = await getDoc(referrerRef);
-              if (referrerSnap.exists()) {
-                const referrerData    = referrerSnap.data();
-                const newRefCount     = (referrerData.referral_count || 0) + 1;
-                const awardedMilestones = referrerData.awarded_milestones || [];
-
-                // Milestone bonuses — sirf ek baar award hote hain
-                const MILESTONE_COINS = { 1: 50, 3: 200, 5: 500, 10: 1200, 25: 3500, 50: 8000 };
-                const milestoneBonus  = (MILESTONE_COINS[newRefCount] && !awardedMilestones.includes(newRefCount))
-                  ? MILESTONE_COINS[newRefCount]
-                  : 0;
-
-                const updatePayload = {
-                  referral_count: increment(1),
-                  balance:        increment(50 + milestoneBonus), // base 50 + milestone (agar ho)
-                };
-                if (milestoneBonus > 0) {
-                  updatePayload.awarded_milestones = arrayUnion(newRefCount);
-                }
-
-                await updateDoc(referrerRef, updatePayload);
-
-                // Referrer ko notification
-                _addNotification(referrerId, {
-                  title: '👥 Naya Referral!',
-                  desc:  `${tgUser.name || 'Ek dost'} ne tumhare link se join kiya! +50 coins mile.`,
-                  icon:  '👥',
-                  type:  'referral',
-                });
-                if (milestoneBonus > 0) {
-                  _addNotification(referrerId, {
-                    title: `🏆 Milestone! ${newRefCount} Referrals Complete!`,
-                    desc:  `${newRefCount} referrals ho gaye! +${milestoneBonus} bonus coins tumhare wallet mein!`,
-                    icon:  '🏆',
-                    type:  'milestone',
-                  });
-                }
-              }
-            }
-          } catch (refErr) {
-            console.error('Referral update error:', refErr);
-          }
+          _handleReferral(referredBy, tgUser).catch(e => console.error('Referral error:', e));
         }
       }
-
     } catch (err) {
       console.error('loadUser error:', err);
     } finally {
@@ -189,53 +126,76 @@ export function AppProvider({ children }) {
     }
   };
 
-  // ─────────────────────────────────────────────
-  // saveMobile
-  // ─────────────────────────────────────────────
-  const saveMobile = async (mobile) => {
-    if (!userIdRef.current || !mobile) return;
-    const userRef = doc(db, 'users', String(userIdRef.current));
-    await updateDoc(userRef, { mobile });
-    setUser(prev => prev ? { ...prev, mobile } : prev);
-  };
+  // ─── Referral logic — extracted from loadUser ─────────────────────────────
+  const _handleReferral = async (referredBy, tgUser) => {
+    const referrerId = String(referredBy).replace(/^SMB/i, '');
+    if (!referrerId || referrerId === String(tgUser.id)) return;
 
-  // ─────────────────────────────────────────────
-  // addCoins — synchronous ref update (no stale closure)
-  // ─────────────────────────────────────────────
-  const addCoins = async (amount) => {
-    const newBalance       = balanceRef.current + amount;
-    balanceRef.current     = newBalance;
-    setBalance(newBalance);
-    setUser(prev => prev ? { ...prev, balance: newBalance } : prev);
+    const referrerRef  = doc(db, 'users', referrerId);
+    const referrerSnap = await getDoc(referrerRef);
+    if (!referrerSnap.exists()) return;
 
-    if (userIdRef.current) {
-      try {
-        await updateDoc(doc(db, 'users', String(userIdRef.current)), {
-          balance: increment(amount),
-        });
-      } catch (e) { console.error('addCoins Firestore err:', e); }
+    const referrerData      = referrerSnap.data();
+    const newRefCount       = (referrerData.referral_count || 0) + 1;
+    const awardedMilestones = referrerData.awarded_milestones || [];
+    const MILESTONE_COINS   = { 1: 50, 3: 200, 5: 500, 10: 1200, 25: 3500, 50: 8000 };
+    const milestoneBonus    = (MILESTONE_COINS[newRefCount] && !awardedMilestones.includes(newRefCount))
+      ? MILESTONE_COINS[newRefCount] : 0;
+
+    const updatePayload = { referral_count: increment(1), balance: increment(50 + milestoneBonus) };
+    if (milestoneBonus > 0) updatePayload.awarded_milestones = arrayUnion(newRefCount);
+    await updateDoc(referrerRef, updatePayload);
+
+    _addNotification(referrerId, {
+      title: '👥 Naya Referral!',
+      desc:  `${tgUser.name || 'Ek dost'} ne tumhare link se join kiya! +50 coins mile.`,
+      icon:  '👥',
+      type:  'referral',
+    });
+    if (milestoneBonus > 0) {
+      _addNotification(referrerId, {
+        title: `🏆 Milestone! ${newRefCount} Referrals Complete!`,
+        desc:  `${newRefCount} referrals ho gaye! +${milestoneBonus} bonus coins tumhare wallet mein!`,
+        icon:  '🏆',
+        type:  'milestone',
+      });
     }
   };
 
-  // ─────────────────────────────────────────────
-  // deductCoins — Firestore transaction (negative balance prevent, race-condition safe)
-  // ─────────────────────────────────────────────
+  // ─── saveMobile ───────────────────────────────────────────────────────────
+  const saveMobile = async (mobile) => {
+    if (!userIdRef.current || !mobile) return;
+    await updateDoc(doc(db, 'users', String(userIdRef.current)), { mobile });
+    setUser(prev => prev ? { ...prev, mobile } : prev);
+  };
+
+  // ─── addCoins — optimistic update + Firestore ─────────────────────────────
+  const addCoins = async (amount) => {
+    const newBalance   = balanceRef.current + amount;
+    balanceRef.current = newBalance;
+    setBalance(newBalance);
+    setUser(prev => prev ? { ...prev, balance: newBalance } : prev);
+    if (userIdRef.current) {
+      try {
+        await updateDoc(doc(db, 'users', String(userIdRef.current)), { balance: increment(amount) });
+      } catch (e) { console.error('addCoins err:', e); }
+    }
+  };
+
+  // ─── deductCoins — transaction (race-condition safe) ─────────────────────
   const deductCoins = async (amount) => {
     if (!userIdRef.current) return false;
-
     try {
+      const { runTransaction } = await import('firebase/firestore');
       const userRef = doc(db, 'users', String(userIdRef.current));
       let actualDeducted = 0;
-      let success = false;
+      let success        = false;
 
       await runTransaction(db, async (txn) => {
         const snap = await txn.get(userRef);
         if (!snap.exists()) throw new Error('User not found');
         const currentBalance = snap.data().balance || 0;
-        if (currentBalance < amount) {
-          // Balance nahi hai — transaction cancel karo
-          return;
-        }
+        if (currentBalance < amount) return;
         const newBalance = currentBalance - amount;
         actualDeducted   = amount;
         success          = true;
@@ -243,329 +203,143 @@ export function AppProvider({ children }) {
       });
 
       if (!success) return false;
-
-      // Transaction ke baad UI update karo (confirmed value)
-      const newBalance       = Math.max(0, balanceRef.current - actualDeducted);
-      balanceRef.current     = newBalance;
+      const newBalance   = Math.max(0, balanceRef.current - actualDeducted);
+      balanceRef.current = newBalance;
       setBalance(newBalance);
       setUser(prev => prev ? { ...prev, balance: newBalance } : prev);
       return true;
-
     } catch (e) {
-      console.error('deductCoins Firestore err:', e);
+      console.error('deductCoins err:', e);
       return false;
     }
   };
 
-  // ─────────────────────────────────────────────
-  // completeTask — synchronous ref update (no stale closure)
-  // ─────────────────────────────────────────────
+  // ─── completeTask ─────────────────────────────────────────────────────────
   const completeTask = async (coins) => {
-    const newBalance       = balanceRef.current + coins;
-    const newTasks         = tasksRef.current + 1;
-    balanceRef.current     = newBalance;
-    tasksRef.current       = newTasks;
+    const newBalance   = balanceRef.current + coins;
+    const newTasks     = tasksRef.current   + 1;
+    balanceRef.current = newBalance;
+    tasksRef.current   = newTasks;
     setBalance(newBalance);
     setTasksCompleted(newTasks);
-    setUser(prev => prev ? {
-      ...prev,
-      balance:         newBalance,
-      tasks_completed: newTasks,
-    } : prev);
-
+    setUser(prev => prev ? { ...prev, balance: newBalance, tasks_completed: newTasks } : prev);
     if (userIdRef.current) {
       try {
         await updateDoc(doc(db, 'users', String(userIdRef.current)), {
           balance:         increment(coins),
           tasks_completed: increment(1),
         });
-      } catch (e) { console.error('completeTask Firestore err:', e); }
+      } catch (e) { console.error('completeTask err:', e); }
     }
   };
 
-  // ─────────────────────────────────────────────
-  // updateCheckIn — synchronous ref update (no stale closure)
-  // ─────────────────────────────────────────────
+  // ─── updateCheckIn ────────────────────────────────────────────────────────
   const updateCheckIn = async (newStreak, totalDays, lastDate, coinsEarned) => {
-    const newBalance       = balanceRef.current + coinsEarned;
-    balanceRef.current     = newBalance;
+    const newBalance   = balanceRef.current + coinsEarned;
+    balanceRef.current = newBalance;
     setBalance(newBalance);
     setStreak(newStreak);
-    setUser(prev => {
-      if (!prev) return prev; // user null ho toh update mat karo
-      return {
-        ...prev,
-        balance:           newBalance,
-        streak:            newStreak,
-        total_checkins:    totalDays,
-        last_checkin_date: lastDate,
-      };
-    });
-
+    setUser(prev => prev ? { ...prev, balance: newBalance, streak: newStreak, total_checkins: totalDays, last_checkin_date: lastDate } : prev);
     localStorage.setItem(CHECKIN_BACKUP_KEY, lastDate);
-
     if (userIdRef.current) {
       try {
         await updateDoc(doc(db, 'users', String(userIdRef.current)), {
-          balance:           increment(coinsEarned),
-          streak:            newStreak,
-          total_checkins:    totalDays,
-          last_checkin_date: lastDate,
+          balance: increment(coinsEarned), streak: newStreak, total_checkins: totalDays, last_checkin_date: lastDate,
         });
-        // Check-in notification
         _addNotification(userIdRef.current, {
           title: `🎁 Daily Check-in Bonus!`,
           desc:  `+${coinsEarned} coins mile! ${newStreak} din ki streak — Keep it up! 🔥`,
           icon:  '🎁',
           type:  'checkin',
         });
-      } catch (error) {
-        console.error('Check-in Firestore save failed:', error);
-      }
+      } catch (e) { console.error('updateCheckIn err:', e); }
     }
   };
 
-  // ─────────────────────────────────────────────
-  // saveOrder — Store order Firestore mein save karo
-  // ─────────────────────────────────────────────
-  const saveOrder = async (orderData) => {
-    if (!userIdRef.current) return;
-    try {
-      await addDoc(collection(db, 'orders'), {
-        ...orderData,
-        userId:    String(userIdRef.current),
-        userName:  user?.name     || null,
-        userPhone: user?.mobile   || null,
-        status:    'pending',
-        createdAt: new Date().toISOString(),
-      });
-    } catch (e) {
-      console.error('saveOrder Firestore err:', e);
-    }
-  };
-
-  // ─────────────────────────────────────────────
-  // updateUserName — name update karo (state + Firestore)
-  // ─────────────────────────────────────────────
+  // ─── updateUserName ───────────────────────────────────────────────────────
   const updateUserName = async (newName) => {
     if (!userIdRef.current || !newName) return;
     await updateDoc(doc(db, 'users', String(userIdRef.current)), { name: newName });
     setUser(prev => prev ? { ...prev, name: newName } : prev);
   };
 
-  // ─────────────────────────────────────────────
-  // saveWithdrawal — Firestore mein save karo
-  // ─────────────────────────────────────────────
-  const saveWithdrawal = async (entry) => {
+  // ─── saveOrder — via walletService ───────────────────────────────────────
+  const saveOrder = async (orderData) => {
     if (!userIdRef.current) return;
     try {
-      await addDoc(collection(db, 'withdrawals'), {
-        ...entry,
+      await saveOrderToDb({
+        ...orderData,
         userId:    String(userIdRef.current),
-        userName:  user?.name     || null,
-        userPhone: user?.mobile   || null,
-        createdAt: new Date().toISOString(),
+        userName:  user?.name   || null,
+        userPhone: user?.mobile || null,
+        status:    'pending',
       });
-    } catch (e) {
-      console.error('saveWithdrawal Firestore err:', e);
-      throw e; // Caller ko pata chale ki save fail hua
-    }
+    } catch (e) { console.error('saveOrder err:', e); }
   };
 
-  // ─────────────────────────────────────────────
-  // markCodeRedeemed — Firestore mein code track karo (multi-device safe)
-  // ─────────────────────────────────────────────
+  // ─── saveWithdrawal — via walletService ──────────────────────────────────
+  const saveWithdrawal = async (entry) => {
+    if (!userIdRef.current) return;
+    await saveWithdrawalToDb({
+      ...entry,
+      userId:    String(userIdRef.current),
+      userName:  user?.name   || null,
+      userPhone: user?.mobile || null,
+    });
+  };
+
+  // ─── fetchWithdrawals — via walletService ────────────────────────────────
+  const fetchWithdrawals = async () => fetchWithdrawalsFromDb(userIdRef.current);
+
+  // ─── markCodeRedeemed ─────────────────────────────────────────────────────
   const markCodeRedeemed = async (code) => {
     if (!userIdRef.current) return;
     try {
-      await updateDoc(doc(db, 'users', String(userIdRef.current)), {
-        redeemed_codes: arrayUnion(code),
-      });
+      await updateDoc(doc(db, 'users', String(userIdRef.current)), { redeemed_codes: arrayUnion(code) });
       setRedeemedCodes(prev => [...prev, code]);
-    } catch (e) {
-      console.error('markCodeRedeemed err:', e);
-    }
+    } catch (e) { console.error('markCodeRedeemed err:', e); }
   };
 
-  // ─────────────────────────────────────────────
-  // redeemBonusCode — ATOMIC: validate + mark + add coins ek hi transaction mein
-  // Codes Firestore `bonus_codes/{CODE}` collection mein hone chahiye
-  // VALID_CODES_FALLBACK (file ke upar) sirf backup hai
-  // ─────────────────────────────────────────────
+  // ─── redeemBonusCode — via bonusService ──────────────────────────────────
   const redeemBonusCode = async (code) => {
     if (!userIdRef.current) throw new Error('NOT_LOGGED_IN');
-
-    const userRef = doc(db, 'users', String(userIdRef.current));
-    const codeRef = doc(db, 'bonus_codes', code);
-
-    let coinsEarned = 0;
-    let codeDesc    = '';
-
-    await runTransaction(db, async (txn) => {
-      const userSnap = await txn.get(userRef);
-      if (!userSnap.exists()) throw new Error('USER_NOT_FOUND');
-
-      // Already redeemed check (Firestore se — multi-device safe)
-      const userRedeemed = userSnap.data().redeemed_codes || [];
-      if (userRedeemed.includes(code)) throw new Error('ALREADY_USED');
-
-      // Pehle Firestore bonus_codes collection check karo (admin-defined codes)
-      let coins = 0, desc = '';
-      const fsCodeSnap = await txn.get(codeRef);
-      if (fsCodeSnap.exists()) {
-        coins = fsCodeSnap.data().coins  || 0;
-        desc  = fsCodeSnap.data().desc   || '';
-      } else {
-        // Firestore mein code nahi — fallback VALID_CODES check
-        const fallback = VALID_CODES_FALLBACK[code];
-        if (!fallback) throw new Error('INVALID_CODE');
-        coins = fallback.coins;
-        desc  = fallback.desc;
-      }
-
-      coinsEarned = coins;
-      codeDesc    = desc;
-
-      const currentBalance = userSnap.data().balance || 0;
-      // Atomically: mark code + add coins — dono fail ya dono success
-      txn.update(userRef, {
-        balance:        currentBalance + coins,
-        redeemed_codes: arrayUnion(code),
-      });
-    });
-
-    // Transaction success — local state update karo
+    const { coinsEarned, codeDesc } = await redeemCodeTransaction(userIdRef.current, code);
     const newBalance   = balanceRef.current + coinsEarned;
     balanceRef.current = newBalance;
     setBalance(newBalance);
     setUser(prev => prev ? { ...prev, balance: newBalance } : prev);
     setRedeemedCodes(prev => [...prev, code]);
-
     return { coins: coinsEarned, desc: codeDesc };
   };
 
-  // ─────────────────────────────────────────────
-  // fetchWithdrawals — Firestore se user ki history lo
-  // ─────────────────────────────────────────────
-  const fetchWithdrawals = async () => {
-    if (!userIdRef.current) return [];
-    try {
-      const q = query(
-        collection(db, 'withdrawals'),
-        where('userId', '==', String(userIdRef.current)),
-      );
-      const snap = await getDocs(q);
-      const results = snap.docs.map(d => ({ firestoreId: d.id, ...d.data() }));
-      results.sort((a, b) => {
-        const ta = a.createdAt || '';
-        const tb = b.createdAt || '';
-        return tb.localeCompare(ta);
-      });
-      return results;
-    } catch (e) {
-      console.error('fetchWithdrawals err:', e);
-      return [];
-    }
-  };
+  // ─── fetchNotifications — via notifService ───────────────────────────────
+  const fetchNotifications = async () => fetchNotifsFromDb(userIdRef.current);
 
-  // ─────────────────────────────────────────────
-  // _addNotification — Firestore mein notification likhna + badge update
-  // ─────────────────────────────────────────────
-  const _addNotification = async (userId, { title, desc, icon, type }) => {
-    if (!userId) return;
-    try {
-      await addDoc(collection(db, 'notifications'), {
-        userId:    String(userId),
-        title,
-        desc,
-        icon,
-        type:      type || 'general',
-        read:      false,
-        createdAt: new Date().toISOString(),
-      });
-      if (String(userId) === String(userIdRef.current)) {
-        setNotifUnreadCount(prev => prev + 1);
-      }
-    } catch (e) {
-      console.error('_addNotification err:', e);
-    }
-  };
-
-  // ─────────────────────────────────────────────
-  // fetchNotifications — current user ki sab notifications (sorted by date)
-  // ─────────────────────────────────────────────
-  const fetchNotifications = async () => {
-    if (!userIdRef.current) return [];
-    try {
-      const q = query(
-        collection(db, 'notifications'),
-        where('userId', '==', String(userIdRef.current)),
-      );
-      const snap    = await getDocs(q);
-      const results = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      results.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
-      return results;
-    } catch (e) {
-      console.error('fetchNotifications err:', e);
-      return [];
-    }
-  };
-
-  // ─────────────────────────────────────────────
-  // markNotifRead — ek notification read mark karo
-  // ─────────────────────────────────────────────
+  // ─── markNotifRead — via notifService ────────────────────────────────────
   const markNotifRead = async (notifId) => {
-    if (!notifId) return;
     try {
-      await updateDoc(doc(db, 'notifications', notifId), { read: true });
+      await markNotifReadInDb(notifId);
       setNotifUnreadCount(prev => Math.max(0, prev - 1));
-    } catch (e) {
-      console.error('markNotifRead err:', e);
-    }
+    } catch (e) { console.error('markNotifRead err:', e); }
   };
 
-  // ─────────────────────────────────────────────
-  // markAllNotifsRead — sab notifications read mark karo
-  // ─────────────────────────────────────────────
+  // ─── markAllNotifsRead — via notifService ────────────────────────────────
   const markAllNotifsRead = async (notifIds) => {
-    if (!notifIds || notifIds.length === 0) return;
     try {
-      await Promise.all(
-        notifIds.map(id => updateDoc(doc(db, 'notifications', id), { read: true }))
-      );
+      await markAllNotifsReadInDb(notifIds);
       setNotifUnreadCount(0);
-    } catch (e) {
-      console.error('markAllNotifsRead err:', e);
-    }
+    } catch (e) { console.error('markAllNotifsRead err:', e); }
   };
 
   return (
     <AppContext.Provider value={{
-      user,
-      balance,
-      streak,
-      tasksCompleted,
-      referrals,
-      loading,
-      loadUser,
-      saveMobile,
-      addCoins,
-      deductCoins,
-      completeTask,
-      updateCheckIn,
-      updateUserName,
-      saveOrder,
-      saveWithdrawal,
-      fetchWithdrawals,
-      redeemedCodes,
-      markCodeRedeemed,
-      redeemBonusCode,
-      notifUnreadCount,
-      fetchNotifications,
-      markNotifRead,
-      markAllNotifsRead,
-      CHECKIN_BACKUP_KEY,
-      SESSION_KEY,
+      user, balance, streak, tasksCompleted, referrals, loading,
+      loadUser, saveMobile, addCoins, deductCoins,
+      completeTask, updateCheckIn, updateUserName,
+      saveOrder, saveWithdrawal, fetchWithdrawals,
+      redeemedCodes, markCodeRedeemed, redeemBonusCode,
+      notifUnreadCount, fetchNotifications, markNotifRead, markAllNotifsRead,
+      CHECKIN_BACKUP_KEY, SESSION_KEY,
     }}>
       {children}
     </AppContext.Provider>
