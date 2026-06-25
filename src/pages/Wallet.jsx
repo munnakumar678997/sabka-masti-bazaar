@@ -218,18 +218,6 @@ export default function Wallet() {
         {tab === 'withdraw' && (
           <div className="wlt-form">
 
-            {/* Balance alert */}
-            {balance < MIN_WITHDRAW && (
-              <div className="wlt-alert wlt-alert-warn">
-                <div className="wlt-alert-icon">🎯</div>
-                <div className="wlt-alert-body">
-                  <div className="wlt-alert-title">Thoda aur kamao!</div>
-                  <div className="wlt-alert-desc">
-                    Bas <strong>{needMore} coins</strong> aur chahiye (₹{(needMore/100).toFixed(2)}) withdraw karne ke liye
-                  </div>
-                </div>
-              </div>
-            )}
 
             {/* Coins Input */}
             <div className="wlt-field">
