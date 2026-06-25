@@ -9,7 +9,7 @@ import {
   fetchNotifsFromDb, markNotifReadInDb, markAllNotifsReadInDb,
 } from './services/notifService';
 import { saveOrderToDb, saveWithdrawalToDb, fetchWithdrawalsFromDb } from './services/walletService';
-import { redeemCodeTransaction } from './services/bonusService';
+import { redeemCodeTransaction, saveBonusHistoryToDb } from './services/bonusService';
 
 const AppContext          = createContext(null);
 const CHECKIN_BACKUP_KEY = 'smb_checkin_ist';
@@ -40,6 +40,7 @@ export function AppProvider({ children }) {
   const [loading,          setLoading]          = useState(false);
   const [redeemedCodes,    setRedeemedCodes]    = useState([]);
   const [notifUnreadCount, setNotifUnreadCount] = useState(0);
+  const [bonusHistory,     setBonusHistory]     = useState([]);
 
   const userIdRef  = useRef(null);
   const balanceRef = useRef(0);
@@ -114,6 +115,11 @@ export function AppProvider({ children }) {
         _syncGameCountsFromFirestore(updated);
         _syncTasksFromFirestore(updated);
 
+        // Bonus history Firebase se load karo — cross-device visible hoga
+        const history = updated.bonus_history || [];
+        const sorted  = [...history].sort((a, b) => (b.date || '').localeCompare(a.date || '')).slice(0, 10);
+        setBonusHistory(sorted);
+
         try {
           const count = await fetchUnreadCountFromDb(tgUser.id);
           setNotifUnreadCount(count);
@@ -164,7 +170,7 @@ export function AppProvider({ children }) {
         setReferrals(0);
         setRedeemedCodes([]);
         localStorage.removeItem(CHECKIN_BACKUP_KEY);
-        localStorage.setItem('smb_welcome_shown', '1');
+        setBonusHistory([]);
 
         _addNotification(newUser.id, {
           title: '🎉 Sabka Masti Bazaar mein Swagat!',
@@ -459,7 +465,18 @@ export function AppProvider({ children }) {
     setUser(prev => prev ? { ...prev, balance: newBalance } : prev);
     setRedeemedCodes(prev => [...prev, code]);
 
-    // BUG FIX: Notification bhi bhejo bonus code redeem hone pe
+    // Bonus history — Firebase mein save karo (cross-device)
+    const histEntry = {
+      code,
+      coins: coinsEarned,
+      desc:  codeDesc,
+      date:  new Date().toLocaleDateString('en-IN'),
+      ts:    new Date().toISOString(),
+    };
+    setBonusHistory(prev => [histEntry, ...prev].slice(0, 10));
+    saveBonusHistoryToDb(userIdRef.current, histEntry).catch(() => {});
+
+    // Notification bhi bhejo
     _addNotification(userIdRef.current, {
       title: '🎟️ Bonus Code Redeem Hua!',
       desc:  `Code "${code}" se +${coinsEarned} coins mile! (${codeDesc})`,
@@ -502,6 +519,8 @@ export function AppProvider({ children }) {
       recordGamePlay, getFirestoreGameCount,
       // Task tracking (anti-cheat)
       recordTaskCompletion, checkTaskDone,
+      // Bonus code history (Firebase-backed)
+      bonusHistory,
     }}>
       {children}
     </AppContext.Provider>

@@ -1,5 +1,5 @@
 import { db } from '../../lib/firebase';
-import { doc, runTransaction, arrayUnion } from 'firebase/firestore';
+import { doc, runTransaction, arrayUnion, updateDoc } from 'firebase/firestore';
 
 const VALID_CODES_FALLBACK = {
   'MASTI50':    { coins: 50,   desc: 'Masti Bonus'        },
@@ -48,4 +48,17 @@ export async function redeemCodeTransaction(userId, code) {
   });
 
   return { coinsEarned, codeDesc };
+}
+
+// ─── Bonus code redemption history Firebase mein save karo ───────────────────
+// Har successful redemption ka record — cross-device visible hoga
+export async function saveBonusHistoryToDb(userId, entry) {
+  if (!userId) return;
+  try {
+    await updateDoc(doc(db, 'users', String(userId)), {
+      bonus_history: arrayUnion(entry),
+    });
+  } catch (e) {
+    console.error('saveBonusHistoryToDb err:', e);
+  }
 }

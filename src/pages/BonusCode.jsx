@@ -3,8 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import '../styles/bonusCode.css';
 
-const historyKey = (uid) => uid ? `smb_code_history_${uid}` : null;
-
 const CODE_SOURCES = [
   {
     icon: '📢',
@@ -52,7 +50,7 @@ const REWARD_TIERS = [
 
 export default function BonusCode() {
   const navigate     = useNavigate();
-  const { user, redeemBonusCode } = useApp();
+  const { redeemBonusCode, bonusHistory } = useApp();
   const redeemingRef = useRef(false);
 
   const [code,    setCode]    = useState('');
@@ -60,20 +58,6 @@ export default function BonusCode() {
   const [msg,     setMsg]     = useState('');
   const [reward,  setReward]  = useState(null);
   const [loading, setLoading] = useState(false);
-
-  const [history, setHistory] = useState(() => {
-    const key = historyKey(user?.id);
-    if (!key) return [];
-    try { return JSON.parse(localStorage.getItem(key) || '[]'); }
-    catch { return []; }
-  });
-
-  const saveHistory = (entry) => {
-    const updated = [entry, ...history].slice(0, 10);
-    setHistory(updated);
-    const key = historyKey(user?.id);
-    if (key) localStorage.setItem(key, JSON.stringify(updated));
-  };
 
   const handleRedeem = async () => {
     const trimmed = code.trim().toUpperCase();
@@ -85,7 +69,6 @@ export default function BonusCode() {
     setReward(null);
     try {
       const { coins, desc } = await redeemBonusCode(trimmed);
-      saveHistory({ code: trimmed, coins, desc, date: new Date().toLocaleDateString('en-IN') });
       setReward({ coins, desc });
       setStatus('success');
       setMsg('');
@@ -240,7 +223,7 @@ export default function BonusCode() {
             </div>
 
             {/* ══ HISTORY ══ */}
-            {history.length > 0 && (
+            {bonusHistory.length > 0 && (
               <>
                 <div className="bc-section-hdr">
                   <div className="bc-section-line" />
@@ -248,7 +231,7 @@ export default function BonusCode() {
                   <div className="bc-section-line" />
                 </div>
                 <div className="bc-history-card">
-                  {history.map((h, i) => (
+                  {bonusHistory.map((h, i) => (
                     <div key={i} className="bc-history-row">
                       <div className="bc-history-num" style={{ animationDelay: `${i * 0.05}s` }}>
                         <span className="bc-hist-coin">🪙</span>
