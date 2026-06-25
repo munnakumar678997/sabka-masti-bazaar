@@ -250,6 +250,123 @@
 .flip-opt-icon { font-size: 30px; }
 .flip-vs { font-size: 13px; font-weight: 900; color: rgba(255,255,255,0.25); }
 
+/* ══════════════════════════════════════════
+   COIN FLIP — BIG RESULT OVERLAY CARD
+══════════════════════════════════════════ */
+.flip-gmodal { overflow: hidden; }
+
+.flip-result-overlay {
+  position: absolute; inset: 0;
+  border-radius: 28px;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 10px;
+  padding: 24px 20px;
+  cursor: pointer;
+  z-index: 10;
+  animation: froSlideIn 0.35s cubic-bezier(.34,1.4,.64,1);
+}
+@keyframes froSlideIn {
+  from { opacity: 0; transform: scale(0.82); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* WIN — gold/green */
+.fro-win {
+  background: linear-gradient(160deg, #0a2a14 0%, #0d1f10 40%, #0c1a0c 100%);
+  border: 2px solid rgba(74,222,128,0.4);
+  box-shadow: inset 0 0 60px rgba(74,222,128,0.08), 0 0 0 1px rgba(255,215,0,0.15);
+}
+
+/* LOSS — red/dark */
+.fro-loss {
+  background: linear-gradient(160deg, #1f0a0a 0%, #1a0808 40%, #120606 100%);
+  border: 2px solid rgba(248,113,113,0.35);
+  box-shadow: inset 0 0 60px rgba(248,113,113,0.07);
+}
+
+/* Floating emoji particles */
+.fro-particles {
+  position: absolute; inset: 0; pointer-events: none; overflow: hidden;
+}
+.fro-particle {
+  position: absolute;
+  top: 50%; left: 50%;
+  font-size: 20px; line-height: 1;
+  transform: translate(-50%,-50%)
+    rotate(var(--d))
+    translateY(calc(-1 * var(--r)));
+  animation: froParticle 1.2s cubic-bezier(.34,1.4,.64,1) both;
+}
+@keyframes froParticle {
+  from { opacity: 0; transform: translate(-50%,-50%) rotate(var(--d)) translateY(0); }
+  60%  { opacity: 1; }
+  to   { opacity: 0.6; transform: translate(-50%,-50%) rotate(var(--d)) translateY(calc(-1 * var(--r))); }
+}
+
+/* Main big icon */
+.fro-main-icon {
+  font-size: 88px; line-height: 1;
+  filter: drop-shadow(0 0 30px rgba(255,215,0,0.5));
+  animation: froIconBounce 0.5s cubic-bezier(.34,1.7,.64,1) 0.1s both;
+}
+@keyframes froIconBounce {
+  from { transform: scale(0.3) rotate(-15deg); opacity: 0; }
+  to   { transform: scale(1) rotate(0deg);     opacity: 1; }
+}
+
+/* WIN / LOSS label badge */
+.fro-status-badge {
+  font-size: 26px; font-weight: 900; letter-spacing: 0.5px;
+  text-shadow: 0 2px 12px rgba(0,0,0,0.5);
+  animation: froFadeUp 0.4s ease 0.2s both;
+}
+.fro-win  .fro-status-badge { color: #4ade80; }
+.fro-loss .fro-status-badge { color: #f87171; }
+
+/* "HEADS/TAILS aaya" */
+.fro-result-text {
+  font-size: 14px; font-weight: 700; letter-spacing: 1px;
+  text-transform: uppercase;
+  animation: froFadeUp 0.4s ease 0.28s both;
+}
+.fro-win  .fro-result-text { color: rgba(74,222,128,0.6); }
+.fro-loss .fro-result-text { color: rgba(248,113,113,0.55); }
+
+/* +15 Coins row (win only) */
+.fro-coins-won {
+  display: flex; align-items: center; gap: 8px;
+  background: rgba(255,215,0,0.12);
+  border: 1.5px solid rgba(255,215,0,0.35);
+  border-radius: 50px; padding: 10px 22px;
+  margin-top: 4px;
+  animation: froFadeUp 0.4s ease 0.35s both;
+  box-shadow: 0 0 20px rgba(255,215,0,0.15);
+}
+.fro-coins-icon { font-size: 22px; }
+.fro-coins-num  { font-size: 30px; font-weight: 900; color: #fbbf24; line-height: 1; }
+.fro-coins-lbl  { font-size: 13px; font-weight: 700; color: rgba(255,215,0,0.7); }
+
+/* Retry message (loss only) */
+.fro-retry-msg {
+  font-size: 14px; font-weight: 700; text-align: center; line-height: 1.5;
+  color: rgba(255,255,255,0.5);
+  margin-top: 4px;
+  animation: froFadeUp 0.4s ease 0.35s both;
+}
+
+/* Tap to close hint */
+.fro-tap-hint {
+  position: absolute; bottom: 16px;
+  font-size: 11px; color: rgba(255,255,255,0.22);
+  font-weight: 600; letter-spacing: 0.3px;
+  animation: froFadeUp 0.4s ease 0.5s both;
+}
+
+@keyframes froFadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
 /* ── TOAST ── */
 .games-toast {
   position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%);

@@ -112,18 +112,22 @@ export default function Games() {
   const [scratchRevealed, setScratchRevealed] = useState([false, false, false]);
 
   /* ── FLIP state ── */
-  const [flipChoice, setFlipChoice] = useState(null);
-  const [flipping,   setFlipping]   = useState(false);
-  const [flipResult, setFlipResult] = useState(null);
-  const [flipFace,   setFlipFace]   = useState('🪙');
-  const flipIntervalRef = useRef(null); // unmount cleanup ke liye
+  const [flipChoice,     setFlipChoice]     = useState(null);
+  const [flipping,       setFlipping]       = useState(false);
+  const [flipResult,     setFlipResult]     = useState(null);
+  const [flipFace,       setFlipFace]       = useState('🪙');
+  const [showFlipResult, setShowFlipResult] = useState(false);
+  const [flipResultData, setFlipResultData] = useState(null);
+  const flipIntervalRef   = useRef(null); // unmount cleanup ke liye
+  const flipResultTimerRef = useRef(null); // auto-dismiss timer
 
   /* ── Cleanup on unmount — memory leak prevent ── */
   useEffect(() => {
     return () => {
-      if (spinTimeoutRef.current)  clearTimeout(spinTimeoutRef.current);
-      if (flipIntervalRef.current) clearInterval(flipIntervalRef.current);
-      if (toastTimerRef.current)   clearTimeout(toastTimerRef.current);
+      if (spinTimeoutRef.current)    clearTimeout(spinTimeoutRef.current);
+      if (flipIntervalRef.current)   clearInterval(flipIntervalRef.current);
+      if (toastTimerRef.current)     clearTimeout(toastTimerRef.current);
+      if (flipResultTimerRef.current) clearTimeout(flipResultTimerRef.current);
     };
   }, []);
 
@@ -205,12 +209,16 @@ export default function Games() {
         const won    = result === myChoice;
         setFlipFace(result === 'heads' ? '👑' : '🔵');
         setFlipResult({ result, won });
-        if (won) { addCoins(15); showToast('🎉 Sahi! +15 coins!'); }
-        else     { showToast('😅 Galat! Next try karo.'); }
+        if (won) addCoins(15);
         incUsed('flip');
         setFlipping(false);
         setFlipChoice(null);
         refresh();
+        // Big result card dikhao — toast nahi
+        setFlipResultData({ result, won });
+        setShowFlipResult(true);
+        if (flipResultTimerRef.current) clearTimeout(flipResultTimerRef.current);
+        flipResultTimerRef.current = setTimeout(() => setShowFlipResult(false), 3500);
       }
     }, 120);
     flipIntervalRef.current = interval; // unmount pe clearInterval ke liye
@@ -346,19 +354,15 @@ export default function Games() {
 
       {/* ═══════════════════ COIN FLIP MODAL ═══════════════════ */}
       {openGame === 'flip' && (
-        <div className="gmodal-overlay" onClick={() => !flipping && setOpenGame(null)}>
-          <div className="gmodal" onClick={e => e.stopPropagation()}>
-            {!flipping && <button className="gmodal-close" onClick={() => setOpenGame(null)}>✕</button>}
+        <div className="gmodal-overlay" onClick={() => !flipping && !showFlipResult && setOpenGame(null)}>
+          <div className="gmodal flip-gmodal" onClick={e => e.stopPropagation()}>
+            {!flipping && !showFlipResult && (
+              <button className="gmodal-close" onClick={() => setOpenGame(null)}>✕</button>
+            )}
             <div className="gmodal-title">🪙 Coin Flip</div>
             <div className="gmodal-sub">{10 - getUsed('flip')} flips bacha aaj ke liye</div>
 
             <div className={`flip-display ${flipping ? 'spinning' : ''}`}>{flipFace}</div>
-
-            {flipResult && (
-              <div className={`flip-outcome ${flipResult.won ? 'won' : 'lost'}`}>
-                {flipResult.won ? `🎉 ${flipResult.result.toUpperCase()} — Sahi! +15 coins!` : `😅 ${flipResult.result.toUpperCase()} aaya — Galat!`}
-              </div>
-            )}
 
             <div className="flip-choices">
               <button className={`flip-opt ${flipChoice === 'heads' ? 'sel' : ''}`}
@@ -380,6 +384,45 @@ export default function Games() {
               onClick={handleFlip}>
               {flipping ? '🌀 Flipping...' : getUsed('flip') >= 10 ? '✅ Aaj ke liye done!' : '🪙 FLIP KARO!'}
             </button>
+
+            {/* ── BIG RESULT CARD OVERLAY ── */}
+            {showFlipResult && flipResultData && (
+              <div
+                className={`flip-result-overlay ${flipResultData.won ? 'fro-win' : 'fro-loss'}`}
+                onClick={() => { setShowFlipResult(false); if (flipResultTimerRef.current) clearTimeout(flipResultTimerRef.current); }}>
+
+                <div className="fro-particles">
+                  {flipResultData.won
+                    ? ['🎉','✨','🎊','⭐','🌟','🎊','✨','🎉'].map((p,i) => <span key={i} className="fro-particle" style={{ '--d': `${i * 45}deg`, '--r': `${55 + (i%3)*20}px` }}>{p}</span>)
+                    : ['💨','😮','💫','😬'].map((p,i) => <span key={i} className="fro-particle" style={{ '--d': `${i * 90}deg`, '--r': '50px' }}>{p}</span>)
+                  }
+                </div>
+
+                <div className="fro-main-icon">
+                  {flipResultData.won ? '👑' : '🔵'}
+                </div>
+
+                <div className="fro-status-badge">
+                  {flipResultData.won ? '🎊 JEET GAYE!' : '😅 HAAR GAYE!'}
+                </div>
+
+                <div className="fro-result-text">
+                  {flipResultData.result.toUpperCase()} aaya
+                </div>
+
+                {flipResultData.won ? (
+                  <div className="fro-coins-won">
+                    <span className="fro-coins-icon">🪙</span>
+                    <span className="fro-coins-num">+15</span>
+                    <span className="fro-coins-lbl">Coins Mile!</span>
+                  </div>
+                ) : (
+                  <div className="fro-retry-msg">Chinta mat karo —<br/>agli baar zaroor jeetoge! 💪</div>
+                )}
+
+                <div className="fro-tap-hint">Tap karke band karo</div>
+              </div>
+            )}
           </div>
         </div>
       )}
