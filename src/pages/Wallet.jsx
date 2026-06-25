@@ -292,8 +292,11 @@ export default function Wallet() {
                   onChange={e => setUpiId(e.target.value)}
                   placeholder="example@upi · 9876543210@paytm"
                 />
-                {upiId.length > 4 && (
+                {upiId.length > 4 && validUpi && (
                   <div className="wlt-input-badge ok">✓</div>
+                )}
+                {upiId.length > 4 && !validUpi && (
+                  <div className="wlt-input-badge error">✗</div>
                 )}
               </div>
               <div className="wlt-field-hint neutral">

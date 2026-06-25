@@ -48,7 +48,11 @@ export function AppProvider({ children }) {
 
       if (userSnap.exists()) {
         const existing       = userSnap.data();
-        const updatePayload  = { username: tgUser.username ?? null, photo_url: tgUser.photo_url ?? null };
+        const updatePayload  = {
+          name:      `${tgUser.first_name || tgUser.name || existing.name || ''}`.trim() || existing.name || null,
+          username:  tgUser.username  ?? null,
+          photo_url: tgUser.photo_url ?? null,
+        };
         if (mobile) updatePayload.mobile = mobile;
         await updateDoc(userRef, updatePayload);
 
@@ -126,25 +130,35 @@ export function AppProvider({ children }) {
     }
   };
 
-  // ─── Referral logic — extracted from loadUser ─────────────────────────────
+  // ─── Referral logic — runTransaction se race-condition safe ──────────────
   const _handleReferral = async (referredBy, tgUser) => {
     const referrerId = String(referredBy).replace(/^SMB/i, '');
     if (!referrerId || referrerId === String(tgUser.id)) return;
 
-    const referrerRef  = doc(db, 'users', referrerId);
-    const referrerSnap = await getDoc(referrerRef);
-    if (!referrerSnap.exists()) return;
+    const referrerRef = doc(db, 'users', referrerId);
+    const MILESTONE_COINS = { 1: 50, 3: 200, 5: 500, 10: 1200, 25: 3500, 50: 8000 };
 
-    const referrerData      = referrerSnap.data();
-    const newRefCount       = (referrerData.referral_count || 0) + 1;
-    const awardedMilestones = referrerData.awarded_milestones || [];
-    const MILESTONE_COINS   = { 1: 50, 3: 200, 5: 500, 10: 1200, 25: 3500, 50: 8000 };
-    const milestoneBonus    = (MILESTONE_COINS[newRefCount] && !awardedMilestones.includes(newRefCount))
-      ? MILESTONE_COINS[newRefCount] : 0;
+    let newRefCount   = 0;
+    let milestoneBonus = 0;
 
-    const updatePayload = { referral_count: increment(1), balance: increment(50 + milestoneBonus) };
-    if (milestoneBonus > 0) updatePayload.awarded_milestones = arrayUnion(newRefCount);
-    await updateDoc(referrerRef, updatePayload);
+    const { runTransaction: rt } = await import('firebase/firestore');
+    await rt(db, async (txn) => {
+      const referrerSnap = await txn.get(referrerRef);
+      if (!referrerSnap.exists()) throw new Error('REFERRER_NOT_FOUND');
+
+      const referrerData      = referrerSnap.data();
+      newRefCount             = (referrerData.referral_count || 0) + 1;
+      const awardedMilestones = referrerData.awarded_milestones || [];
+      milestoneBonus          = (MILESTONE_COINS[newRefCount] && !awardedMilestones.includes(newRefCount))
+        ? MILESTONE_COINS[newRefCount] : 0;
+
+      const updatePayload = {
+        referral_count: increment(1),
+        balance:        increment(50 + milestoneBonus),
+      };
+      if (milestoneBonus > 0) updatePayload.awarded_milestones = arrayUnion(newRefCount);
+      txn.update(referrerRef, updatePayload);
+    });
 
     _addNotification(referrerId, {
       title: '👥 Naya Referral!',

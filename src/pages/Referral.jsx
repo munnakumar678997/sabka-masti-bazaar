@@ -58,7 +58,7 @@ export default function Referral() {
     <div className="ref-page">
 
       <div className="ref-topbar">
-        <button className="ref-back-btn" onClick={() => navigate('/profile')}>← Back</button>
+        <button className="ref-back-btn" onClick={() => navigate(-1)}>← Back</button>
         <div className="ref-topbar-title">👥 Referral</div>
         <div style={{ width: 70 }} />
       </div>
