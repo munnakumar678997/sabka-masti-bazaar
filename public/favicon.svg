@@ -1,190 +1,217 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <defs>
-    <!-- Background -->
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%"   stop-color="#052e16"/>
-      <stop offset="55%"  stop-color="#0f3d25"/>
-      <stop offset="100%" stop-color="#0a1628"/>
-    </linearGradient>
-    <!-- Coin face -->
-    <radialGradient id="coinFace" cx="36%" cy="30%" r="70%">
-      <stop offset="0%"   stop-color="#fef9c3"/>
-      <stop offset="25%"  stop-color="#fde68a"/>
-      <stop offset="60%"  stop-color="#fbbf24"/>
-      <stop offset="100%" stop-color="#b45309"/>
+    <!-- Dark outer background -->
+    <radialGradient id="outerBg" cx="50%" cy="50%" r="50%">
+      <stop offset="0%"   stop-color="#080818"/>
+      <stop offset="100%" stop-color="#020208"/>
     </radialGradient>
-    <!-- Coin shine -->
-    <radialGradient id="coinShine" cx="28%" cy="22%" r="55%">
-      <stop offset="0%"   stop-color="rgba(255,255,255,0.52)"/>
-      <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+
+    <!-- Blue circle deep navy gradient -->
+    <radialGradient id="blueBg" cx="50%" cy="38%" r="65%">
+      <stop offset="0%"   stop-color="#1a2e7a"/>
+      <stop offset="45%"  stop-color="#0d1a5c"/>
+      <stop offset="100%" stop-color="#040a2a"/>
     </radialGradient>
-    <!-- Ambient glow -->
-    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
-      <stop offset="0%"   stop-color="rgba(251,191,36,0.2)"/>
-      <stop offset="100%" stop-color="rgba(251,191,36,0)"/>
+
+    <!-- Golden glow halo behind coin -->
+    <radialGradient id="halo" cx="50%" cy="50%" r="50%">
+      <stop offset="0%"   stop-color="rgba(255,200,30,0.55)"/>
+      <stop offset="40%"  stop-color="rgba(255,165,0,0.22)"/>
+      <stop offset="100%" stop-color="rgba(255,140,0,0)"/>
     </radialGradient>
-    <!-- Basket body fill -->
-    <linearGradient id="basketFill" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%"   stop-color="rgba(34,197,94,0.14)"/>
-      <stop offset="100%" stop-color="rgba(22,163,74,0.08)"/>
-    </linearGradient>
-    <!-- Handle gradient -->
-    <linearGradient id="handleGrad" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%"   stop-color="#fbbf24"/>
-      <stop offset="50%"  stop-color="#fde68a"/>
+
+    <!-- Gold coin face — bright center, rich edges -->
+    <radialGradient id="coinFace" cx="38%" cy="30%" r="68%">
+      <stop offset="0%"   stop-color="#fff7c2"/>
+      <stop offset="22%"  stop-color="#fde68a"/>
+      <stop offset="55%"  stop-color="#f59e0b"/>
+      <stop offset="85%"  stop-color="#d97706"/>
+      <stop offset="100%" stop-color="#92400e"/>
+    </radialGradient>
+
+    <!-- Coin ring gradient -->
+    <linearGradient id="coinRing" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%"   stop-color="#fde68a"/>
+      <stop offset="50%"  stop-color="#b45309"/>
       <stop offset="100%" stop-color="#fbbf24"/>
     </linearGradient>
 
-    <filter id="coinShadow" x="-25%" y="-15%" width="150%" height="150%">
-      <feDropShadow dx="0" dy="10" stdDeviation="16" flood-color="#000" flood-opacity="0.5"/>
+    <!-- Coin shine overlay -->
+    <radialGradient id="coinShine" cx="28%" cy="22%" r="55%">
+      <stop offset="0%"   stop-color="rgba(255,255,255,0.5)"/>
+      <stop offset="70%"  stop-color="rgba(255,255,255,0.06)"/>
+      <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+    </radialGradient>
+
+    <!-- Blue glow ring -->
+    <linearGradient id="ringGlow" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stop-color="#60a5fa"/>
+      <stop offset="50%"  stop-color="#3b82f6"/>
+      <stop offset="100%" stop-color="#1d4ed8"/>
+    </linearGradient>
+
+    <!-- Cart white with slight depth -->
+    <linearGradient id="cartWhite" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#d1d5db"/>
+    </linearGradient>
+
+    <!-- Wheel gradient -->
+    <radialGradient id="wheelGrad" cx="35%" cy="30%" r="70%">
+      <stop offset="0%"   stop-color="#e5e7eb"/>
+      <stop offset="100%" stop-color="#9ca3af"/>
+    </radialGradient>
+
+    <!-- Drop shadow for coin -->
+    <filter id="coinDrop" x="-20%" y="-10%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="14" stdDeviation="20" flood-color="#000" flood-opacity="0.55"/>
     </filter>
-    <filter id="handleGlow" x="-20%" y="-20%" width="140%" height="140%">
-      <feGaussianBlur stdDeviation="5" result="b"/>
+
+    <!-- Outer blue ring glow filter -->
+    <filter id="ringGlowFx" x="-5%" y="-5%" width="110%" height="110%">
+      <feGaussianBlur stdDeviation="8" result="b"/>
+      <feMerge>
+        <feMergeNode in="b"/>
+        <feMergeNode in="b"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <!-- Text glow -->
+    <filter id="txtGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="3.5" result="b"/>
       <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
     </filter>
-    <filter id="textGlow" x="-15%" y="-15%" width="130%" height="130%">
+
+    <!-- Cart glow -->
+    <filter id="cartGlow" x="-10%" y="-10%" width="120%" height="120%">
       <feGaussianBlur stdDeviation="4" result="b"/>
       <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
     </filter>
   </defs>
 
-  <!-- ── BACKGROUND ── -->
-  <rect width="512" height="512" rx="108" fill="url(#bg)"/>
+  <!-- ══ OUTER DARK BACKGROUND ══ -->
+  <rect width="512" height="512" rx="110" fill="url(#outerBg)"/>
 
-  <!-- Background subtle dots -->
-  <g opacity="0.05">
-    <circle cx="80"  cy="80"  r="2.5" fill="#4ade80"/>
-    <circle cx="160" cy="56"  r="2"   fill="#4ade80"/>
-    <circle cx="352" cy="56"  r="2"   fill="#4ade80"/>
-    <circle cx="432" cy="80"  r="2.5" fill="#4ade80"/>
-    <circle cx="56"  cy="200" r="2"   fill="#4ade80"/>
-    <circle cx="456" cy="200" r="2"   fill="#4ade80"/>
-    <circle cx="68"  cy="420" r="2"   fill="#4ade80"/>
-    <circle cx="444" cy="420" r="2"   fill="#4ade80"/>
-  </g>
+  <!-- ══ DEEP BLUE CIRCLE ══ -->
+  <!-- Outer glow ring (behind circle) -->
+  <circle cx="256" cy="256" r="247" fill="none"
+          stroke="#3b82f6" stroke-width="16" opacity="0.3"
+          filter="url(#ringGlowFx)"/>
 
-  <!-- ── SHOPPING BASKET BODY (drawn first — behind coin) ── -->
-  <!-- Basket shadow -->
-  <ellipse cx="256" cy="464" rx="118" ry="14" fill="rgba(0,0,0,0.35)"/>
+  <!-- Main blue circle fill -->
+  <circle cx="256" cy="256" r="238" fill="url(#blueBg)"/>
 
-  <!-- Basket body: trapezoid shape -->
-  <path d="M 134 298 L 148 450 Q 150 464 164 464 L 348 464 Q 362 464 364 450 L 378 298 Z"
-        fill="url(#basketFill)"
-        stroke="#22c55e"
-        stroke-width="3.5"
-        stroke-linejoin="round"/>
+  <!-- Bright blue border ring -->
+  <circle cx="256" cy="256" r="238" fill="none"
+          stroke="url(#ringGlow)" stroke-width="7"
+          filter="url(#ringGlowFx)"/>
 
-  <!-- Basket grid lines (vertical) -->
-  <g stroke="rgba(34,197,94,0.22)" stroke-width="1.5">
-    <line x1="182" y1="299" x2="170" y2="463"/>
-    <line x1="230" y1="299" x2="224" y2="463"/>
-    <line x1="282" y1="299" x2="288" y2="463"/>
-    <line x1="330" y1="299" x2="342" y2="463"/>
-  </g>
-  <!-- Basket grid lines (horizontal) -->
-  <g stroke="rgba(34,197,94,0.18)" stroke-width="1.5">
-    <line x1="136" y1="340" x2="376" y2="340"/>
-    <line x1="139" y1="385" x2="373" y2="385"/>
-    <line x1="142" y1="430" x2="370" y2="430"/>
-  </g>
+  <!-- Inner edge highlight -->
+  <circle cx="256" cy="256" r="234" fill="none"
+          stroke="rgba(147,197,253,0.35)" stroke-width="2"/>
 
-  <!-- Basket top rim -->
-  <path d="M 124 296 Q 124 288 132 288 L 380 288 Q 388 288 388 296 L 388 308 Q 388 316 380 316 L 132 316 Q 124 316 124 308 Z"
-        fill="rgba(34,197,94,0.18)"
-        stroke="#22c55e"
-        stroke-width="3"/>
+  <!-- ══ GOLDEN HALO (behind coin) ══ -->
+  <ellipse cx="256" cy="196" rx="190" ry="175" fill="url(#halo)"/>
 
-  <!-- ── COIN AMBIENT GLOW ── -->
-  <ellipse cx="256" cy="240" rx="150" ry="142" fill="url(#glow)"/>
-
-  <!-- ── MAIN GOLD COIN ── -->
-  <!-- Coin drop shadow -->
-  <ellipse cx="256" cy="268" rx="108" ry="18" fill="rgba(0,0,0,0.4)"/>
+  <!-- ══ GOLD COIN (drawn before cart so cart overlaps) ══ -->
+  <!-- Coin outer shadow -->
+  <circle cx="256" cy="196" r="141" fill="rgba(0,0,0,0.4)"
+          transform="translate(0,16)"/>
 
   <!-- Coin body -->
-  <circle cx="256" cy="238" r="116" fill="url(#coinFace)" filter="url(#coinShadow)"/>
+  <circle cx="256" cy="196" r="141" fill="url(#coinFace)" filter="url(#coinDrop)"/>
 
-  <!-- Coin outer ring -->
-  <circle cx="256" cy="238" r="116" fill="none" stroke="#92400e" stroke-width="3.5" opacity="0.4"/>
+  <!-- Coin outer groove ring -->
+  <circle cx="256" cy="196" r="141" fill="none"
+          stroke="url(#coinRing)" stroke-width="5" opacity="0.55"/>
 
-  <!-- Coin inner groove -->
-  <circle cx="256" cy="238" r="96"  fill="none" stroke="#d97706" stroke-width="2" opacity="0.55"/>
-  <circle cx="256" cy="238" r="91"  fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="1.5"/>
+  <!-- Coin inner groove ring -->
+  <circle cx="256" cy="196" r="122" fill="none"
+          stroke="#d97706" stroke-width="2.5" opacity="0.45"/>
+  <circle cx="256" cy="196" r="116" fill="none"
+          stroke="rgba(255,255,255,0.1)" stroke-width="1.5"/>
 
-  <!-- Coin shine -->
-  <circle cx="256" cy="238" r="116" fill="url(#coinShine)"/>
+  <!-- Coin shine highlight -->
+  <circle cx="256" cy="196" r="141" fill="url(#coinShine)"/>
 
-  <!-- ── "SMB" TEXT ON COIN ── -->
-  <!-- Shadow/glow layer -->
-  <text x="256" y="256"
-        font-family="'Arial Black', Arial, Helvetica, sans-serif"
-        font-size="66" font-weight="900"
+  <!-- ══ "SMB" TEXT ON COIN ══ -->
+  <!-- Depth shadow -->
+  <text x="258" y="214"
+        font-family="'Arial Black', 'Arial Bold', Arial, sans-serif"
+        font-size="88" font-weight="900" font-style="italic"
         text-anchor="middle" dominant-baseline="middle"
-        fill="rgba(120,53,15,0.4)"
-        transform="translate(0,4)">SMB</text>
+        fill="rgba(10,30,120,0.35)">SMB</text>
 
-  <!-- Main SMB text -->
-  <text x="256" y="256"
-        font-family="'Arial Black', Arial, Helvetica, sans-serif"
-        font-size="66" font-weight="900"
+  <!-- Main text -->
+  <text x="256" y="210"
+        font-family="'Arial Black', 'Arial Bold', Arial, sans-serif"
+        font-size="88" font-weight="900" font-style="italic"
         text-anchor="middle" dominant-baseline="middle"
-        fill="#78350f"
-        filter="url(#textGlow)">SMB</text>
+        fill="#0f2070"
+        filter="url(#txtGlow)">SMB</text>
 
-  <!-- Text highlight -->
-  <text x="254" y="253"
-        font-family="'Arial Black', Arial, Helvetica, sans-serif"
-        font-size="66" font-weight="900"
+  <!-- Text inner highlight -->
+  <text x="254" y="206"
+        font-family="'Arial Black', 'Arial Bold', Arial, sans-serif"
+        font-size="88" font-weight="900" font-style="italic"
         text-anchor="middle" dominant-baseline="middle"
-        fill="rgba(254,243,199,0.28)">SMB</text>
+        fill="rgba(100,130,255,0.2)">SMB</text>
 
-  <!-- ── BASKET HANDLE (drawn last — in front of coin) ── -->
-  <!-- Handle glow -->
-  <path d="M 164 292 Q 256 92 348 292"
-        fill="none"
-        stroke="rgba(251,191,36,0.25)"
-        stroke-width="28"
-        stroke-linecap="round"/>
-  <!-- Handle main -->
-  <path d="M 164 292 Q 256 92 348 292"
-        fill="none"
-        stroke="url(#handleGrad)"
-        stroke-width="18"
-        stroke-linecap="round"
-        filter="url(#handleGlow)"/>
-  <!-- Handle inner shine -->
-  <path d="M 168 292 Q 256 100 344 292"
-        fill="none"
-        stroke="rgba(254,243,199,0.35)"
-        stroke-width="7"
-        stroke-linecap="round"/>
+  <!-- ══ SHOPPING CART (drawn OVER coin bottom) ══ -->
 
-  <!-- ── SPARKLES ── -->
-  <!-- Top-left star -->
-  <g transform="translate(96,110)" filter="url(#handleGlow)">
-    <path d="M0,-13 L3.5,-3.5 L13,0 L3.5,3.5 L0,13 L-3.5,3.5 L-13,0 L-3.5,-3.5 Z"
-          fill="#fbbf24" opacity="0.9"/>
-    <circle cx="0" cy="0" r="2.8" fill="#fff" opacity="0.75"/>
-  </g>
-  <!-- Top-right star -->
-  <g transform="translate(418,96)">
-    <path d="M0,-10 L2.5,-2.5 L10,0 L2.5,2.5 L0,10 L-2.5,2.5 L-10,0 L-2.5,-2.5 Z"
-          fill="#fde68a" opacity="0.85"/>
-    <circle cx="0" cy="0" r="2" fill="#fff" opacity="0.7"/>
-  </g>
-  <!-- Left small -->
-  <g transform="translate(70,270)">
-    <path d="M0,-8 L2,-2 L8,0 L2,2 L0,8 L-2,2 L-8,0 L-2,-2 Z"
-          fill="#4ade80" opacity="0.7"/>
-  </g>
-  <!-- Right small -->
-  <g transform="translate(444,255)">
-    <path d="M0,-9 L2.5,-2.5 L9,0 L2.5,2.5 L0,9 L-2.5,2.5 L-9,0 L-2.5,-2.5 Z"
-          fill="#fbbf24" opacity="0.72"/>
-  </g>
-  <!-- Tiny dots -->
-  <circle cx="138" cy="155" r="4"   fill="#4ade80"  opacity="0.6"/>
-  <circle cx="380" cy="148" r="3.5" fill="#4ade80"  opacity="0.55"/>
-  <circle cx="422" cy="185" r="3"   fill="#fbbf24"  opacity="0.5"/>
-  <circle cx="92"  cy="190" r="3"   fill="#fde68a"  opacity="0.5"/>
+  <!-- Cart handle bar (horizontal top) -->
+  <rect x="148" y="303" width="236" height="18" rx="9" fill="url(#cartWhite)"
+        filter="url(#cartGlow)"/>
+
+  <!-- Handle hook (vertical) -->
+  <rect x="148" y="303" width="18" height="44" rx="9" fill="url(#cartWhite)"/>
+
+  <!-- Hook to basket connector -->
+  <rect x="152" y="339" width="32" height="14" rx="7" fill="url(#cartWhite)"/>
+
+  <!-- ══ BASKET BODY ══ -->
+  <!-- Basket outline (trapezoid) -->
+  <path d="M 186 320 L 171 413 Q 169 423 180 423 L 355 423 Q 366 423 364 413 L 349 320 Z"
+        fill="rgba(255,255,255,0.08)"
+        stroke="url(#cartWhite)"
+        stroke-width="4.5"
+        stroke-linejoin="round"/>
+
+  <!-- Basket slot row 1 -->
+  <rect x="182" y="333" width="72" height="14" rx="5.5" fill="white" opacity="0.92"/>
+  <rect x="263" y="333" width="72" height="14" rx="5.5" fill="white" opacity="0.92"/>
+
+  <!-- Basket slot row 2 -->
+  <rect x="179" y="357" width="74" height="14" rx="5.5" fill="white" opacity="0.92"/>
+  <rect x="262" y="357" width="74" height="14" rx="5.5" fill="white" opacity="0.92"/>
+
+  <!-- Basket slot row 3 -->
+  <rect x="176" y="381" width="76" height="14" rx="5.5" fill="white" opacity="0.92"/>
+  <rect x="261" y="381" width="76" height="14" rx="5.5" fill="white" opacity="0.92"/>
+
+  <!-- Basket bottom bar -->
+  <rect x="171" y="405" width="196" height="14" rx="6" fill="url(#cartWhite)" opacity="0.9"/>
+
+  <!-- Cart axle bar -->
+  <rect x="184" y="424" width="174" height="9" rx="4" fill="white" opacity="0.55"/>
+
+  <!-- ══ CART WHEELS ══ -->
+  <!-- Left wheel -->
+  <circle cx="207" cy="451" r="24" fill="url(#wheelGrad)"
+          filter="url(#cartGlow)"/>
+  <circle cx="207" cy="451" r="13" fill="#0d1a5c" opacity="0.75"/>
+  <circle cx="207" cy="451" r="6"  fill="#1d3a8a" opacity="0.6"/>
+  <circle cx="203" cy="447" r="3"  fill="rgba(255,255,255,0.25)"/>
+
+  <!-- Right wheel -->
+  <circle cx="336" cy="451" r="24" fill="url(#wheelGrad)"
+          filter="url(#cartGlow)"/>
+  <circle cx="336" cy="451" r="13" fill="#0d1a5c" opacity="0.75"/>
+  <circle cx="336" cy="451" r="6"  fill="#1d3a8a" opacity="0.6"/>
+  <circle cx="332" cy="447" r="3"  fill="rgba(255,255,255,0.25)"/>
+
+  <!-- ══ FINAL BLUE RING (on top for clean edge) ══ -->
+  <circle cx="256" cy="256" r="238" fill="none"
+          stroke="#2563eb" stroke-width="4.5" opacity="0.8"/>
 </svg>
