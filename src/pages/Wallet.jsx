@@ -193,6 +193,21 @@ export default function Wallet() {
           </div>
         </div>
 
+        {/* ══ TOTAL EARNED CARD ══ */}
+        <div className="wlt-earned-card">
+          <div className="wlt-earned-left">
+            <div className="wlt-earned-icon">📈</div>
+            <div>
+              <div className="wlt-earned-label">Lifetime Total Kamaya</div>
+              <div className="wlt-earned-sub">Balance + Withdrawn = Total Earning</div>
+            </div>
+          </div>
+          <div className="wlt-earned-right">
+            <div className="wlt-earned-coins">🪙 {(balance + totalWithdrawn).toLocaleString()}</div>
+            <div className="wlt-earned-inr">≈ ₹{((balance + totalWithdrawn) / 100).toFixed(2)}</div>
+          </div>
+        </div>
+
         {/* ══ TABS ══ */}
         <div className="wlt-tabs">
           <button

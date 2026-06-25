@@ -173,6 +173,37 @@
   text-transform: uppercase; color: rgba(255,255,255,0.35);
 }
 
+/* ══ TOTAL EARNED CARD ══ */
+.wlt-earned-card {
+  margin: 0 14px 14px;
+  background: linear-gradient(135deg, rgba(99,102,241,0.12), rgba(168,85,247,0.08));
+  border: 1px solid rgba(168,85,247,0.2);
+  border-radius: 18px; padding: 14px 16px;
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+}
+.wlt-earned-left {
+  display: flex; align-items: center; gap: 10px;
+}
+.wlt-earned-icon {
+  font-size: 22px; flex-shrink: 0;
+}
+.wlt-earned-label {
+  font-size: 12px; font-weight: 800; color: #fff; letter-spacing: 0.2px;
+}
+.wlt-earned-sub {
+  font-size: 9px; color: rgba(255,255,255,0.35);
+  font-weight: 600; margin-top: 2px; letter-spacing: 0.2px;
+}
+.wlt-earned-right {
+  text-align: right; flex-shrink: 0;
+}
+.wlt-earned-coins {
+  font-size: 15px; font-weight: 900; color: #c084fc;
+}
+.wlt-earned-inr {
+  font-size: 10px; color: rgba(255,255,255,0.4); font-weight: 600; margin-top: 2px;
+}
+
 /* ══ TABS ══ */
 .wlt-tabs {
   display: flex; gap: 6px;
