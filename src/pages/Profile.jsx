@@ -4,47 +4,9 @@ import { useApp } from '../context/AppContext';
 import BottomNav from '../components/BottomNav';
 import '../styles/profile.css';
 
-/* ═══════════════════════════════════════
-   LEVEL SYSTEM — coins + tasks ke basis pe
-═══════════════════════════════════════ */
-const LEVELS = [
-  { min: 0,     max: 499,   icon: '🌱', name: 'Naya Khiladi', color: '#64748b', next: 500   },
-  { min: 500,   max: 1999,  icon: '🎮', name: 'Kamau Yaar',   color: '#22c55e', next: 2000  },
-  { min: 2000,  max: 4999,  icon: '💫', name: 'Mast Player',  color: '#0088cc', next: 5000  },
-  { min: 5000,  max: 9999,  icon: '🔥', name: 'Coin Pro',     color: '#f97316', next: 10000 },
-  { min: 10000, max: 19999, icon: '👑', name: 'Legend Boss',  color: '#a855f7', next: 20000 },
-  { min: 20000, max: Infinity, icon: '🌈', name: 'Supreme',   color: '#ffd700', next: null  },
-];
-
-function getLevel(balance) {
-  return LEVELS.find(l => balance >= l.min && balance <= l.max) || LEVELS[0];
-}
-function getNextLevel(balance) {
-  const idx = LEVELS.findIndex(l => balance >= l.min && balance <= l.max);
-  return idx < LEVELS.length - 1 ? LEVELS[idx + 1] : null;
-}
-
-/* ═══════════════════════════════════════
-   DAILY ACTIVITY — localStorage se aaj ka status
-═══════════════════════════════════════ */
 function getTodayKey() {
   const istMs = Date.now() + 5.5 * 60 * 60 * 1000;
   return new Date(istMs).toISOString().split('T')[0];
-}
-function getDailyGamePlays() {
-  const today = getTodayKey();
-  const spin    = parseInt(localStorage.getItem(`smb_game_spin_${today}`)    || '0');
-  const scratch = parseInt(localStorage.getItem(`smb_game_scratch_${today}`) || '0');
-  const flip    = parseInt(localStorage.getItem(`smb_game_flip_${today}`)    || '0');
-  return { spin, scratch, flip, total: spin + scratch + flip, max: 18 };
-}
-function getDailyTasks() {
-  const today = getTodayKey();
-  let done = 0;
-  for (let i = 1; i <= 5; i++) {
-    if (localStorage.getItem(`smb_task_${i}_${today}`) === '1') done++;
-  }
-  return { done, max: 5 };
 }
 
 export default function Profile() {
@@ -59,21 +21,6 @@ export default function Profile() {
 
   const toastTimerRef = useRef(null);
   useEffect(() => () => { if (toastTimerRef.current) clearTimeout(toastTimerRef.current); }, []);
-
-  /* ── Level data ── */
-  const currentLevel = getLevel(balance);
-  const nextLevel    = getNextLevel(balance);
-  const levelPct     = nextLevel
-    ? Math.round(((balance - currentLevel.min) / (currentLevel.max - currentLevel.min + 1)) * 100)
-    : 100;
-
-  /* ── Daily activity ── */
-  const todayIST   = getTodayKey();
-  // BUG FIX B5: Hardcoded 'smb_checkin_ist' ki jagah CHECKIN_BACKUP_KEY context se liya
-  const checkedIn  = user?.last_checkin_date === todayIST
-    || localStorage.getItem(CHECKIN_BACKUP_KEY) === todayIST;
-  const games      = getDailyGamePlays();
-  const tasks      = getDailyTasks();
 
   /* ── Profile display ── */
   const displayName  = user?.name?.trim() || user?.username || 'User';
@@ -156,127 +103,6 @@ export default function Profile() {
               <div className="profile-stat-pill-lbl">{s.lbl}</div>
             </div>
           ))}
-        </div>
-
-        {/* ══════════════════════════════
-            MERA LEVEL — dynamic level card
-        ══════════════════════════════ */}
-        <div className="profile-section-title">⚡ Mera Level</div>
-        <div className="lvl-card" style={{ borderColor: `${currentLevel.color}44` }}>
-          <div className="lvl-card-glow" style={{ background: `radial-gradient(ellipse 80% 60% at 50% 0%, ${currentLevel.color}22 0%, transparent 70%)` }} />
-
-          <div className="lvl-top-row">
-            <div className="lvl-icon-wrap" style={{ background: `${currentLevel.color}20`, border: `2px solid ${currentLevel.color}66` }}>
-              <span className="lvl-icon">{currentLevel.icon}</span>
-            </div>
-            <div className="lvl-info">
-              <div className="lvl-name" style={{ color: currentLevel.color }}>{currentLevel.name}</div>
-              <div className="lvl-coins-label">
-                {nextLevel
-                  ? `${(currentLevel.max + 1 - balance).toLocaleString()} coins aur — ${nextLevel.icon} ${nextLevel.name}`
-                  : '🌈 Maximum level pe pohonch gaye!'}
-              </div>
-            </div>
-            <div className="lvl-pct-badge" style={{ background: `${currentLevel.color}22`, color: currentLevel.color }}>
-              {levelPct}%
-            </div>
-          </div>
-
-          <div className="lvl-bar-wrap">
-            <div className="lvl-bar-track">
-              <div
-                className="lvl-bar-fill"
-                style={{ width: `${levelPct}%`, background: `linear-gradient(90deg, ${currentLevel.color}99, ${currentLevel.color})` }}
-              />
-            </div>
-            <div className="lvl-bar-labels">
-              <span style={{ color: currentLevel.color }}>{currentLevel.min.toLocaleString()}</span>
-              {nextLevel && <span style={{ color: 'rgba(255,255,255,0.3)' }}>{(currentLevel.max + 1).toLocaleString()}</span>}
-            </div>
-          </div>
-
-          {/* Level milestones row */}
-          <div className="lvl-milestones">
-            {LEVELS.map((l, i) => {
-              const reached = balance >= l.min;
-              const isCurrent = l.name === currentLevel.name;
-              return (
-                <div key={i} className={`lvl-dot-wrap ${isCurrent ? 'lvl-dot-active' : ''}`}>
-                  <div
-                    className="lvl-dot"
-                    style={{
-                      background: reached ? l.color : 'rgba(255,255,255,0.08)',
-                      border: isCurrent ? `2px solid ${l.color}` : '2px solid transparent',
-                      boxShadow: isCurrent ? `0 0 8px ${l.color}88` : 'none',
-                    }}
-                  >
-                    <span style={{ fontSize: 10 }}>{l.icon}</span>
-                  </div>
-                  <div className="lvl-dot-name" style={{ color: reached ? l.color : 'rgba(255,255,255,0.2)' }}>
-                    {l.name.split(' ')[0]}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* ══════════════════════════════
-            AAJ KI ACTIVITY — daily tracker
-        ══════════════════════════════ */}
-        <div className="profile-section-title">📊 Aaj Ki Activity</div>
-        <div className="activity-grid">
-
-          {/* Check-in tile */}
-          <div className={`act-tile ${checkedIn ? 'act-done' : 'act-pending'}`} onClick={() => navigate('/home')}>
-            <div className="act-tile-icon">{checkedIn ? '✅' : '📅'}</div>
-            <div className="act-tile-label">Daily Check-in</div>
-            <div className="act-tile-status" style={{ color: checkedIn ? '#22c55e' : '#fbbf24' }}>
-              {checkedIn ? 'Ho gaya!' : 'Baaki hai'}
-            </div>
-            {!checkedIn && <div className="act-tile-cta">→ Jao</div>}
-          </div>
-
-          {/* Games tile */}
-          <div className="act-tile act-games" onClick={() => navigate('/games')}>
-            <div className="act-tile-icon">🎮</div>
-            <div className="act-tile-label">Games</div>
-            <div className="act-tile-bar-wrap">
-              <div className="act-tile-bar">
-                <div className="act-tile-bar-fill act-fill-games" style={{ width: `${Math.min(100, (games.total / games.max) * 100)}%` }} />
-              </div>
-            </div>
-            <div className="act-tile-status" style={{ color: '#a855f7' }}>
-              {games.total}/{games.max} played
-            </div>
-          </div>
-
-          {/* Tasks tile */}
-          <div className="act-tile act-tasks" onClick={() => navigate('/home')}>
-            <div className="act-tile-icon">⚡</div>
-            <div className="act-tile-label">Tasks</div>
-            <div className="act-tile-bar-wrap">
-              <div className="act-tile-bar">
-                <div className="act-tile-bar-fill act-fill-tasks" style={{ width: `${(tasks.done / tasks.max) * 100}%` }} />
-              </div>
-            </div>
-            <div className="act-tile-status" style={{ color: '#f97316' }}>
-              {tasks.done}/{tasks.max} done
-            </div>
-          </div>
-
-          {/* Streak tile */}
-          <div className={`act-tile ${streak >= 3 ? 'act-done' : 'act-pending'}`} onClick={() => navigate('/home')}>
-            <div className="act-tile-icon">{streak >= 7 ? '🔥' : streak >= 3 ? '⚡' : '🌱'}</div>
-            <div className="act-tile-label">Streak</div>
-            <div className="act-tile-status" style={{ color: streak >= 3 ? '#ff6a00' : '#fbbf24' }}>
-              {streak} din
-            </div>
-            <div className="act-tile-cta" style={{ color: streak >= 7 ? '#ff6a00' : 'rgba(255,255,255,0.3)' }}>
-              {streak >= 7 ? '🔥 Hot!' : streak >= 3 ? '⚡ Good' : 'Start karo'}
-            </div>
-          </div>
-
         </div>
 
         {/* ── ACCOUNT INFO ── */}
