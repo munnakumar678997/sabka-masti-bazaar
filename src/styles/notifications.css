@@ -1,6 +1,4 @@
-/* ══════════════════════════════════════════
-   NOTIFICATIONS PAGE — Dark Theme
-══════════════════════════════════════════ */
+/* 😊 Notifications page — sab notifications ki list 😊 */
 .notif-page {
   display: flex;
   flex-direction: column;
@@ -12,7 +10,7 @@
   font-family: 'Segoe UI', sans-serif;
 }
 
-/* ── TOPBAR ── */
+/* 😊 Topbar — back button, title aur mark all read 😊 */
 .notif-topbar {
   display: flex;
   align-items: center;
@@ -48,6 +46,8 @@
   flex: 1;
   justify-content: center;
 }
+
+/* 😊 Badge — unread count ke saath pulse karta hai 😊 */
 .notif-topbar-badge {
   background: linear-gradient(135deg, #ee0979, #ff6a00);
   color: #fff;
@@ -57,13 +57,10 @@
   padding: 2px 7px;
   min-width: 18px;
   text-align: center;
-  animation: badge-pop 2s ease-in-out infinite;
-}
-@keyframes badge-pop {
-  0%, 100% { transform: scale(1); }
-  50%       { transform: scale(1.12); }
+  animation: pulse 2s ease-in-out infinite;
 }
 
+/* 😊 Mark all read button 😊 */
 .notif-markall-btn {
   font-size: 12px;
   font-weight: 700;
@@ -87,7 +84,7 @@
   cursor: not-allowed;
 }
 
-/* ── FILTER PILLS ── */
+/* 😊 Filter pills — All / Unread filter 😊 */
 .notif-filter-row {
   display: flex;
   gap: 10px;
@@ -126,7 +123,7 @@
   text-align: center;
 }
 
-/* ── SCROLL ── */
+/* 😊 Scroll area 😊 */
 .notif-scroll {
   flex: 1;
   overflow-y: auto;
@@ -136,7 +133,7 @@
 }
 .notif-scroll::-webkit-scrollbar { display: none; }
 
-/* ── NOTIF CARD ── */
+/* 😊 Notification card — ek notification 😊 */
 .notif-card {
   display: flex;
   align-items: flex-start;
@@ -152,11 +149,13 @@
 }
 .notif-card:active { transform: scale(0.98); }
 
+/* 😊 Unread card — blue tint ke saath 😊 */
 .notif-card-unread {
   border-color: rgba(0,136,204,0.28);
   background: rgba(0,136,204,0.07);
 }
 
+/* 😊 Notification icon box 😊 */
 .notif-card-icon-wrap {
   width: 44px;
   height: 44px;
@@ -188,6 +187,7 @@
   font-weight: 500;
 }
 
+/* 😊 Unread dot — pink colored 😊 */
 .notif-unread-dot {
   width: 9px;
   height: 9px;
@@ -198,7 +198,7 @@
   box-shadow: 0 0 8px rgba(238,9,121,0.55);
 }
 
-/* ── LOADING ── */
+/* 😊 Loading spinner 😊 */
 .notif-loading {
   display: flex;
   flex-direction: column;
@@ -218,7 +218,7 @@
   50%       { opacity: 0.6; transform: scale(0.9); }
 }
 
-/* ── EMPTY STATE ── */
+/* 😊 Empty state — koi notification nahi hai 😊 */
 .notif-empty {
   display: flex;
   flex-direction: column;

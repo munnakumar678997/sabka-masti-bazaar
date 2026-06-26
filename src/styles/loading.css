@@ -1,3 +1,4 @@
+/* 😊 Loading/Splash screen — sab se pehla dikhne wala page 😊 */
 .loading-page {
   width: 100%;
   min-height: 100dvh;
@@ -10,7 +11,7 @@
   overflow: hidden;
 }
 
-/* Decorative background circles */
+/* 😊 Background ke decorative circles — sirf dikhne ke liye 😊 */
 .bg-circle {
   position: absolute;
   border-radius: 50%;
@@ -21,7 +22,7 @@
 .bg-circle-2 { width: 220px; height: 220px; bottom: 50px; left: -70px; }
 .bg-circle-3 { width: 130px; height: 130px; bottom: 210px; right: 15px; }
 
-/* Floating coins */
+/* 😊 Floating coins — background mein udte hue 😊 */
 .coin {
   position: absolute;
   font-size: 2rem;
@@ -33,12 +34,7 @@
 .coin-3 { bottom: 24%; left: 7%;   animation-delay: 1.5s; }
 .coin-4 { bottom: 28%; right: 9%; animation-delay: 0.4s; }
 
-@keyframes floatCoin {
-  0%, 100% { transform: translateY(0) rotate(0deg); }
-  50%       { transform: translateY(-14px) rotate(15deg); }
-}
-
-/* Logo */
+/* 😊 Logo area — app ka naam aur icon 😊 */
 .logo-area {
   display: flex;
   flex-direction: column;
@@ -47,6 +43,7 @@
   animation: fadeDown 0.8s ease forwards;
 }
 
+/* 😊 Logo box — transparent background mein emoji 😊 */
 .logo-box {
   width: 115px;
   height: 115px;
@@ -62,6 +59,7 @@
   backdrop-filter: blur(8px);
 }
 
+/* 😊 App ka naam — bada aur bold 😊 */
 .app-name {
   font-size: 27px;
   font-weight: 800;
@@ -72,6 +70,7 @@
   padding: 0 20px;
 }
 
+/* 😊 App tagline — chota subtitle 😊 */
 .app-tagline {
   margin-top: 8px;
   font-size: 12px;
@@ -82,7 +81,7 @@
   text-align: center;
 }
 
-/* Loading bar */
+/* 😊 Loading bar area — progress dikhata hai 😊 */
 .loader-area {
   display: flex;
   flex-direction: column;
@@ -92,6 +91,7 @@
   opacity: 0;
 }
 
+/* 😊 Progress bar ka track — grey background 😊 */
 .bar-track {
   width: 190px;
   height: 5px;
@@ -100,6 +100,7 @@
   overflow: hidden;
 }
 
+/* 😊 Progress bar fill — white rang se bharta hai 😊 */
 .bar-fill {
   height: 100%;
   width: 0%;
@@ -109,6 +110,7 @@
   box-shadow: 0 0 10px rgba(255,255,255,0.55);
 }
 
+/* 😊 Loading bar bhar-ne ka animation 😊 */
 @keyframes fillBar {
   0%   { width: 0%; }
   30%  { width: 38%; }
@@ -117,6 +119,7 @@
   100% { width: 100%; }
 }
 
+/* 😊 Loading text — blink karta hai 😊 */
 .loader-text {
   font-size: 11px;
   color: rgba(255,255,255,0.75);
@@ -125,12 +128,7 @@
   animation: blink 1.3s ease-in-out infinite;
 }
 
-@keyframes blink {
-  0%, 100% { opacity: 0.5; }
-  50%       { opacity: 1; }
-}
-
-/* Bottom tagline */
+/* 😊 Neeche copyright text 😊 */
 .bottom-tag {
   position: absolute;
   bottom: 45px;
@@ -141,14 +139,4 @@
   padding: 0 20px;
   animation: fadeUp 1s ease 0.9s forwards;
   opacity: 0;
-}
-
-/* Keyframes */
-@keyframes fadeDown {
-  from { opacity: 0; transform: translateY(-25px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(18px); }
-  to   { opacity: 1; transform: translateY(0); }
 }

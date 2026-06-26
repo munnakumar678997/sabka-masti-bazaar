@@ -1,7 +1,4 @@
-/* ══════════════════════════════════════════════════
-   WALLET PAGE — Premium Redesign 2.0
-══════════════════════════════════════════════════ */
-
+/* 😊 Wallet page — coins withdraw karne ke liye 😊 */
 .wlt-page {
   width: 100%; height: 100dvh;
   background: #0a0a18;
@@ -9,7 +6,7 @@
   position: relative; overflow: hidden;
 }
 
-/* ── TOPBAR ── */
+/* 😊 Wallet top bar — title aur balance chip 😊 */
 .wlt-topbar {
   display: flex; align-items: center; justify-content: space-between;
   padding: 14px 16px 12px;
@@ -31,6 +28,8 @@
   background: linear-gradient(90deg, #22c55e, #4ade80);
   -webkit-background-clip: text; -webkit-text-fill-color: transparent;
 }
+
+/* 😊 Balance chip — coins ka count dikhata hai 😊 */
 .wlt-topbar-chip {
   display: flex; align-items: center; gap: 5px;
   background: rgba(255,215,0,0.08);
@@ -40,14 +39,14 @@
 .wlt-chip-coin { font-size: 14px; }
 .wlt-chip-val { font-size: 13px; font-weight: 800; color: #fbbf24; }
 
-/* ── SCROLL ── */
+/* 😊 Scroll area 😊 */
 .wlt-scroll {
   flex: 1; overflow-y: auto; padding: 0;
   scrollbar-width: none;
 }
 .wlt-scroll::-webkit-scrollbar { display: none; }
 
-/* ══ HERO BALANCE CARD ══ */
+/* 😊 Hero balance card — bada green card 😊 */
 .wlt-hero {
   position: relative; overflow: hidden;
   margin: 14px 14px 0;
@@ -63,18 +62,15 @@
   background: radial-gradient(circle, rgba(34,197,94,0.2), transparent 70%);
   pointer-events: none;
 }
-.wlt-hero-orb {
-  position: absolute; border-radius: 50%;
-  pointer-events: none;
-}
+
+/* 😊 Decorative orbs — background mein 😊 */
+.wlt-hero-orb { position: absolute; border-radius: 50%; pointer-events: none; }
 .wlt-orb-1 {
-  width: 120px; height: 120px;
-  top: -30px; right: -30px;
+  width: 120px; height: 120px; top: -30px; right: -30px;
   background: radial-gradient(circle, rgba(34,197,94,0.12), transparent 70%);
 }
 .wlt-orb-2 {
-  width: 80px; height: 80px;
-  bottom: -20px; left: -10px;
+  width: 80px; height: 80px; bottom: -20px; left: -10px;
   background: radial-gradient(circle, rgba(99,102,241,0.15), transparent 70%);
 }
 
@@ -93,6 +89,7 @@
   font-size: 13px; font-weight: 800; color: #4ade80;
 }
 
+/* 😊 Bada coin balance number 😊 */
 .wlt-hero-amount {
   display: flex; align-items: center; gap: 10px;
   margin-bottom: 20px;
@@ -102,14 +99,13 @@
   width: 48px; height: 48px;
 }
 .wlt-hero-coin-emoji { font-size: 36px; position: relative; z-index: 1; }
+
+/* 😊 Coin ke around ghoomne wali ring 😊 */
 .wlt-hero-coin-ring {
   position: absolute; inset: -4px;
   border: 2px solid rgba(255,215,0,0.25);
   border-radius: 50%;
-  animation: coinRingSpin 3s linear infinite;
-}
-@keyframes coinRingSpin {
-  to { transform: rotate(360deg); }
+  animation: spin 3s linear infinite;
 }
 .wlt-hero-num {
   font-size: 42px; font-weight: 900; color: #fff;
@@ -122,7 +118,7 @@
   margin-top: 6px;
 }
 
-/* Progress bar */
+/* 😊 Withdraw progress bar 😊 */
 .wlt-progress-wrap { display: flex; flex-direction: column; gap: 6px; }
 .wlt-progress-label {
   display: flex; justify-content: space-between;
@@ -149,7 +145,7 @@
   text-align: right;
 }
 
-/* ══ STATS ROW ══ */
+/* 😊 Stats row — teen stats ek saath 😊 */
 .wlt-stats-row {
   display: flex; gap: 8px;
   padding: 12px 14px;
@@ -160,20 +156,17 @@
   display: flex; flex-direction: column; align-items: center; gap: 4px;
   border: 1px solid rgba(255,255,255,0.06);
 }
-.wlt-stat-green { background: rgba(34,197,94,0.07); border-color: rgba(34,197,94,0.15); }
+.wlt-stat-green  { background: rgba(34,197,94,0.07);  border-color: rgba(34,197,94,0.15); }
 .wlt-stat-yellow { background: rgba(251,191,36,0.07); border-color: rgba(251,191,36,0.15); }
-.wlt-stat-blue { background: rgba(99,102,241,0.07); border-color: rgba(99,102,241,0.15); }
-
+.wlt-stat-blue   { background: rgba(99,102,241,0.07); border-color: rgba(99,102,241,0.15); }
 .wlt-stat-icon { font-size: 18px; }
-.wlt-stat-val {
-  font-size: 16px; font-weight: 900; color: #fff;
-}
-.wlt-stat-lbl {
+.wlt-stat-val  { font-size: 16px; font-weight: 900; color: #fff; }
+.wlt-stat-lbl  {
   font-size: 9px; font-weight: 700; letter-spacing: 0.5px;
   text-transform: uppercase; color: rgba(255,255,255,0.35);
 }
 
-/* ══ TOTAL EARNED CARD ══ */
+/* 😊 Total earned card — purple tint mein 😊 */
 .wlt-earned-card {
   margin: 0 14px 14px;
   background: linear-gradient(135deg, rgba(99,102,241,0.12), rgba(168,85,247,0.08));
@@ -181,30 +174,15 @@
   border-radius: 18px; padding: 14px 16px;
   display: flex; align-items: center; justify-content: space-between; gap: 10px;
 }
-.wlt-earned-left {
-  display: flex; align-items: center; gap: 10px;
-}
-.wlt-earned-icon {
-  font-size: 22px; flex-shrink: 0;
-}
-.wlt-earned-label {
-  font-size: 12px; font-weight: 800; color: #fff; letter-spacing: 0.2px;
-}
-.wlt-earned-sub {
-  font-size: 9px; color: rgba(255,255,255,0.35);
-  font-weight: 600; margin-top: 2px; letter-spacing: 0.2px;
-}
-.wlt-earned-right {
-  text-align: right; flex-shrink: 0;
-}
-.wlt-earned-coins {
-  font-size: 15px; font-weight: 900; color: #c084fc;
-}
-.wlt-earned-inr {
-  font-size: 10px; color: rgba(255,255,255,0.4); font-weight: 600; margin-top: 2px;
-}
+.wlt-earned-left  { display: flex; align-items: center; gap: 10px; }
+.wlt-earned-icon  { font-size: 22px; flex-shrink: 0; }
+.wlt-earned-label { font-size: 12px; font-weight: 800; color: #fff; letter-spacing: 0.2px; }
+.wlt-earned-sub   { font-size: 9px; color: rgba(255,255,255,0.35); font-weight: 600; margin-top: 2px; }
+.wlt-earned-right { text-align: right; flex-shrink: 0; }
+.wlt-earned-coins { font-size: 15px; font-weight: 900; color: #c084fc; }
+.wlt-earned-inr   { font-size: 10px; color: rgba(255,255,255,0.4); font-weight: 600; margin-top: 2px; }
 
-/* ══ TABS ══ */
+/* 😊 Withdraw / History tabs 😊 */
 .wlt-tabs {
   display: flex; gap: 6px;
   margin: 0 14px 14px;
@@ -219,27 +197,23 @@
   font-size: 13px; font-weight: 700; cursor: pointer;
   display: flex; align-items: center; justify-content: center; gap: 5px;
   transition: all 0.22s cubic-bezier(0.4,0,0.2,1);
-  position: relative;
 }
 .wlt-tab.active {
   background: linear-gradient(135deg, #16a34a, #22c55e);
   color: #fff;
   box-shadow: 0 4px 20px rgba(34,197,94,0.4);
 }
-.wlt-tab-icon { font-size: 14px; }
+.wlt-tab-icon  { font-size: 14px; }
 .wlt-tab-badge {
   background: rgba(255,255,255,0.25);
   border-radius: 10px; padding: 1px 6px;
   font-size: 10px; font-weight: 800;
 }
 
-/* ══ FORM ══ */
-.wlt-form {
-  display: flex; flex-direction: column; gap: 14px;
-  padding: 0 14px;
-}
+/* 😊 Withdraw form 😊 */
+.wlt-form { display: flex; flex-direction: column; gap: 14px; padding: 0 14px; }
 
-/* Alert box */
+/* 😊 Alert box — warning dikhane ke liye 😊 */
 .wlt-alert {
   display: flex; align-items: flex-start; gap: 12px;
   padding: 14px; border-radius: 16px;
@@ -248,12 +222,12 @@
   background: rgba(251,191,36,0.07);
   border: 1px solid rgba(251,191,36,0.2);
 }
-.wlt-alert-icon { font-size: 22px; flex-shrink: 0; }
+.wlt-alert-icon  { font-size: 22px; flex-shrink: 0; }
 .wlt-alert-title { font-size: 13px; font-weight: 800; color: #fbbf24; margin-bottom: 3px; }
-.wlt-alert-desc { font-size: 12px; color: rgba(255,255,255,0.5); line-height: 1.5; }
+.wlt-alert-desc  { font-size: 12px; color: rgba(255,255,255,0.5); line-height: 1.5; }
 .wlt-alert-desc strong { color: #fbbf24; }
 
-/* Field */
+/* 😊 Input field wrapper 😊 */
 .wlt-field { display: flex; flex-direction: column; gap: 7px; }
 .wlt-field-label {
   display: flex; align-items: center; gap: 6px;
@@ -261,7 +235,6 @@
   text-transform: uppercase; letter-spacing: 1px;
 }
 .wlt-field-icon { font-size: 13px; }
-
 .wlt-input-wrap { position: relative; }
 .wlt-input {
   width: 100%;
@@ -269,8 +242,7 @@
   border: 1.5px solid rgba(255,255,255,0.09);
   border-radius: 16px; padding: 15px 52px 15px 16px;
   color: #fff; font-size: 15px; font-weight: 600;
-  outline: none; transition: all 0.2s;
-  box-sizing: border-box;
+  outline: none; transition: all 0.2s; box-sizing: border-box;
 }
 .wlt-input::placeholder { color: rgba(255,255,255,0.2); }
 .wlt-input:focus {
@@ -282,18 +254,15 @@
   position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
   font-size: 12px; font-weight: 800; border-radius: 10px; padding: 3px 10px;
 }
-.wlt-input-badge.ok { color: #4ade80; background: rgba(34,197,94,0.1); }
+.wlt-input-badge.ok    { color: #4ade80; background: rgba(34,197,94,0.1); }
 .wlt-input-badge.error { color: #f87171; background: rgba(248,113,113,0.1); }
-
-.wlt-field-hint {
-  font-size: 12px; font-weight: 600; padding-left: 4px;
-}
+.wlt-field-hint { font-size: 12px; font-weight: 600; padding-left: 4px; }
 .wlt-field-hint.ok      { color: #4ade80; }
 .wlt-field-hint.warn    { color: #fbbf24; }
 .wlt-field-hint.error   { color: #f87171; }
 .wlt-field-hint.neutral { color: rgba(255,255,255,0.3); }
 
-/* Quick chips */
+/* 😊 Quick amount chips 😊 */
 .wlt-quick-label {
   font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.3);
   text-transform: uppercase; letter-spacing: 1px;
@@ -308,17 +277,14 @@
   transition: all 0.18s;
 }
 .wlt-quick-chip:active { transform: scale(0.95); }
-.wlt-quick-chip.selected {
-  background: rgba(34,197,94,0.12);
-  border-color: rgba(34,197,94,0.4);
-}
+.wlt-quick-chip.selected { background: rgba(34,197,94,0.12); border-color: rgba(34,197,94,0.4); }
 .wlt-quick-chip.disabled { opacity: 0.3; cursor: not-allowed; }
 .wlt-chip-label { font-size: 14px; font-weight: 900; color: #fff; }
-.wlt-chip-inr { font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.4); }
+.wlt-chip-inr   { font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.4); }
 .wlt-quick-chip.selected .wlt-chip-label { color: #4ade80; }
-.wlt-quick-chip.selected .wlt-chip-inr { color: rgba(74,222,128,0.7); }
+.wlt-quick-chip.selected .wlt-chip-inr   { color: rgba(74,222,128,0.7); }
 
-/* Submit button */
+/* 😊 Submit button — withdraw karne ke liye 😊 */
 .wlt-submit {
   width: 100%; padding: 17px;
   border: none; border-radius: 18px; cursor: pointer;
@@ -331,23 +297,22 @@
 .wlt-submit.active {
   background: linear-gradient(135deg, #16a34a, #22c55e, #4ade80);
   color: #fff;
-  box-shadow: 0 8px 28px rgba(34,197,94,0.45),
-              0 0 0 1px rgba(255,255,255,0.1) inset;
+  box-shadow: 0 8px 28px rgba(34,197,94,0.45), 0 0 0 1px rgba(255,255,255,0.1) inset;
 }
 .wlt-submit.active:active { transform: scale(0.97); }
-.wlt-submit.loading { opacity: 0.75; cursor: wait; }
-.wlt-submit:disabled { cursor: not-allowed; }
+.wlt-submit.loading        { opacity: 0.75; cursor: wait; }
+.wlt-submit:disabled       { cursor: not-allowed; }
 
+/* 😊 Submit button spinner 😊 */
 .wlt-submit-spinner {
   width: 18px; height: 18px;
   border: 2.5px solid rgba(255,255,255,0.25);
   border-top-color: #fff;
   border-radius: 50%;
-  animation: wltSpin 0.7s linear infinite;
+  animation: spin 0.7s linear infinite;
 }
-@keyframes wltSpin { to { transform: rotate(360deg); } }
 
-/* Info grid */
+/* 😊 Info cards — do small cards side by side 😊 */
 .wlt-info-grid { display: flex; gap: 8px; }
 .wlt-info-card {
   flex: 1; display: flex; align-items: flex-start; gap: 8px;
@@ -356,34 +321,33 @@
   border-radius: 14px; padding: 12px;
 }
 .wlt-info-icon { font-size: 16px; flex-shrink: 0; }
-.wlt-info-text {
-  font-size: 11px; color: rgba(255,255,255,0.3);
-  line-height: 1.5; font-weight: 600;
-}
+.wlt-info-text { font-size: 11px; color: rgba(255,255,255,0.3); line-height: 1.5; font-weight: 600; }
 
-/* ══ HISTORY ══ */
-.wlt-history { padding: 0 14px; }
+/* 😊 Withdrawal history section 😊 */
+.wlt-history   { padding: 0 14px; }
 .wlt-hist-list { display: flex; flex-direction: column; gap: 0; }
 
-/* Empty state */
+/* 😊 Empty state — koi history nahi hai tab 😊 */
 .wlt-empty {
   display: flex; flex-direction: column; align-items: center; gap: 14px;
   padding: 48px 20px;
 }
-.wlt-empty-anim { position: relative; width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; }
+.wlt-empty-anim {
+  position: relative; width: 80px; height: 80px;
+  display: flex; align-items: center; justify-content: center;
+}
 .wlt-empty-ring {
   position: absolute; inset: 0;
-  border: 2px solid rgba(34,197,94,0.2);
-  border-radius: 50%;
-  animation: emptyRing 2s ease-in-out infinite;
+  border: 2px solid rgba(34,197,94,0.2); border-radius: 50%;
+  animation: emptyPulse 2s ease-in-out infinite;
 }
-@keyframes emptyRing {
+@keyframes emptyPulse {
   0%, 100% { transform: scale(1); opacity: 0.5; }
-  50% { transform: scale(1.1); opacity: 1; }
+  50%       { transform: scale(1.1); opacity: 1; }
 }
-.wlt-empty-ico { font-size: 36px; }
+.wlt-empty-ico   { font-size: 36px; }
 .wlt-empty-title { font-size: 16px; font-weight: 800; color: rgba(255,255,255,0.6); }
-.wlt-empty-sub { font-size: 13px; color: rgba(255,255,255,0.3); text-align: center; }
+.wlt-empty-sub   { font-size: 13px; color: rgba(255,255,255,0.3); text-align: center; }
 .wlt-empty-btn {
   padding: 12px 28px;
   background: linear-gradient(135deg, #16a34a, #22c55e);
@@ -392,15 +356,11 @@
   box-shadow: 0 6px 20px rgba(34,197,94,0.35);
 }
 
-/* History cards — timeline style */
+/* 😊 History card — timeline style mein 😊 */
 .wlt-hist-card {
   display: flex; gap: 12px;
   padding: 14px 4px;
-  animation: histFadeIn 0.3s ease both;
-}
-@keyframes histFadeIn {
-  from { opacity: 0; transform: translateX(-12px); }
-  to { opacity: 1; transform: translateX(0); }
+  animation: slideUp 0.3s ease both;
 }
 .wlt-hist-left {
   display: flex; flex-direction: column; align-items: center;
@@ -422,29 +382,21 @@
   border-bottom: 1px solid rgba(255,255,255,0.05);
 }
 .wlt-hist-card:last-child .wlt-hist-body { border-bottom: none; }
-
-.wlt-hist-row1 {
-  display: flex; justify-content: space-between; align-items: center;
-}
+.wlt-hist-row1 { display: flex; justify-content: space-between; align-items: center; }
 .wlt-hist-coins { font-size: 15px; font-weight: 800; color: #fbbf24; }
-.wlt-hist-inr { font-size: 16px; font-weight: 900; color: #4ade80; }
-.wlt-hist-upi { font-size: 12px; color: rgba(255,255,255,0.35); }
-.wlt-hist-row2 {
-  display: flex; justify-content: space-between; align-items: center;
-}
-.wlt-hist-badge {
-  font-size: 11px; font-weight: 700;
-  padding: 3px 10px; border-radius: 20px;
-}
-.wlt-hist-date { font-size: 10px; color: rgba(255,255,255,0.25); }
+.wlt-hist-inr   { font-size: 16px; font-weight: 900; color: #4ade80; }
+.wlt-hist-upi   { font-size: 12px; color: rgba(255,255,255,0.35); }
+.wlt-hist-row2  { display: flex; justify-content: space-between; align-items: center; }
+.wlt-hist-badge { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; }
+.wlt-hist-date  { font-size: 10px; color: rgba(255,255,255,0.25); }
 
-/* ══ TOAST ══ */
+/* 😊 Toast messages — success aur error ke liye 😊 */
 .wlt-toast {
   position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%);
   border-radius: 24px; padding: 11px 24px;
   color: #fff; font-size: 14px; font-weight: 700;
   white-space: nowrap; z-index: 9999;
-  animation: wltToastIn 0.28s cubic-bezier(.34,1.56,.64,1);
+  animation: toastIn 0.28s cubic-bezier(.34,1.56,.64,1);
   pointer-events: none;
 }
 .wlt-toast-success {
@@ -456,8 +408,4 @@
   background: rgba(32,12,12,0.97);
   border: 1px solid rgba(248,113,113,0.3);
   box-shadow: 0 8px 30px rgba(248,113,113,0.2);
-}
-@keyframes wltToastIn {
-  from { opacity: 0; transform: translateX(-50%) scale(0.8); }
-  to   { opacity: 1; transform: translateX(-50%) scale(1); }
 }

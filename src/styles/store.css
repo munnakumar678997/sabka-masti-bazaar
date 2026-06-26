@@ -1,6 +1,4 @@
-/* ══════════════════════════════════════════
-   STORE PAGE — Dark Theme (aligned)
-══════════════════════════════════════════ */
+/* 😊 Store page — coins se products kharidne ke liye 😊 */
 .store-page {
   width: 100%; height: 100dvh;
   background: linear-gradient(180deg, #080814 0%, #0d0d20 100%);
@@ -8,7 +6,7 @@
   overflow: hidden;
 }
 
-/* ── TOPBAR ── */
+/* 😊 Topbar — title aur balance chip 😊 */
 .store-topbar {
   display: flex; align-items: center; justify-content: space-between;
   padding: 16px 16px 12px;
@@ -27,7 +25,7 @@
   font-size: 13px; font-weight: 800; color: #fbbf24;
 }
 
-/* ── SCROLL ── */
+/* 😊 Scroll area — products scroll karne ke liye 😊 */
 .store-scroll {
   flex: 1; overflow-y: auto; padding: 14px 14px 0;
   scrollbar-width: none;
@@ -38,7 +36,7 @@
   letter-spacing: 1.2px; margin-bottom: 12px; text-transform: uppercase;
 }
 
-/* ── CALCULATOR ── */
+/* 😊 Calculator box — coins se INR convert karna 😊 */
 .calc-box {
   background: rgba(255,255,255,0.04);
   border: 1px solid rgba(255,255,255,0.08);
@@ -75,7 +73,7 @@
 .calc-ok   { color: #4ade80; }
 .calc-warn { color: #fbbf24; }
 
-/* ── PRODUCT GRID ── */
+/* 😊 Products grid — 2 column layout 😊 */
 .product-grid {
   display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;
 }
@@ -89,6 +87,7 @@
 }
 .product-card:active { transform: scale(0.96); }
 
+/* 😊 Product badge — top right corner mein 😊 */
 .product-badge {
   position: absolute; top: 9px; right: 9px;
   font-size: 8px; font-weight: 900;
@@ -122,16 +121,12 @@
 .order-btn-sub  { font-size: 8px; color: rgba(255,255,255,0.6); margin-top: 2px;
                   font-weight: 700; letter-spacing: 0.3px; }
 
-/* ── MODAL ── */
+/* 😊 Product modal — slide up se aata hai 😊 */
 .modal-page {
   position: fixed; inset: 0; z-index: 2000;
   display: flex; flex-direction: column;
   background: linear-gradient(180deg, #0d0d20, #080814);
   animation: slideUp 0.28s cubic-bezier(.34,1.2,.64,1);
-}
-@keyframes slideUp {
-  from { opacity: 0; transform: translateY(40px); }
-  to   { opacity: 1; transform: translateY(0); }
 }
 .modal-header {
   display: flex; align-items: center; gap: 12px;
@@ -148,6 +143,8 @@
 .modal-product-info { flex: 1; }
 .modal-product-name { font-size: 17px; font-weight: 900; color: #fff; letter-spacing: 0.3px; }
 .modal-product-sub  { font-size: 11px; color: rgba(255,255,255,0.35); font-weight: 600; margin-top: 2px; }
+
+/* 😊 Modal close button 😊 */
 .modal-close-btn {
   width: 34px; height: 34px; border-radius: 50%;
   background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.1);
@@ -165,7 +162,7 @@
   letter-spacing: 1.5px; margin-bottom: 8px; text-transform: uppercase;
 }
 
-/* Type tabs */
+/* 😊 Type tabs — plan type select karne ke liye 😊 */
 .type-tabs { display: flex; gap: 6px; }
 .type-tab-btn {
   flex: 1; padding: 9px 4px; border-radius: 11px; cursor: pointer;
@@ -175,7 +172,7 @@
 }
 .type-tab-btn.active { color: #fff; border: none; }
 
-/* Plans */
+/* 😊 Plans list — recharge plans 😊 */
 .plans-list { display: flex; flex-direction: column; gap: 6px; }
 .plan-row {
   background: rgba(255,255,255,0.04); border: 1.5px solid rgba(255,255,255,0.08);
@@ -204,7 +201,7 @@
 .qty-btn:active { transform: scale(0.88); }
 .qty-num { font-size: 13px; font-weight: 900; color: #fff; min-width: 16px; text-align: center; }
 
-/* Modal Footer */
+/* 😊 Modal footer — order summary aur confirm button 😊 */
 .modal-footer {
   padding: 12px 16px 22px;
   background: rgba(255,255,255,0.025);
@@ -232,7 +229,7 @@
 }
 .order-cta-btn:active { transform: scale(0.97); }
 
-/* Confirm Overlay */
+/* 😊 Confirm overlay — final confirmation ke liye 😊 */
 .confirm-overlay {
   position: absolute; inset: 0; z-index: 10;
   background: rgba(0,0,0,0.88);
@@ -248,10 +245,6 @@
   display: flex; flex-direction: column; align-items: center; gap: 10px;
   box-shadow: 0 20px 60px rgba(0,0,0,0.6);
   animation: popIn 0.22s cubic-bezier(.34,1.56,.64,1);
-}
-@keyframes popIn {
-  from { opacity: 0; transform: scale(0.85); }
-  to   { opacity: 1; transform: scale(1); }
 }
 .confirm-emoji { font-size: 38px; }
 .confirm-title { font-size: 16px; font-weight: 900; color: #fff; text-align: center; }
@@ -282,7 +275,7 @@
 }
 .confirm-go-btn:active { transform: scale(0.97); }
 
-/* Toast */
+/* 😊 Toast message — order success dikhata hai 😊 */
 .toast-box {
   position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%);
   background: rgba(16,16,36,0.97); border: 1px solid rgba(255,255,255,0.12);
@@ -290,9 +283,5 @@
   font-size: 13px; color: #fff; font-weight: 700;
   z-index: 9999; max-width: 380px; text-align: center;
   box-shadow: 0 8px 30px rgba(0,0,0,0.5);
-  animation: toastUp 0.25s cubic-bezier(.34,1.56,.64,1);
-}
-@keyframes toastUp {
-  from { opacity: 0; transform: translateX(-50%) translateY(10px) scale(0.9); }
-  to   { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+  animation: toastIn 0.25s cubic-bezier(.34,1.56,.64,1);
 }

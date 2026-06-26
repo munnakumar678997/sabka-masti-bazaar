@@ -1,6 +1,4 @@
-/* ══════════════════════════════════════════
-   HOME PAGE — Premium Dark UI
-══════════════════════════════════════════ */
+/* 😊 Home page — app ka main dashboard 😊 */
 .home-page {
   width: 100%;
   height: 100dvh;
@@ -11,7 +9,7 @@
   overflow: hidden;
 }
 
-/* ── TOP BAR ── */
+/* 😊 Top bar — user info aur notification button 😊 */
 .home-topbar {
   display: flex;
   align-items: center;
@@ -24,6 +22,8 @@
 .topbar-left {
   display: flex; align-items: center; gap: 10px;
 }
+
+/* 😊 User avatar — round image ya gradient 😊 */
 .topbar-avatar {
   width: 42px; height: 42px;
   background: linear-gradient(135deg, #ff6a00, #ee0979);
@@ -41,7 +41,7 @@
   display: flex; align-items: center;
 }
 
-/* Notification button */
+/* 😊 Notification bell button — badge ke saath 😊 */
 .topbar-notif-btn {
   position: relative;
   width: 40px; height: 40px; border-radius: 12px;
@@ -53,6 +53,8 @@
 }
 .topbar-notif-btn:active { background: rgba(255,255,255,0.13); transform: scale(0.92); }
 .notif-bell { line-height: 1; }
+
+/* 😊 Notification ka red badge — unread count dikhata hai 😊 */
 .notif-badge {
   position: absolute; top: -4px; right: -4px;
   min-width: 18px; height: 18px;
@@ -63,12 +65,14 @@
   padding: 0 4px;
   animation: badgePulse 2s ease-in-out infinite;
 }
+
+/* 😊 Badge pulse — thoda bada chhota hota rehta hai 😊 */
 @keyframes badgePulse {
   0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(238,9,121,0.4); }
   50%       { transform: scale(1.15); box-shadow: 0 0 0 4px rgba(238,9,121,0); }
 }
 
-/* ── SCROLL AREA ── */
+/* 😊 Scroll area — content scroll karne ke liye 😊 */
 .home-scroll {
   flex: 1;
   overflow-y: auto;
@@ -77,9 +81,7 @@
 }
 .home-scroll::-webkit-scrollbar { display: none; }
 
-/* ══════════════════════════════════════════
-   BALANCE CARD — Premium
-══════════════════════════════════════════ */
+/* 😊 Balance card — user ke coins dikhata hai 😊 */
 .balance-card {
   position: relative;
   background: linear-gradient(135deg, #6c22f0 0%, #0088cc 55%, #00c6b8 100%);
@@ -90,7 +92,8 @@
   box-shadow: 0 12px 44px rgba(108,34,240,0.45),
               0 0 0 1px rgba(255,255,255,0.08) inset;
 }
-/* Decorative blobs */
+
+/* 😊 Decorative blobs — card ka design element 😊 */
 .balance-card-bg1 {
   position: absolute; top: -50px; right: -50px;
   width: 180px; height: 180px; border-radius: 50%;
@@ -101,19 +104,19 @@
   width: 150px; height: 150px; border-radius: 50%;
   background: rgba(255,255,255,0.05); pointer-events: none;
 }
-/* Shimmer overlay */
+
+/* 😊 Shimmer effect — card pe chamakta hua effect 😊 */
 .balance-card::after {
   content: '';
   position: absolute;
   top: 0; left: -100%;
   width: 60%; height: 100%;
-  background: linear-gradient(90deg,
-    transparent,
-    rgba(255,255,255,0.08),
-    transparent);
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
   animation: cardShimmer 4s ease-in-out infinite;
   pointer-events: none;
 }
+
+/* 😊 Card shimmer ka movement 😊 */
 @keyframes cardShimmer {
   0%   { left: -100%; }
   50%, 100% { left: 150%; }
@@ -136,6 +139,8 @@
   margin-bottom: 18px; font-weight: 600;
 }
 .balance-actions { display: flex; gap: 10px; }
+
+/* 😊 Balance card ke action buttons 😊 */
 .bal-btn {
   flex: 1; padding: 12px; border: none; border-radius: 14px;
   font-size: 14px; font-weight: 700; cursor: pointer;
@@ -153,9 +158,7 @@
   box-shadow: 0 4px 14px rgba(0,0,0,0.2);
 }
 
-/* ══════════════════════════════════════════
-   QUICK STATS
-══════════════════════════════════════════ */
+/* 😊 Quick stats — 3 chote boxes mein stats 😊 */
 .quick-stats {
   display: flex; gap: 10px; margin-bottom: 20px;
 }
@@ -174,9 +177,7 @@
 .stat-lbl  { font-size: 10px; color: rgba(255,255,255,0.35);
              letter-spacing: 0.3px; font-weight: 700; }
 
-/* ══════════════════════════════════════════
-   SECTION HEADER
-══════════════════════════════════════════ */
+/* 😊 Section ka header — title aur see all link 😊 */
 .section-header {
   display: flex; justify-content: space-between; align-items: center;
   margin-bottom: 10px;
@@ -190,9 +191,7 @@
   font-weight: 700; cursor: pointer;
 }
 
-/* ══════════════════════════════════════════
-   TASK CARDS
-══════════════════════════════════════════ */
+/* 😊 Task cards — earning tasks ki list 😊 */
 .tasks-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 18px; }
 .task-card {
   display: flex; align-items: center; gap: 12px;
@@ -204,6 +203,7 @@
 }
 .task-card:active { transform: scale(0.98); background: rgba(255,255,255,0.07); }
 
+/* 😊 Task icon ka wrapper box 😊 */
 .task-icon-wrap {
   width: 44px; height: 44px; border-radius: 13px;
   background: rgba(255,255,255,0.08);
@@ -216,6 +216,8 @@
   display: flex; align-items: center; gap: 6px; margin-bottom: 3px;
 }
 .task-title { font-size: 14px; font-weight: 700; color: #fff; }
+
+/* 😊 Task tags — Easy, Hot, New, Big 😊 */
 .task-tag {
   font-size: 9px; font-weight: 800; padding: 2px 7px;
   border-radius: 20px; letter-spacing: 0.3px; flex-shrink: 0;
@@ -226,6 +228,7 @@
 .tag-big  { background: rgba(255,200,0,0.18); color: #fbbf24; }
 .task-desc { font-size: 11px; color: rgba(255,255,255,0.38); }
 
+/* 😊 Task claim button — coins earn karne ke liye 😊 */
 .task-claim-btn {
   background: linear-gradient(135deg, #7b2ff7, #0088cc);
   border: none; border-radius: 11px;
@@ -236,7 +239,7 @@
 .task-claim-btn:active { transform: scale(0.92); box-shadow: none; }
 .task-coins { font-size: 12px; font-weight: 800; color: #fff; white-space: nowrap; }
 
-/* Done state */
+/* 😊 Task complete hone ke baad ka style 😊 */
 .task-card-done {
   opacity: 0.5;
   border-color: rgba(34,197,94,0.18) !important;
@@ -249,9 +252,7 @@
 }
 .task-claim-done .task-coins { color: #4ade80; }
 
-/* ══════════════════════════════════════════
-   GAMES BANNER
-══════════════════════════════════════════ */
+/* 😊 Games banner — games section ka promote karne ke liye 😊 */
 .games-banner {
   background: linear-gradient(135deg, #1a0a30, #0d1a40);
   border-radius: 18px; border: 1px solid rgba(123,47,247,0.3);
@@ -275,9 +276,7 @@
 }
 .games-banner-btn:active { transform: scale(0.94); }
 
-/* ══════════════════════════════════════════
-   REFER BANNER
-══════════════════════════════════════════ */
+/* 😊 Refer banner — referral ka promote karne ke liye 😊 */
 .refer-banner {
   background: linear-gradient(135deg, #0a1a3a, #0d2045);
   border-radius: 18px; border: 1px solid rgba(0,136,204,0.22);
@@ -299,9 +298,7 @@
 }
 .refer-btn:active { transform: scale(0.94); }
 
-/* ══════════════════════════════════════════
-   BONUS CODE BANNER
-══════════════════════════════════════════ */
+/* 😊 Bonus code banner — code enter karne ka promote 😊 */
 .bonus-code-banner {
   background: linear-gradient(135deg, #1a1200, #281b00);
   border-radius: 18px;
@@ -332,9 +329,7 @@
 }
 .bonus-code-btn:active { transform: scale(0.94); }
 
-/* ══════════════════════════════════════════
-   NOTIFICATION PANEL (slide-in)
-══════════════════════════════════════════ */
+/* 😊 Notification side panel — daayein se slide aata hai 😊 */
 .notif-overlay {
   position: fixed; inset: 0;
   background: rgba(0,0,0,0.65); backdrop-filter: blur(5px);
@@ -348,10 +343,8 @@
   display: flex; flex-direction: column;
   animation: slideInRight 0.28s cubic-bezier(.25,.46,.45,.94);
 }
-@keyframes slideInRight {
-  from { transform: translateX(100%); opacity: 0; }
-  to   { transform: translateX(0);    opacity: 1; }
-}
+
+/* 😊 Notification panel ka header 😊 */
 .notif-panel-header {
   display: flex; align-items: center; justify-content: space-between;
   padding: 20px 18px 16px;
@@ -377,6 +370,8 @@
   transition: background 0.15s;
 }
 .notif-mark-read:active { background: rgba(123,47,247,0.18); }
+
+/* 😊 Panel ka close button 😊 */
 .notif-close {
   width: 30px; height: 30px; border-radius: 50%;
   background: rgba(255,255,255,0.07);
@@ -386,11 +381,15 @@
   transition: background 0.15s;
 }
 .notif-close:active { background: rgba(255,255,255,0.14); }
+
+/* 😊 Notification ki list — scroll hoti hai 😊 */
 .notif-list {
   flex: 1; overflow-y: auto;
   scrollbar-width: none; padding: 8px 0;
 }
 .notif-list::-webkit-scrollbar { display: none; }
+
+/* 😊 Ek notification item 😊 */
 .notif-item {
   display: flex; align-items: flex-start; gap: 12px;
   padding: 14px 18px;
@@ -401,6 +400,8 @@
 .notif-item:active { background: rgba(255,255,255,0.04); }
 .notif-unread { background: rgba(123,47,247,0.07); }
 .notif-unread:active { background: rgba(123,47,247,0.12); }
+
+/* 😊 Notification icon box 😊 */
 .notif-item-icon {
   width: 42px; height: 42px; border-radius: 12px;
   background: rgba(255,255,255,0.07);
@@ -419,6 +420,8 @@
 .notif-item-time {
   font-size: 10px; color: rgba(255,255,255,0.22); font-weight: 600;
 }
+
+/* 😊 Unread notification ka colored dot 😊 */
 .notif-dot {
   width: 8px; height: 8px; border-radius: 50%;
   background: linear-gradient(135deg, #ee0979, #ff6a00);
@@ -426,9 +429,7 @@
   box-shadow: 0 0 7px rgba(238,9,121,0.55);
 }
 
-/* ══════════════════════════════════════════
-   WITHDRAW POPUP
-══════════════════════════════════════════ */
+/* 😊 Withdraw popup — paise nikalne ke liye 😊 */
 .popup-overlay {
   position: fixed; inset: 0;
   background: rgba(0,0,0,0.8); backdrop-filter: blur(8px);
@@ -443,14 +444,12 @@
   box-shadow: 0 24px 60px rgba(0,0,0,0.55);
   animation: popIn 0.22s cubic-bezier(.34,1.56,.64,1);
 }
-@keyframes popIn {
-  from { opacity: 0; transform: scale(0.85); }
-  to   { opacity: 1; transform: scale(1); }
-}
 .popup-emoji  { font-size: 46px; }
 .popup-title  { font-size: 20px; font-weight: 900; color: #fff; }
 .popup-desc   { font-size: 13px; color: rgba(255,255,255,0.5); text-align: center; line-height: 1.6; }
 .popup-desc b { color: #ffd700; }
+
+/* 😊 Popup ka main action button 😊 */
 .popup-main-btn {
   width: 100%; padding: 15px;
   background: linear-gradient(135deg, #ff6a00, #ee0979);
@@ -460,6 +459,8 @@
   transition: transform 0.15s;
 }
 .popup-main-btn:active { transform: scale(0.97); }
+
+/* 😊 Low balance warning message 😊 */
 .popup-low {
   font-size: 13px; color: rgba(255,180,0,0.9);
   background: rgba(255,100,0,0.1);

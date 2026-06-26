@@ -1,6 +1,4 @@
-/* ══════════════════════════════════════════
-   BOTTOM NAV — Premium Active State
-══════════════════════════════════════════ */
+/* 😊 Neeche wali navigation bar — poore app mein ek hi hai 😊 */
 .bottom-nav-bar {
   display: flex;
   justify-content: space-around;
@@ -14,6 +12,7 @@
   width: 100%;
 }
 
+/* 😊 Har ek tab button — icon aur label dono 😊 */
 .bnav-tab {
   display: flex;
   flex-direction: column;
@@ -30,13 +29,13 @@
   color: rgba(255, 255, 255, 0.3);
 }
 
-/* Active state — pill glow */
+/* 😊 Active tab — orange glow ke saath 😊 */
 .bnav-tab.bnav-active {
   color: #fff;
   background: rgba(255, 106, 0, 0.13);
 }
 
-
+/* 😊 Tab ka icon — thoda bada hota hai active pe 😊 */
 .bnav-icon {
   font-size: 20px;
   line-height: 1;
@@ -44,15 +43,18 @@
               filter 0.22s;
 }
 
+/* 😊 Active icon — upar uthta hai aur glow aata hai 😊 */
 .bnav-tab.bnav-active .bnav-icon {
   transform: translateY(-2px) scale(1.08);
   filter: drop-shadow(0 0 7px rgba(255, 106, 0, 0.7));
 }
 
+/* 😊 Press karne pe icon chhota hota hai 😊 */
 .bnav-tab:active .bnav-icon {
   transform: scale(0.9);
 }
 
+/* 😊 Tab ka label text 😊 */
 .bnav-label {
   font-size: 9px;
   font-weight: 800;
@@ -60,6 +62,7 @@
   transition: color 0.22s;
 }
 
+/* 😊 Active label — orange gradient color 😊 */
 .bnav-tab.bnav-active .bnav-label {
   background: linear-gradient(90deg, #ff6a00, #ee0979);
   -webkit-background-clip: text;

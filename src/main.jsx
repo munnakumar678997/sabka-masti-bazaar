@@ -1,38 +1,28 @@
+// 😊 React entry point — yahan se poora app start hota hai 😊
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App.jsx'
 
-// ══════════════════════════════════════════════════════════════
-// CACHE BUST — 4-Layer Fix for Telegram WebView
-//
+// 😊 Cache bust system — Telegram WebView ke liye 4-layer fix 😊
 // Layer 1: pageshow + e.persisted  (index.html inline script)
 // Layer 2: visibilitychange + hidden-time tracking (dev + prod)
 // Layer 3: Telegram 'deactivated' + 'activated' events
 // Layer 4: version.json check (production builds only)
-//
-// ROOT CAUSE FIX: version.json sirf production build mein hota
-// hai. Dev mode mein fetch fail hoti thi silently — reload nahi
-// hota tha. Ab time-based tracking se dev+prod dono mein kaam
-// karta hai.
-// ══════════════════════════════════════════════════════════════
 
-// Background jaane ka time track karo (module-level — page life tak rahe)
+// 😊 Background jaane ka time track karo — page life tak 😊
 var _hiddenAt = 0;
 
-// Kitne seconds baad force reload karna hai (8 seconds)
+// 😊 Kitne seconds baad force reload karna hai 😊
 var RELOAD_THRESHOLD_MS = 8000;
 
-// ── Force reload helper ──
-// IMPORTANT: window.location.reload() browser cache se serve karta hai
-// isliye hum cache-busting URL use karte hain — ?_r=timestamp
-// Yeh browser ko force karta hai fresh index.html + fresh JS/CSS fetch karne ke liye
+// 😊 Force reload — cache-bust URL se fresh index.html load hoga 😊
 function forceReload() {
   try { sessionStorage.removeItem('smb_session'); } catch (_) {}
   var freshUrl = window.location.origin + window.location.pathname + '?_r=' + Date.now();
   window.location.replace(freshUrl);
 }
 
-// ── Version check (production only — version.json sirf build mein hota hai) ──
+// 😊 Version check — production build mein version.json se check karo 😊
 function checkVersion() {
   fetch('/version.json?_=' + Date.now(), { cache: 'no-store' })
     .then(function (r) { return r.json(); })
@@ -46,51 +36,38 @@ function checkVersion() {
       }
     })
     .catch(function () {
-      // version.json nahi mila (dev mode) — kuch mat karo
-      // Time-based reload Layer 2/3 handle karega
+      // 😊 Dev mode mein version.json nahi hoga — ignore karo 😊
     });
 }
 
-// ── Layer 1: bfcache fix index.html ke inline script mein hai ──
-// (duplicate listener add nahi karenge)
-
-// ── Layer 2: visibilitychange — time-based + version check ──
+// 😊 Layer 2 — tab switch detect karo, 8+ sec baad reload 😊
 document.addEventListener('visibilitychange', function () {
   if (document.visibilityState === 'hidden') {
-    // App background mein gaya — time save karo
     _hiddenAt = Date.now();
   } else if (document.visibilityState === 'visible') {
     if (_hiddenAt > 0 && Date.now() - _hiddenAt >= RELOAD_THRESHOLD_MS) {
-      // App 8+ seconds background mein tha — fresh reload karo
-      // Yeh dev + production dono mein kaam karta hai
       _hiddenAt = 0;
       forceReload();
     } else {
-      // Short switch — sirf version check karo (production mein kaam karega)
       _hiddenAt = 0;
       checkVersion();
     }
   }
 });
 
-// ── Layer 3: Telegram WebApp events ──
+// 😊 Layer 3 — Telegram WebApp ke events handle karo 😊
 function setupTelegramActivated() {
   var tg = window.Telegram && window.Telegram.WebApp;
   if (!tg) return;
   try {
-    // App background mein gaya
     tg.onEvent('deactivated', function () {
       _hiddenAt = Date.now();
     });
-
-    // App foreground mein aaya
     tg.onEvent('activated', function () {
       if (_hiddenAt > 0 && Date.now() - _hiddenAt >= RELOAD_THRESHOLD_MS) {
-        // 8+ seconds background — force reload (dev + prod)
         _hiddenAt = 0;
         forceReload();
       } else {
-        // Short switch — version check (prod only)
         _hiddenAt = 0;
         checkVersion();
       }
@@ -98,14 +75,14 @@ function setupTelegramActivated() {
   } catch (_) {}
 }
 
-// Telegram SDK load hone ka wait karo
+// 😊 Telegram SDK load hone ka wait karo 😊
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', setupTelegramActivated);
 } else {
   setupTelegramActivated();
 }
 
-// ── Manual refresh pe session clear karo ──
+// 😊 Manual refresh pe session clear karo — loading pe wapas le jao 😊
 var navEntry = window.performance && window.performance.getEntriesByType
   ? window.performance.getEntriesByType('navigation')[0]
   : null;
@@ -113,7 +90,7 @@ if (navEntry && navEntry.type === 'reload') {
   try { sessionStorage.removeItem('smb_session'); } catch (_) {}
 }
 
-// ── React render ──
+// 😊 React app ko DOM mein mount karo 😊
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <App />

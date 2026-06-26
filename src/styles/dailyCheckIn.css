@@ -1,8 +1,6 @@
-/* ══════════════════════════════════════════
-   DAILY CHECK-IN COMPONENT
-══════════════════════════════════════════ */
+/* 😊 Daily Check-in component — roz check-in karo coins pao 😊 */
 
-/* Claim popup */
+/* 😊 Claim popup — coins milne par dikhta hai 😊 */
 .ci-claim-popup {
   position: fixed; inset: 0; z-index: 999;
   display: flex; align-items: center; justify-content: center;
@@ -16,10 +14,14 @@
   box-shadow: 0 0 60px rgba(255,215,0,0.25);
   animation: ciPopIn 0.35s cubic-bezier(.34,1.56,.64,1);
 }
+
+/* 😊 ciPopIn — loading se popup ke liye alag bada scale 😊 */
 @keyframes ciPopIn {
   from { opacity: 0; transform: scale(0.6); }
   to   { opacity: 1; transform: scale(1); }
 }
+
+/* 😊 Claim emoji ka spin 😊 */
 .ci-popup-emoji  { font-size: 52px; animation: ciSpin 0.5s ease; }
 @keyframes ciSpin {
   from { transform: rotate(-20deg) scale(0.5); }
@@ -28,7 +30,7 @@
 .ci-popup-coins  { font-size: 28px; font-weight: 900; color: #ffd700; margin-top: 8px; }
 .ci-popup-sub    { font-size: 13px; color: rgba(255,255,255,0.5); margin-top: 4px; }
 
-/* Section header */
+/* 😊 Section header — title aur streak badge 😊 */
 .dci-section-header {
   display: flex; justify-content: space-between; align-items: center;
   margin-bottom: 10px;
@@ -43,7 +45,7 @@
   color: #ff8c42; padding: 3px 10px; border-radius: 20px;
 }
 
-/* Main card */
+/* 😊 Main card — active ya done state 😊 */
 .dci-card {
   border-radius: 20px;
   border: 1px solid rgba(255,255,255,0.09);
@@ -54,7 +56,7 @@
 .dci-card-active { background: rgba(255,255,255,0.04); }
 .dci-card-done   { background: rgba(34,197,94,0.04); border-color: rgba(34,197,94,0.15); }
 
-/* Glow bar top */
+/* 😊 Top glow bar — card ke upar rang ki line 😊 */
 .dci-glow-bar { height: 3px; width: 100%; }
 .dci-glow-orange {
   background: linear-gradient(90deg, #ff6a00, #ee0979, #ff6a00);
@@ -65,7 +67,7 @@
   box-shadow: 0 0 14px rgba(34,197,94,0.4);
 }
 
-/* 7-day grid */
+/* 😊 7 din ka grid — har din ek box 😊 */
 .dci-grid {
   display: grid; grid-template-columns: repeat(7, 1fr);
   gap: 5px; padding: 14px 12px 10px;
@@ -80,6 +82,8 @@
 .dci-day-done    { background: rgba(39,174,96,0.1);    border-color: rgba(39,174,96,0.25); }
 .dci-day-claimed { background: rgba(255,215,0,0.1);    border-color: rgba(255,215,0,0.35);
                    box-shadow: 0 0 12px rgba(255,215,0,0.15); }
+
+/* 😊 Aaj ka din — pink glow ke saath pulse karta hai 😊 */
 .dci-day-today {
   background: rgba(238,9,121,0.12); border-color: rgba(238,9,121,0.45);
   box-shadow: 0 0 14px rgba(238,9,121,0.2);
@@ -98,7 +102,7 @@
 
 .dci-divider { height: 1px; background: rgba(255,255,255,0.06); margin: 0 12px; }
 
-/* Done state */
+/* 😊 Done state — check-in ho chuka hai 😊 */
 .dci-done-area { padding: 14px 14px 16px; }
 .dci-done-msg {
   display: flex; align-items: center; justify-content: center;
@@ -111,7 +115,7 @@
 }
 .dci-done-sub { font-size: 11px; color: rgba(255,255,255,0.4); font-weight: 500; }
 
-/* Countdown */
+/* 😊 Countdown — kitne ghante baad check-in hoga 😊 */
 .dci-countdown-box {
   background: rgba(0,0,0,0.25);
   border: 1px solid rgba(255,255,255,0.08);
@@ -125,7 +129,7 @@
 }
 .dci-cd-sub { font-size: 10px; color: rgba(255,255,255,0.25); margin-top: 5px; }
 
-/* Claim state */
+/* 😊 Claim area — check-in karne ka button 😊 */
 .dci-claim-area { padding: 14px 14px 16px; }
 .dci-reward-row {
   display: flex; align-items: center;
@@ -143,6 +147,8 @@
   background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.25);
   border-radius: 10px; padding: 8px 12px; margin-bottom: 10px;
 }
+
+/* 😊 Claim button — orange gradient 😊 */
 .dci-claim-btn {
   width: 100%; display: flex; align-items: center;
   justify-content: space-between;

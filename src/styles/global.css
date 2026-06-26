@@ -1,22 +1,25 @@
+/* 😊 Sab elements ka margin aur padding zero — fresh start 😊 */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
+/* 😊 HTML aur body poori screen bharenge 😊 */
 html, body {
   width: 100%;
   height: 100%;
   min-height: 100dvh;
 }
 
+/* 😊 Body ka background gradient aur font family 😊 */
 body {
   background: linear-gradient(160deg, #ff6a00 0%, #ee0979 45%, #7b2ff7 100%);
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
-/* React root — center karke rakh */
+/* 😊 React ka root div — screen ke center mein 😊 */
 #root {
   width: 100%;
   min-height: 100dvh;
@@ -25,7 +28,7 @@ body {
   align-items: flex-start;
 }
 
-/* App container — mobile phone jaisa frame */
+/* 😊 App container — mobile phone jaisa 430px frame 😊 */
 #app-root {
   width: 100%;
   max-width: 430px;

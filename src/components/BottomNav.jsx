@@ -1,6 +1,8 @@
+// 😊 Bottom navigation bar — sab main pages ke beech navigate karne ke liye 😊
 import { useNavigate, useLocation } from 'react-router-dom';
 import '../styles/bottomNav.css';
 
+// 😊 Panchon tabs ka config — icon, label aur path 😊
 const NAV_TABS = [
   { key: 'home',    icon: '🏠', label: 'Home',    path: '/home'    },
   { key: 'games',   icon: '🎮', label: 'Games',   path: '/games'   },
@@ -9,9 +11,11 @@ const NAV_TABS = [
   { key: 'profile', icon: '👤', label: 'Profile', path: '/profile' },
 ];
 
+// 😊 BottomNav component — fixed neeche rehta hai poore app mein 😊
 export default function BottomNav() {
   const navigate  = useNavigate();
   const location  = useLocation();
+  // 😊 Active tab pehchanne ke liye current path track karo 😊
   const activePath = location.pathname;
 
   return (
@@ -19,6 +23,7 @@ export default function BottomNav() {
       {NAV_TABS.map(tab => (
         <button
           key={tab.key}
+          // 😊 Active tab pe special class lagao 😊
           className={`bnav-tab ${activePath === tab.path ? 'bnav-active' : ''}`}
           onClick={() => navigate(tab.path)}
         >

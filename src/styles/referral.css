@@ -1,8 +1,11 @@
+/* 😊 Referral page — dost ko invite karo coins pao 😊 */
 .ref-page {
   width: 100%; min-height: 100dvh;
   background: linear-gradient(180deg, #0f0f1a 0%, #131328 60%, #0a0a18 100%);
   display: flex; flex-direction: column;
 }
+
+/* 😊 Topbar — back button aur title 😊 */
 .ref-topbar {
   display: flex; align-items: center; justify-content: space-between;
   padding: 16px 18px 12px;
@@ -15,9 +18,12 @@
   padding: 7px 14px; font-size: 13px; font-weight: 700; cursor: pointer;
 }
 .ref-topbar-title { font-size: 18px; font-weight: 900; color: #fff; }
+
+/* 😊 Scroll area 😊 */
 .ref-scroll { flex: 1; overflow-y: auto; padding: 14px 14px 0; scrollbar-width: none; }
 .ref-scroll::-webkit-scrollbar { display: none; }
 
+/* 😊 Hero card — gradient background mein stats 😊 */
 .ref-hero {
   background: linear-gradient(135deg, #ff6a00 0%, #ee0979 50%, #7b2ff7 100%);
   border-radius: 20px; padding: 24px 18px;
@@ -32,11 +38,13 @@
 .ref-stat-val   { font-size: 18px; font-weight: 900; color: #fff; }
 .ref-stat-lbl   { font-size: 11px; color: rgba(255,255,255,0.7); }
 
+/* 😊 Section title 😊 */
 .ref-section-title {
   font-size: 14px; font-weight: 800; color: rgba(255,255,255,0.7);
   margin: 16px 0 10px;
 }
 
+/* 😊 Referral code card — copy aur share buttons 😊 */
 .ref-code-card {
   background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1);
   border-radius: 16px; padding: 16px;
@@ -51,6 +59,8 @@
   font-size: 11px; color: rgba(255,255,255,0.4);
   word-break: break-all; line-height: 1.4;
 }
+
+/* 😊 Action buttons — copy aur share 😊 */
 .ref-btns { display: flex; gap: 8px; }
 .ref-copy-btn {
   flex: 1; padding: 12px; border-radius: 12px;
@@ -64,6 +74,7 @@
   box-shadow: 0 4px 14px rgba(0,136,204,0.4);
 }
 
+/* 😊 How it works — steps card 😊 */
 .ref-steps-card {
   background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
   border-radius: 16px; overflow: hidden;
@@ -81,6 +92,7 @@
 }
 .ref-step-text { font-size: 13px; color: rgba(255,255,255,0.6); line-height: 1.4; }
 
+/* 😊 Milestones — referral targets pe bonus 😊 */
 .ref-milestones { display: flex; flex-direction: column; gap: 8px; }
 .ref-milestone {
   display: flex; align-items: center; gap: 12px; padding: 13px 14px;
@@ -97,6 +109,7 @@
 .ref-mile-status { font-size: 13px; font-weight: 800; color: rgba(255,255,255,0.4); }
 .ref-mile-status.status-done { color: #22c55e; font-size: 18px; }
 
+/* 😊 Per referral earnings box 😊 */
 .ref-per-ref-box {
   display: flex; align-items: center; gap: 14px;
   background: linear-gradient(135deg, rgba(255,215,0,0.1), rgba(255,106,0,0.1));
@@ -106,4 +119,3 @@
 .ref-per-ref-icon  { font-size: 36px; }
 .ref-per-ref-title { font-size: 13px; color: rgba(255,255,255,0.6); }
 .ref-per-ref-coins { font-size: 22px; font-weight: 900; color: #ffd700; }
-

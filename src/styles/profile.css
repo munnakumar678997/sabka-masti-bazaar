@@ -1,6 +1,4 @@
-/* ══════════════════════════════════════════
-   PROFILE PAGE — Premium Dark UI
-══════════════════════════════════════════ */
+/* 😊 Profile page — user ki personal info aur stats 😊 */
 .profile-page {
   width: 100%; height: 100dvh;
   background: linear-gradient(180deg, #0a0a1a 0%, #0f0f22 50%, #080814 100%);
@@ -9,7 +7,7 @@
   overflow: hidden;
 }
 
-/* ── TOPBAR ── */
+/* 😊 Top bar — title aur settings button 😊 */
 .profile-topbar {
   display: flex; align-items: center; justify-content: space-between;
   padding: 14px 16px 12px;
@@ -22,16 +20,14 @@
   -webkit-background-clip: text; -webkit-text-fill-color: transparent;
 }
 
-/* ── SCROLL ── */
+/* 😊 Scroll area 😊 */
 .profile-scroll {
   flex: 1; overflow-y: auto; padding: 0 14px;
   scrollbar-width: none;
 }
 .profile-scroll::-webkit-scrollbar { display: none; }
 
-/* ════════════════════════════════
-   HERO CARD
-════════════════════════════════ */
+/* 😊 Hero card — user avatar aur balance 😊 */
 .profile-hero-card {
   position: relative;
   margin: 16px 0 14px;
@@ -46,13 +42,11 @@
 .profile-hero-bg {
   position: absolute; inset: 0;
   background: radial-gradient(ellipse 90% 70% at 50% 0%,
-    rgba(150,80,255,0.22) 0%,
-    rgba(0,136,204,0.06) 60%,
-    transparent 100%);
+    rgba(150,80,255,0.22) 0%, rgba(0,136,204,0.06) 60%, transparent 100%);
   pointer-events: none;
 }
 
-/* Avatar */
+/* 😊 Avatar row — image ya initials 😊 */
 .profile-avatar-row {
   position: relative;
   display: flex; align-items: flex-end; gap: 0;
@@ -64,14 +58,9 @@
   overflow: visible;
   display: flex; align-items: center; justify-content: center;
   position: relative; flex-shrink: 0;
-  box-shadow:
-    0 0 0 3px rgba(168,85,247,0.35),
-    0 0 0 6px rgba(168,85,247,0.1),
-    0 14px 30px rgba(0,0,0,0.5);
+  box-shadow: 0 0 0 3px rgba(168,85,247,0.35), 0 0 0 6px rgba(168,85,247,0.1), 0 14px 30px rgba(0,0,0,0.5);
 }
-.profile-avatar-img {
-  width: 100%; height: 100%; object-fit: cover; border-radius: 50%;
-}
+.profile-avatar-img    { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
 .profile-avatar-letter {
   font-size: 36px; font-weight: 900; color: #fff;
   display: flex; align-items: center; justify-content: center;
@@ -79,39 +68,33 @@
   background: linear-gradient(135deg, #7b2ff7, #0088cc);
   border-radius: 50%;
 }
+
+/* 😊 Online green dot 😊 */
 .profile-online-dot {
   position: absolute; bottom: 4px; right: 4px;
   width: 15px; height: 15px; border-radius: 50%;
-  background: #22c55e;
-  border: 3px solid #12122c;
+  background: #22c55e; border: 3px solid #12122c;
   box-shadow: 0 0 8px rgba(34,197,94,0.6);
 }
 
-/* Gear — topbar right mein */
+/* 😊 Settings gear button — topbar mein 😊 */
 .profile-settings-gear {
   width: 38px; height: 38px; border-radius: 12px;
-  background: rgba(255,255,255,0.08);
-  border: 1px solid rgba(255,255,255,0.14);
+  background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.14);
   color: #fff; font-size: 18px;
   display: flex; align-items: center; justify-content: center;
-  cursor: pointer; transition: background 0.2s, transform 0.35s;
-  flex-shrink: 0;
+  cursor: pointer; transition: background 0.2s, transform 0.35s; flex-shrink: 0;
 }
 .profile-settings-gear:active { background: rgba(255,255,255,0.16); transform: rotate(90deg); }
 
-.profile-name {
-  font-size: 21px; font-weight: 900; color: #fff;
-  text-align: center; letter-spacing: 0.3px; margin-bottom: 3px;
-}
+.profile-name   { font-size: 21px; font-weight: 900; color: #fff; text-align: center; letter-spacing: 0.3px; margin-bottom: 3px; }
 .profile-handle { font-size: 13px; color: #60a5fa; margin-bottom: 16px; font-weight: 600; }
 
-/* Balance pill */
+/* 😊 Balance pill — coins aur INR ek saath 😊 */
 .profile-balance-pill {
   display: flex; align-items: center; gap: 7px;
-  background: rgba(255,255,255,0.07);
-  border: 1px solid rgba(255,255,255,0.12);
-  border-radius: 30px; padding: 9px 20px;
-  font-size: 15px;
+  background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 30px; padding: 9px 20px; font-size: 15px;
   box-shadow: 0 4px 16px rgba(0,0,0,0.2);
 }
 .profile-balance-pill-icon { font-size: 18px; }
@@ -119,27 +102,20 @@
 .profile-balance-pill-sep  { color: rgba(255,255,255,0.2); font-size: 18px; }
 .profile-balance-pill-inr  { font-size: 14px; font-weight: 700; color: #86efac; }
 
-/* ════════════════════════════════
-   STATS ROW
-════════════════════════════════ */
-.profile-stats-row {
-  display: flex; gap: 8px; margin-bottom: 18px;
-}
+/* 😊 Stats row — teen columns 😊 */
+.profile-stats-row { display: flex; gap: 8px; margin-bottom: 18px; }
 .profile-stat-pill {
-  flex: 1;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.08);
+  flex: 1; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08);
   border-radius: 16px; padding: 13px 6px;
   display: flex; flex-direction: column; align-items: center; gap: 4px;
   transition: transform 0.15s;
 }
-.profile-stat-pill:active { transform: scale(0.95); }
-.profile-stat-pill-icon { font-size: 22px; line-height: 1; }
-.profile-stat-pill-val  { font-size: 16px; font-weight: 900; color: #fff; }
-.profile-stat-pill-lbl  { font-size: 9px; color: rgba(255,255,255,0.35);
-                          text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; }
+.profile-stat-pill:active        { transform: scale(0.95); }
+.profile-stat-pill-icon          { font-size: 22px; line-height: 1; }
+.profile-stat-pill-val           { font-size: 16px; font-weight: 900; color: #fff; }
+.profile-stat-pill-lbl           { font-size: 9px; color: rgba(255,255,255,0.35); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; }
 
-/* ── SECTION TITLE ── */
+/* 😊 Section title — uppercase label 😊 */
 .profile-section-title {
   font-size: 12px; font-weight: 900; color: rgba(255,255,255,0.5);
   text-transform: uppercase; letter-spacing: 1px;
@@ -147,41 +123,28 @@
   display: flex; align-items: center; gap: 6px;
 }
 .profile-section-count {
-  font-size: 11px; font-weight: 600;
-  color: rgba(255,255,255,0.3);
-  background: rgba(255,255,255,0.06);
-  border-radius: 10px; padding: 2px 8px;
-  margin-left: auto;
-  text-transform: none; letter-spacing: 0;
+  font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.3);
+  background: rgba(255,255,255,0.06); border-radius: 10px; padding: 2px 8px;
+  margin-left: auto; text-transform: none; letter-spacing: 0;
 }
 
-/* ── ACCOUNT INFO ── */
+/* 😊 Account info card — rows mein info 😊 */
 .profile-info-card {
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.07);
-  border-radius: 20px; overflow: hidden;
-  margin-bottom: 18px;
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 20px; overflow: hidden; margin-bottom: 18px;
   box-shadow: 0 4px 20px rgba(0,0,0,0.2);
 }
 .profile-info-row {
   display: flex; justify-content: space-between; align-items: center;
-  padding: 13px 16px;
-  border-bottom: 1px solid rgba(255,255,255,0.05);
+  padding: 13px 16px; border-bottom: 1px solid rgba(255,255,255,0.05);
 }
 .profile-info-row:last-child { border-bottom: none; }
-.profile-info-left {
-  display: flex; align-items: center; gap: 10px;
-}
+.profile-info-left  { display: flex; align-items: center; gap: 10px; }
 .profile-info-icon  { font-size: 16px; opacity: 0.65; }
 .profile-info-label { font-size: 13px; color: rgba(255,255,255,0.4); }
-.profile-info-val   {
-  font-size: 13px; font-weight: 700; color: #fff;
-  max-width: 180px; text-align: right; word-break: break-all;
-}
+.profile-info-val   { font-size: 13px; font-weight: 700; color: #fff; max-width: 180px; text-align: right; word-break: break-all; }
 
-/* ══════════════════════════════════════════
-   MERA LEVEL CARD
-══════════════════════════════════════════ */
+/* 😊 Level card — user ki level progress 😊 */
 .lvl-card {
   position: relative; overflow: hidden;
   background: linear-gradient(145deg, #1a1a38, #111128);
@@ -190,130 +153,75 @@
   margin-bottom: 18px;
   box-shadow: 0 6px 28px rgba(0,0,0,0.35);
 }
-.lvl-card-glow {
-  position: absolute; inset: 0; pointer-events: none;
-}
-.lvl-top-row {
-  display: flex; align-items: center; gap: 12px; margin-bottom: 14px; position: relative;
-}
-.lvl-icon-wrap {
-  width: 54px; height: 54px; border-radius: 16px; flex-shrink: 0;
-  display: flex; align-items: center; justify-content: center;
-}
-.lvl-icon { font-size: 28px; line-height: 1; }
-.lvl-info { flex: 1; min-width: 0; }
-.lvl-name { font-size: 17px; font-weight: 900; letter-spacing: 0.2px; line-height: 1.2; margin-bottom: 4px; }
+.lvl-card-glow { position: absolute; inset: 0; pointer-events: none; }
+.lvl-top-row   { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; position: relative; }
+.lvl-icon-wrap { width: 54px; height: 54px; border-radius: 16px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+.lvl-icon      { font-size: 28px; line-height: 1; }
+.lvl-info      { flex: 1; min-width: 0; }
+.lvl-name      { font-size: 17px; font-weight: 900; letter-spacing: 0.2px; line-height: 1.2; margin-bottom: 4px; }
 .lvl-coins-label { font-size: 11px; color: rgba(255,255,255,0.4); line-height: 1.4; }
-.lvl-pct-badge {
-  flex-shrink: 0; border-radius: 12px; padding: 5px 10px;
-  font-size: 13px; font-weight: 900;
-}
+.lvl-pct-badge { flex-shrink: 0; border-radius: 12px; padding: 5px 10px; font-size: 13px; font-weight: 900; }
 
-/* Progress bar */
-.lvl-bar-wrap { position: relative; margin-bottom: 14px; }
-.lvl-bar-track {
-  height: 7px; border-radius: 99px;
-  background: rgba(255,255,255,0.07); overflow: hidden; margin-bottom: 5px;
-}
-.lvl-bar-fill { height: 100%; border-radius: 99px; transition: width 0.7s cubic-bezier(.4,0,.2,1); }
-.lvl-bar-labels {
-  display: flex; justify-content: space-between;
-  font-size: 10px; font-weight: 700; padding: 0 2px;
-}
+/* 😊 Level progress bar 😊 */
+.lvl-bar-wrap  { position: relative; margin-bottom: 14px; }
+.lvl-bar-track { height: 7px; border-radius: 99px; background: rgba(255,255,255,0.07); overflow: hidden; margin-bottom: 5px; }
+.lvl-bar-fill  { height: 100%; border-radius: 99px; transition: width 0.7s cubic-bezier(.4,0,.2,1); }
+.lvl-bar-labels { display: flex; justify-content: space-between; font-size: 10px; font-weight: 700; padding: 0 2px; }
 
-/* Milestone dots */
-.lvl-milestones {
-  display: flex; justify-content: space-between; align-items: flex-end;
-  position: relative; padding-top: 4px;
-}
-.lvl-milestones::before {
-  content: ''; position: absolute; top: 17px; left: 0; right: 0;
-  height: 1px; background: rgba(255,255,255,0.06); z-index: 0;
-}
-.lvl-dot-wrap {
-  display: flex; flex-direction: column; align-items: center; gap: 5px; z-index: 1;
-}
-.lvl-dot {
-  width: 30px; height: 30px; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  transition: box-shadow 0.3s;
-}
-.lvl-dot-name {
-  font-size: 8px; font-weight: 800; text-transform: uppercase;
-  letter-spacing: 0.3px; text-align: center; white-space: nowrap;
-}
+/* 😊 Level milestone dots 😊 */
+.lvl-milestones { display: flex; justify-content: space-between; align-items: flex-end; position: relative; padding-top: 4px; }
+.lvl-milestones::before { content: ''; position: absolute; top: 17px; left: 0; right: 0; height: 1px; background: rgba(255,255,255,0.06); z-index: 0; }
+.lvl-dot-wrap  { display: flex; flex-direction: column; align-items: center; gap: 5px; z-index: 1; }
+.lvl-dot       { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: box-shadow 0.3s; }
+.lvl-dot-name  { font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.3px; text-align: center; white-space: nowrap; }
 .lvl-dot-active .lvl-dot { transform: scale(1.15); }
 
-/* ══════════════════════════════════════════
-   AAJ KI ACTIVITY — 2×2 grid
-══════════════════════════════════════════ */
-.activity-grid {
-  display: grid; grid-template-columns: 1fr 1fr;
-  gap: 10px; margin-bottom: 18px;
-}
+/* 😊 Aaj ki activity — 2x2 grid 😊 */
+.activity-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 18px; }
 .act-tile {
   border-radius: 20px; padding: 16px 14px;
   display: flex; flex-direction: column; gap: 5px;
   cursor: pointer; transition: transform 0.15s;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.07);
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07);
   position: relative; overflow: hidden;
 }
-.act-tile:active { transform: scale(0.96); }
-
-.act-done    { border-color: rgba(34,197,94,0.25); background: rgba(34,197,94,0.05); }
-.act-pending { border-color: rgba(251,191,36,0.2); background: rgba(251,191,36,0.04); }
+.act-tile:active  { transform: scale(0.96); }
+.act-done    { border-color: rgba(34,197,94,0.25);  background: rgba(34,197,94,0.05); }
+.act-pending { border-color: rgba(251,191,36,0.2);  background: rgba(251,191,36,0.04); }
 .act-games   { border-color: rgba(168,85,247,0.22); background: rgba(168,85,247,0.05); }
 .act-tasks   { border-color: rgba(249,115,22,0.22); background: rgba(249,115,22,0.05); }
-
-.act-tile-icon  { font-size: 26px; line-height: 1; }
-.act-tile-label { font-size: 12px; font-weight: 800; color: rgba(255,255,255,0.6); }
+.act-tile-icon   { font-size: 26px; line-height: 1; }
+.act-tile-label  { font-size: 12px; font-weight: 800; color: rgba(255,255,255,0.6); }
 .act-tile-status { font-size: 13px; font-weight: 900; }
-.act-tile-cta   { font-size: 10px; color: rgba(255,255,255,0.28); font-weight: 700; margin-top: 2px; }
-
-/* Mini progress bar inside game/task tiles */
+.act-tile-cta    { font-size: 10px; color: rgba(255,255,255,0.28); font-weight: 700; margin-top: 2px; }
 .act-tile-bar-wrap { margin: 3px 0 1px; }
-.act-tile-bar {
-  height: 4px; border-radius: 99px;
-  background: rgba(255,255,255,0.08); overflow: hidden;
-}
+.act-tile-bar     { height: 4px; border-radius: 99px; background: rgba(255,255,255,0.08); overflow: hidden; }
 .act-tile-bar-fill { height: 100%; border-radius: 99px; transition: width 0.5s ease; }
-.act-fill-games { background: linear-gradient(90deg, #7c3aed, #a855f7); }
-.act-fill-tasks { background: linear-gradient(90deg, #ea580c, #f97316); }
+.act-fill-games   { background: linear-gradient(90deg, #7c3aed, #a855f7); }
+.act-fill-tasks   { background: linear-gradient(90deg, #ea580c, #f97316); }
 
-/* ══════════════════════════════════════════
-   QUICK ACTIONS
-══════════════════════════════════════════ */
-.profile-quick-actions {
-  display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px;
-}
+/* 😊 Quick action buttons — links ke liye 😊 */
+.profile-quick-actions { display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px; }
 .profile-qa-btn {
   width: 100%; display: flex; align-items: center; gap: 14px;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.07);
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07);
   border-radius: 18px; padding: 14px 16px;
   color: #fff; cursor: pointer; text-align: left;
   transition: background 0.15s, transform 0.12s;
 }
-.profile-qa-btn:active {
-  background: rgba(255,255,255,0.08); transform: scale(0.99);
-}
-.profile-qa-icon-wrap {
-  width: 44px; height: 44px; border-radius: 13px;
-  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-}
-.profile-qa-icon  { font-size: 22px; }
-.profile-qa-text  { flex: 1; min-width: 0; }
-.profile-qa-label { font-size: 14px; font-weight: 800; color: #fff; margin-bottom: 2px; }
-.profile-qa-sub   { font-size: 11px; color: rgba(255,255,255,0.38); }
-.profile-qa-arrow { color: rgba(255,255,255,0.2); font-size: 22px; flex-shrink: 0; }
+.profile-qa-btn:active      { background: rgba(255,255,255,0.08); transform: scale(0.99); }
+.profile-qa-icon-wrap       { width: 44px; height: 44px; border-radius: 13px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.profile-qa-icon            { font-size: 22px; }
+.profile-qa-text            { flex: 1; min-width: 0; }
+.profile-qa-label           { font-size: 14px; font-weight: 800; color: #fff; margin-bottom: 2px; }
+.profile-qa-sub             { font-size: 11px; color: rgba(255,255,255,0.38); }
+.profile-qa-arrow           { color: rgba(255,255,255,0.2); font-size: 22px; flex-shrink: 0; }
 
-/* ── MODAL ── */
+/* 😊 Name edit modal 😊 */
 .profile-overlay {
   position: fixed; inset: 0; background: rgba(0,0,0,0.8);
   display: flex; align-items: center; justify-content: center;
-  z-index: 999; padding: 20px;
-  backdrop-filter: blur(6px);
+  z-index: 999; padding: 20px; backdrop-filter: blur(6px);
 }
 .profile-modal {
   width: 100%; max-width: 360px;
@@ -322,11 +230,7 @@
   border-radius: 24px; padding: 26px 22px;
   display: flex; flex-direction: column; gap: 16px;
   box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-  animation: modalPopIn 0.22s cubic-bezier(.34,1.56,.64,1);
-}
-@keyframes modalPopIn {
-  from { opacity: 0; transform: scale(0.88); }
-  to   { opacity: 1; transform: scale(1); }
+  animation: popIn 0.22s cubic-bezier(.34,1.56,.64,1);
 }
 .profile-modal-title { font-size: 18px; font-weight: 900; color: #fff; text-align: center; }
 .profile-modal-input {
@@ -336,15 +240,11 @@
   color: #fff; font-size: 15px; outline: none;
   transition: border-color 0.2s, background 0.2s;
 }
-.profile-modal-input:focus {
-  border-color: #a855f7;
-  background: rgba(168,85,247,0.06);
-}
+.profile-modal-input:focus { border-color: #a855f7; background: rgba(168,85,247,0.06); }
 .profile-modal-btns { display: flex; gap: 10px; }
 .profile-modal-cancel {
   flex: 1; padding: 13px;
-  background: rgba(255,255,255,0.07);
-  border: 1px solid rgba(255,255,255,0.1); border-radius: 14px;
+  background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.1); border-radius: 14px;
   color: rgba(255,255,255,0.6); font-size: 14px; font-weight: 700; cursor: pointer;
   transition: background 0.15s;
 }
@@ -358,8 +258,9 @@
   transition: transform 0.15s;
 }
 .profile-modal-save:not(:disabled):active { transform: scale(0.97); }
-.profile-modal-save:disabled { opacity: 0.5; cursor: not-allowed; }
+.profile-modal-save:disabled              { opacity: 0.5; cursor: not-allowed; }
 
+/* 😊 Success/error toast 😊 */
 .profile-toast {
   position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%);
   background: rgba(20,20,40,0.97); border: 1px solid rgba(255,255,255,0.12);
@@ -367,9 +268,9 @@
   color: #fff; font-size: 14px; font-weight: 700;
   white-space: nowrap; z-index: 9999;
   box-shadow: 0 8px 30px rgba(0,0,0,0.45);
-  animation: toastIn 0.25s ease;
+  animation: profileToastIn 0.25s ease;
 }
-@keyframes toastIn {
+@keyframes profileToastIn {
   from { opacity: 0; transform: translateX(-50%) translateY(8px); }
   to   { opacity: 1; transform: translateX(-50%) translateY(0); }
 }
