@@ -5,13 +5,13 @@ import SpinWheelModal  from './SpinWheel';
 import ScratchCardModal from './ScratchCard';
 import CoinFlipModal   from './CoinFlip';
 import { getNetUsed, getNetTimeLeft, fmtMs } from './gameUtils';
-import { AD_NETWORKS, NET_LIMIT } from './adNetworks';
+import { AD_NETWORKS, NET_LIMIT, FLIP_LIMIT } from './adNetworks';
 import '../../styles/games.css';
 
 const GAME_DEFS = [
-  { key: 'spin',    icon: '🎰', name: 'Spin Wheel',  color: '#ff6a00', earn: 'Up to 200🪙' },
-  { key: 'scratch', icon: '🎁', name: 'Scratch Card', color: '#22c55e', earn: 'Up to 200🪙' },
-  { key: 'flip',    icon: '🪙', name: 'Coin Flip',    color: '#ffd700', earn: '+15🪙 per win' },
+  { key: 'spin',    icon: '🎰', name: 'Spin Wheel',  color: '#ff6a00', earn: 'Up to 200🪙', limit: NET_LIMIT  },
+  { key: 'scratch', icon: '🎁', name: 'Scratch Card', color: '#22c55e', earn: 'Up to 200🪙', limit: NET_LIMIT  },
+  { key: 'flip',    icon: '🪙', name: 'Coin Flip',    color: '#ffd700', earn: '+15🪙 per win', limit: FLIP_LIMIT },
 ];
 
 export default function Games() {
@@ -69,8 +69,8 @@ export default function Games() {
         <div className="games-grid">
           {GAME_DEFS.map(g => {
             const used     = getNetUsed(activeNet.id, g.key);
-            const done     = used >= NET_LIMIT;
-            const pct      = Math.round((used / NET_LIMIT) * 100);
+            const done     = used >= g.limit;
+            const pct      = Math.round((used / g.limit) * 100);
             const timeLeft = done ? getNetTimeLeft(activeNet.id, g.key) : 0;
             return (
               <div key={g.key}
@@ -93,7 +93,7 @@ export default function Games() {
                 <div className="game-tile-plays">
                   {done
                     ? (timeLeft > 0 ? `⏰ ${fmtMs(timeLeft)}` : '🔄 Ready!')
-                    : `${used}/${NET_LIMIT} played`}
+                    : `${used}/${g.limit} played`}
                 </div>
                 {!done && (
                   <div className="game-tile-play-btn"

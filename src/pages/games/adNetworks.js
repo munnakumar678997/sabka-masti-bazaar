@@ -18,5 +18,6 @@ export const AD_NETWORKS = [
   { id: 'ht', label: '🏔️ HT', color: '#f59e0b', grad: 'linear-gradient(135deg,#f59e0b,#b45309)' },
 ];
 
-export const NET_LIMIT       = 3;
+export const NET_LIMIT       = 3;   // Spin & Scratch ke liye
+export const FLIP_LIMIT      = 10;  // Coin Flip ke liye
 export const NET_COOLDOWN_MS = 4 * 60 * 60 * 1000;

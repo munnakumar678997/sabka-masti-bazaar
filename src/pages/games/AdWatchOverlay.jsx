@@ -1,63 +1,59 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 
-const AD_SECONDS = 5;
+const MONETAG_TIMEOUT_MS = 4000; // 4s mein response nahi aaya toh auto-complete
 
-// ══ MONETAG ZONE IDs ══
 const MONETAG_ZONE = {
-  pop: 'show_11204152', // Rewarded Popup
+  pop: 'show_11204152',
 };
 
 function callMonetag(type) {
   return new Promise((resolve, reject) => {
     const fn = window[MONETAG_ZONE[type]];
     if (typeof fn === 'function') {
-      fn(type === 'pop' ? 'pop' : 'interstitial').then(resolve).catch(reject);
+      const timer = setTimeout(() => resolve('timeout'), MONETAG_TIMEOUT_MS);
+      fn(type === 'pop' ? 'pop' : 'interstitial')
+        .then(() => { clearTimeout(timer); resolve('done'); })
+        .catch(() => { clearTimeout(timer); resolve('skip'); });
     } else {
-      reject(new Error('Monetag SDK not loaded'));
+      setTimeout(() => resolve('no-sdk'), 800);
     }
   });
 }
 
 export default function AdWatchOverlay({ network, onComplete, onCancel }) {
-  const [phase,     setPhase]     = useState('loading');
-  const [countdown, setCountdown] = useState(AD_SECONDS);
-  const [mgStatus,  setMgStatus]  = useState(''); // MG ke liye status text
+  const [phase,    setPhase]    = useState('loading');
+  const [dots,     setDots]     = useState('');
+  const [countdown,setCountdown]= useState(5);
   const doneRef = useRef(false);
 
   const finish = useCallback(() => {
     if (doneRef.current) return;
     doneRef.current = true;
     setPhase('done');
-    setTimeout(onComplete, 500);
+    setTimeout(onComplete, 600);
   }, [onComplete]);
+
+  // Animated dots for loading
+  useEffect(() => {
+    const id = setInterval(() => setDots(d => d.length >= 3 ? '' : d + '.'), 400);
+    return () => clearInterval(id);
+  }, []);
 
   useEffect(() => {
     if (network.id === 'mg') {
-      // ══ MONETAG MG — Rewarded Popup ══
-      setMgStatus('Ad load ho raha hai...');
+      // Monetag Rewarded Popup
       const t = setTimeout(() => {
         setPhase('watching');
-        setMgStatus('Ad khul raha hai...');
-        callMonetag('pop')
-          .then(() => {
-            setMgStatus('Ad complete! Reward mil raha hai...');
-            finish();
-          })
-          .catch(() => {
-            // Ad error ya close — fallback timer se reward do
-            setMgStatus('Ad skip — reward mil raha hai...');
-            finish();
-          });
-      }, 800);
+        callMonetag('pop').then(() => finish());
+      }, 600);
       return () => clearTimeout(t);
     } else {
-      // ══ Other networks — normal timer ══
-      const t = setTimeout(() => setPhase('watching'), 800);
+      // Other networks — 5s countdown timer (placeholder)
+      const t = setTimeout(() => setPhase('watching'), 600);
       return () => clearTimeout(t);
     }
   }, [network.id, finish]);
 
-  // Timer sirf MG ke alawa baaki networks ke liye
   useEffect(() => {
     if (network.id === 'mg') return;
     if (phase !== 'watching') return;
@@ -70,61 +66,81 @@ export default function AdWatchOverlay({ network, onComplete, onCancel }) {
     return () => clearInterval(id);
   }, [phase, finish, network.id]);
 
-  return (
-    <div className="ad-watch-overlay">
-      <div className="ad-watch-card">
+  const pct = network.id === 'mg' ? null : Math.round(((5 - countdown) / 5) * 100);
 
-        <div className="ad-watch-header" style={{ background: network.grad }}>
-          <span className="ad-watch-net-lbl">{network.label}</span>
-          <span className="ad-watch-net-txt">Ad Playing</span>
+  return (
+    <div className="adw-backdrop">
+      <div className="adw-card">
+
+        {/* Header */}
+        <div className="adw-header" style={{ background: network.grad }}>
+          <span className="adw-net-pill">{network.label}</span>
+          <span className="adw-header-txt">
+            {phase === 'done' ? '✅ Complete!' : '📺 Ad Playing'}
+          </span>
         </div>
 
-        {phase === 'loading' && (
-          <div className="ad-watch-body">
-            <div className="ad-spinner">⏳</div>
-            <p className="ad-status-txt">
-              {network.id === 'mg' ? mgStatus || 'Ad load ho raha hai...' : 'Ad load ho raha hai...'}
-            </p>
-            {network.id !== 'mg' && (
-              <button className="ad-cancel-btn" onClick={onCancel}>Cancel</button>
-            )}
-          </div>
-        )}
+        {/* Body */}
+        <div className="adw-body">
 
-        {phase === 'watching' && network.id === 'mg' && (
-          <div className="ad-watch-body">
-            <div className="ad-spinner">🔥</div>
-            <p className="ad-status-txt">{mgStatus || 'Monetag Ad chal raha hai...'}</p>
-            <p className="ad-status-sub">Ad dekhne ke baad reward automatic milega!</p>
-          </div>
-        )}
+          {phase === 'loading' && (
+            <div className="adw-loading-state">
+              <div className="adw-pulse-ring" style={{ '--nc': network.color }} />
+              <div className="adw-load-icon">📺</div>
+              <p className="adw-txt-main">Ad load ho rahi hai{dots}</p>
+              <p className="adw-txt-sub">Thoda wait karo, reward pakka milega!</p>
+              {network.id !== 'mg' && (
+                <button className="adw-cancel-btn" onClick={onCancel}>Baad mein</button>
+              )}
+            </div>
+          )}
 
-        {phase === 'watching' && network.id !== 'mg' && (
-          <div className="ad-watch-body">
-            <div className="ad-slot-box" id={`ad-slot-${network.id}`}>
-              <div className="ad-slot-placeholder">
-                <span className="ad-slot-icon">📺</span>
-                <span className="ad-slot-label">Advertisement</span>
-                <span className="ad-slot-net">{network.label} Network</span>
+          {phase === 'watching' && network.id === 'mg' && (
+            <div className="adw-watching-mg">
+              <div className="adw-fire-icon">🔥</div>
+              <p className="adw-txt-main">Monetag Ad chal rahi hai{dots}</p>
+              <p className="adw-txt-sub">Ad dekhne ke baad reward automatic milega!</p>
+              <div className="adw-mg-bar">
+                <div className="adw-mg-bar-fill" style={{ background: network.grad }} />
               </div>
             </div>
+          )}
 
-            <div className="ad-timer-row">
-              <div className="ad-timer-circle" style={{ '--nc': network.color }}>
-                <span>{countdown}</span>
+          {phase === 'watching' && network.id !== 'mg' && (
+            <div className="adw-watching-timer">
+              {/* Ad slot placeholder for other networks */}
+              <div className="adw-slot-box" id={`ad-slot-${network.id}`}>
+                <span className="adw-slot-icon">📺</span>
+                <span className="adw-slot-net">{network.label} Network</span>
               </div>
-              <span className="ad-timer-txt">seconds mein reward milega</span>
+
+              {/* Progress circle */}
+              <div className="adw-timer-wrap">
+                <svg className="adw-ring-svg" viewBox="0 0 64 64">
+                  <circle cx="32" cy="32" r="28" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="5"/>
+                  <circle cx="32" cy="32" r="28" fill="none"
+                    stroke={network.color} strokeWidth="5"
+                    strokeDasharray={`${2 * Math.PI * 28}`}
+                    strokeDashoffset={`${2 * Math.PI * 28 * (1 - pct / 100)}`}
+                    strokeLinecap="round"
+                    style={{ transform: 'rotate(-90deg)', transformOrigin: '50% 50%', transition: 'stroke-dashoffset 0.9s linear' }}
+                  />
+                  <text x="32" y="37" textAnchor="middle" fontSize="16" fontWeight="900" fill="#fff">{countdown}</text>
+                </svg>
+                <p className="adw-timer-lbl">seconds baad reward milega</p>
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {phase === 'done' && (
-          <div className="ad-watch-body">
-            <div className="ad-done-icon">✅</div>
-            <p className="ad-status-txt">Ad dekh li! Reward aa raha hai...</p>
-          </div>
-        )}
+          {phase === 'done' && (
+            <div className="adw-done-state">
+              <div className="adw-done-icon">🎉</div>
+              <p className="adw-txt-main">Ad complete!</p>
+              <p className="adw-txt-sub">Reward aa raha hai...</p>
+            </div>
+          )}
 
+        </div>
       </div>
     </div>
   );

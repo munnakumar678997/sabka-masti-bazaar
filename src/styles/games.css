@@ -558,3 +558,327 @@
   from { opacity: 0; transform: translateX(-50%) scale(0.75); }
   to   { opacity: 1; transform: translateX(-50%) scale(1); }
 }
+
+/* ══════════════════════════════════════════
+   NEW AD WATCH OVERLAY
+══════════════════════════════════════════ */
+.adw-backdrop {
+  position: fixed; inset: 0; z-index: 1100;
+  background: rgba(0,0,0,0.93); backdrop-filter: blur(12px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+  animation: gModalIn 0.22s cubic-bezier(.34,1.4,.64,1);
+}
+.adw-card {
+  width: 100%; max-width: 340px;
+  background: linear-gradient(180deg,#18183e,#0e0e26);
+  border: 1px solid rgba(255,255,255,0.11);
+  border-radius: 24px; overflow: hidden;
+  box-shadow: 0 24px 70px rgba(0,0,0,0.75);
+}
+.adw-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 13px 18px;
+}
+.adw-net-pill {
+  font-size: 13px; font-weight: 900; color: #fff;
+  background: rgba(0,0,0,0.25); border-radius: 20px;
+  padding: 4px 12px; letter-spacing: 0.3px;
+}
+.adw-header-txt {
+  font-size: 11px; font-weight: 700;
+  color: rgba(255,255,255,0.7); letter-spacing: 0.5px;
+}
+.adw-body {
+  display: flex; flex-direction: column;
+  align-items: center; gap: 14px;
+  padding: 22px 20px 26px;
+  min-height: 180px; justify-content: center;
+}
+
+/* Loading state */
+.adw-loading-state {
+  display: flex; flex-direction: column;
+  align-items: center; gap: 12px; width: 100%;
+}
+.adw-pulse-ring {
+  width: 70px; height: 70px; border-radius: 50%;
+  border: 3px solid var(--nc, #ff6a00);
+  background: color-mix(in srgb, var(--nc, #ff6a00) 10%, transparent);
+  box-shadow: 0 0 20px color-mix(in srgb, var(--nc, #ff6a00) 35%, transparent);
+  animation: adwPulse 1.1s ease-in-out infinite;
+  display: flex; align-items: center; justify-content: center;
+  position: relative;
+}
+.adw-load-icon {
+  position: absolute;
+  font-size: 28px; line-height: 1;
+  animation: spin360 1.6s linear infinite;
+}
+@keyframes adwPulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 20px color-mix(in srgb, var(--nc,#ff6a00) 30%, transparent); }
+  50%       { transform: scale(1.08); box-shadow: 0 0 32px color-mix(in srgb, var(--nc,#ff6a00) 55%, transparent); }
+}
+
+/* Monetag watching state */
+.adw-watching-mg {
+  display: flex; flex-direction: column;
+  align-items: center; gap: 12px; width: 100%;
+}
+.adw-fire-icon { font-size: 50px; animation: adwFireBounce 0.8s ease-in-out infinite alternate; }
+@keyframes adwFireBounce {
+  from { transform: scale(0.94) translateY(2px); }
+  to   { transform: scale(1.06) translateY(-2px); }
+}
+.adw-mg-bar {
+  width: 100%; height: 6px; border-radius: 6px;
+  background: rgba(255,255,255,0.08); overflow: hidden;
+}
+.adw-mg-bar-fill {
+  height: 100%; border-radius: 6px; width: 100%;
+  animation: adwBarSweep 2.5s ease-in-out infinite;
+}
+@keyframes adwBarSweep {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* Timer watching state (other networks) */
+.adw-watching-timer {
+  display: flex; flex-direction: column;
+  align-items: center; gap: 14px; width: 100%;
+}
+.adw-slot-box {
+  width: 100%; border-radius: 14px; overflow: hidden;
+  border: 1px dashed rgba(255,255,255,0.14);
+  background: rgba(255,255,255,0.03);
+  display: flex; align-items: center; justify-content: center;
+  gap: 8px; padding: 22px 16px;
+}
+.adw-slot-icon { font-size: 32px; }
+.adw-slot-net  { font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.35); }
+.adw-timer-wrap {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+}
+.adw-ring-svg { width: 72px; height: 72px; }
+.adw-timer-lbl {
+  font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.32);
+}
+
+/* Txt helpers */
+.adw-txt-main { font-size: 14px; font-weight: 800; color: #fff; text-align: center; }
+.adw-txt-sub  { font-size: 11px; color: rgba(255,255,255,0.38); text-align: center; font-weight: 600; }
+
+/* Done state */
+.adw-done-state {
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+}
+.adw-done-icon { font-size: 54px; animation: winPopIn 0.4s cubic-bezier(.34,1.56,.64,1); }
+
+/* Cancel btn */
+.adw-cancel-btn {
+  padding: 8px 22px; border-radius: 20px;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.4);
+  font-size: 12px; font-weight: 700; cursor: pointer;
+  transition: background 0.15s; margin-top: 4px;
+}
+.adw-cancel-btn:active { background: rgba(255,255,255,0.1); }
+
+/* ══════════════════════════════════════════
+   NEW SCRATCH CARD — SINGLE BIG CARD
+══════════════════════════════════════════ */
+.scratch-gmodal { padding-bottom: 26px; }
+
+/* Progress dots */
+.sc-progress-dots {
+  display: flex; gap: 10px; align-items: center; justify-content: center;
+}
+.sc-dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  background: rgba(255,255,255,0.12);
+  border: 2px solid rgba(255,255,255,0.15);
+  transition: all 0.3s;
+}
+.sc-dot-done {
+  background: #4ade80; border-color: #4ade80;
+  box-shadow: 0 0 8px rgba(74,222,128,0.5);
+}
+.sc-dot-active {
+  background: var(--nc, #ff6a00);
+  border-color: var(--nc, #ff6a00);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--nc,#ff6a00) 60%, transparent);
+  transform: scale(1.25);
+}
+
+/* Big card wrapper */
+.sc-card-wrap {
+  display: flex; flex-direction: column;
+  align-items: center; gap: 14px; width: 100%;
+}
+
+/* The big card itself */
+.sc-big-card {
+  width: 100%; border-radius: 22px; overflow: hidden;
+  position: relative;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+  min-height: 180px;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+}
+
+/* Locked card */
+.sc-locked {
+  gap: 8px; padding: 28px 20px; cursor: pointer;
+  animation: gModalIn 0.3s cubic-bezier(.34,1.56,.64,1);
+}
+.sc-locked:active { transform: scale(0.97); }
+.sc-locked-icon { font-size: 54px; }
+.sc-locked-txt  { font-size: 20px; font-weight: 900; color: #fff; }
+.sc-locked-sub  { font-size: 12px; color: rgba(255,255,255,0.6); font-weight: 600; }
+
+/* Scratching card */
+.sc-scratching { padding: 0; justify-content: flex-end; }
+
+/* Prize behind scratch layer */
+.sc-prize-reveal {
+  position: absolute; inset: 0; z-index: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 4px;
+}
+.sc-prize-icon { font-size: 36px; }
+.sc-prize-val  { font-size: 38px; font-weight: 900; color: #fff; line-height: 1; }
+.sc-prize-lbl  { font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.65); }
+
+/* Scratch canvas on top */
+.scratch-canvas {
+  position: relative; z-index: 1;
+  width: 100%; height: 160px;
+  cursor: crosshair; touch-action: none;
+  display: block;
+}
+
+.sc-scratch-hint {
+  font-size: 11px; color: rgba(255,255,255,0.4);
+  font-weight: 700; text-align: center;
+  animation: adwFireBounce 1.2s ease-in-out infinite alternate;
+}
+
+/* Revealed card */
+.sc-revealed { padding: 28px 20px; gap: 6px; }
+.sc-reveal-anim {
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  animation: winPopIn 0.5s cubic-bezier(.34,1.7,.64,1);
+}
+.sc-rev-icon  { font-size: 44px; }
+.sc-rev-prize { font-size: 36px; font-weight: 900; color: #fff; }
+.sc-rev-lbl   { font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.65); }
+
+/* Summary screen */
+.sc-summary {
+  display: flex; flex-direction: column;
+  align-items: center; gap: 10px; width: 100%;
+  padding-top: 8px;
+}
+.sc-summary-icon  { font-size: 52px; animation: winPopIn 0.4s cubic-bezier(.34,1.56,.64,1); }
+.sc-summary-title { font-size: 18px; font-weight: 900; color: #fff; }
+.sc-summary-prizes { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+.sc-summary-pill {
+  font-size: 12px; font-weight: 800; color: #4ade80;
+  background: rgba(74,222,128,0.1); border: 1px solid rgba(74,222,128,0.28);
+  border-radius: 20px; padding: 5px 14px;
+}
+.sc-summary-total {
+  font-size: 22px; font-weight: 900; color: #fbbf24;
+  background: rgba(255,215,0,0.1); border: 1px solid rgba(255,215,0,0.28);
+  border-radius: 14px; padding: 10px 24px;
+  box-shadow: 0 0 20px rgba(255,215,0,0.15);
+}
+
+/* ══════════════════════════════════════════
+   NEW COIN FLIP — RESULT CARD (inline)
+══════════════════════════════════════════ */
+.flip-result-show { animation: froIconBounce 0.4s cubic-bezier(.34,1.7,.64,1); }
+
+.flip-result-card {
+  width: 100%; border-radius: 20px; padding: 20px 16px;
+  display: flex; flex-direction: column;
+  align-items: center; gap: 10px;
+  position: relative; overflow: hidden;
+  animation: gModalIn 0.32s cubic-bezier(.34,1.4,.64,1);
+}
+.flip-result-card.frc-win {
+  background: linear-gradient(160deg, rgba(10,42,20,0.9), rgba(13,31,16,0.9));
+  border: 1.5px solid rgba(74,222,128,0.35);
+  box-shadow: 0 0 30px rgba(74,222,128,0.1);
+}
+.flip-result-card.frc-loss {
+  background: linear-gradient(160deg, rgba(31,10,10,0.9), rgba(26,8,8,0.9));
+  border: 1.5px solid rgba(248,113,113,0.3);
+}
+.flip-result-card.frc-claimed {
+  background: linear-gradient(160deg, rgba(10,42,20,0.9), rgba(13,31,16,0.9));
+  border: 1.5px solid rgba(74,222,128,0.35);
+}
+
+/* Particles (win) */
+.frc-particles {
+  position: absolute; inset: 0; pointer-events: none; overflow: hidden;
+}
+.frc-particle {
+  position: absolute; top: 50%; left: 50%;
+  font-size: 18px; line-height: 1;
+  transform: translate(-50%,-50%)
+    rotate(var(--d)) translateY(calc(-1 * var(--r)));
+  animation: froParticle 1.2s cubic-bezier(.34,1.4,.64,1) both;
+}
+
+/* Status badge */
+.frc-status {
+  font-size: 22px; font-weight: 900; letter-spacing: 0.5px;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.4);
+  animation: froFadeUp 0.35s ease 0.1s both;
+}
+.frc-status.win  { color: #4ade80; }
+.frc-status.loss { color: #f87171; }
+
+.frc-result-txt {
+  font-size: 12px; font-weight: 700; letter-spacing: 1px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.45);
+  animation: froFadeUp 0.35s ease 0.18s both;
+}
+
+/* Coins box (win) */
+.frc-coins-box {
+  display: flex; align-items: center; gap: 8px;
+  background: rgba(255,215,0,0.12); border: 1.5px solid rgba(255,215,0,0.35);
+  border-radius: 50px; padding: 8px 20px;
+  animation: froFadeUp 0.35s ease 0.25s both;
+  box-shadow: 0 0 18px rgba(255,215,0,0.15);
+}
+.frc-coin-icon { font-size: 22px; }
+.frc-coin-val  { font-size: 28px; font-weight: 900; color: #fbbf24; line-height: 1; }
+.frc-coin-lbl  { font-size: 12px; font-weight: 700; color: rgba(255,215,0,0.7); }
+
+/* Loss message */
+.frc-loss-msg {
+  font-size: 13px; font-weight: 700; text-align: center;
+  color: rgba(255,255,255,0.45); line-height: 1.5;
+  animation: froFadeUp 0.35s ease 0.25s both;
+}
+
+/* Claim & Again buttons */
+.frc-claim-btn { margin-top: 4px; animation: froFadeUp 0.35s ease 0.3s both; }
+.frc-again-btn {
+  font-size: 13px; font-weight: 800;
+  color: rgba(255,255,255,0.38); cursor: pointer;
+  padding: 6px 16px; border-radius: 12px;
+  background: rgba(255,255,255,0.05);
+  transition: color 0.15s, background 0.15s;
+  animation: froFadeUp 0.35s ease 0.38s both;
+}
+.frc-again-btn:active { background: rgba(255,255,255,0.1); color: #fff; }
+
+/* Claimed check */
+.frc-claimed-icon { font-size: 48px; animation: winPopIn 0.4s cubic-bezier(.34,1.7,.64,1); }
