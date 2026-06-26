@@ -1,12 +1,15 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect, useCallback } from 'react';
 import { useApp } from '../../context/AppContext';
 import TaskActionModal from './TaskActionModal';
 import '../../styles/tasks.css';
 
 /*
  * ═══════════════════════════════════════════════════════════
- *  TASKS CONFIG — Categories mein divide kiya gaya hai
+ *  TASKS CONFIG
+ *
+ *  resetType:
+ *    'daily' → har roz midnight IST pe reset hota hai
+ *    '4h'    → har 4 ghante ke baad reset hota hai
  *
  *  action types:
  *    'video'   — Ad dekho, timer auto-starts
@@ -14,112 +17,100 @@ import '../../styles/tasks.css';
  *    'survey'  — Survey kholo (link), timer starts
  *    'share'   — Web Share API / clipboard copy
  *    'visit'   — Link visit karo, timer starts
- *
- *  waitSec: kitne seconds timer chalega
- *  link:    install/survey/visit tasks ke liye URL
  * ═══════════════════════════════════════════════════════════
  */
 
 export const TASK_CATEGORIES = [
   {
     id: 'daily',
-    title: '📅 Daily Tasks',
-    subtitle: 'Roz karo, roz kamao',
-    color: '#ff6a00',
+    title: '🌅 Daily Tasks',
+    subtitle: 'Har roz midnight pe reset hota hai',
+    color: '#f59e0b',
+    resetLabel: 'Daily',
+    resetType: 'daily',
     tasks: [
       {
-        id: 1, icon: '📺', title: 'Video Ad dekho',
-        desc: '10 sec ka ad dekho aur kamao',
-        coins: 5, tag: 'Easy',
+        id: 'd1', icon: '📺', title: 'Video Ad dekho',
+        desc: '10 sec ka ad dekho aur coins kamao',
+        coins: 5, tag: 'Daily', resetType: 'daily',
         action: 'video', waitSec: 10,
         actionTitle: '📺 Video Dekho & Kamao',
-        actionDesc: 'Ad load hone ke baad timer start hoga — poora dekho phir reward lo!',
+        actionDesc: 'Ad load hone ke baad timer start hoga — poora dekho phir claim karo!',
       },
       {
-        id: 2, icon: '🎬', title: 'Bonus Video dekho',
-        desc: 'Ek aur video dekho — double reward',
-        coins: 8, tag: 'Hot',
+        id: 'd2', icon: '🎬', title: 'Bonus Video dekho',
+        desc: 'Ek aur video — double reward kamao',
+        coins: 10, tag: 'Daily', resetType: 'daily',
         action: 'video', waitSec: 10,
-        actionTitle: '🎬 Bonus Video & Kamao',
-        actionDesc: 'Bonus ad dekho aur extra coins kamao!',
+        actionTitle: '🎬 Bonus Video Dekho & Kamao',
+        actionDesc: 'Bonus ad dekho aur extra coins lo!',
       },
       {
-        id: 3, icon: '📝', title: 'Survey bharo',
+        id: 'd3', icon: '📝', title: 'Survey bharo',
         desc: '2 min ka quick survey complete karo',
-        coins: 15, tag: 'New',
+        coins: 15, tag: 'Daily', resetType: 'daily',
         action: 'survey', waitSec: 30,
         link: 'https://forms.gle/SMB2024survey',
-        actionTitle: '📝 Survey Complete Karo',
-        actionDesc: 'Ad dekhne ke baad → Survey kholo → Bharo → Claim karo!',
-      },
-    ],
-  },
-  {
-    id: 'social',
-    title: '📲 Social Tasks',
-    subtitle: 'Share karo, zyada kamao',
-    color: '#0ea5e9',
-    tasks: [
-      {
-        id: 4, icon: '📲', title: 'App install karo',
-        desc: 'Naya app install karke kamao',
-        coins: 20, tag: 'Hot',
-        action: 'install', waitSec: 15,
-        link: 'https://play.google.com/store/apps',
-        actionTitle: '📲 App Install Karo',
-        actionDesc: 'Ad dekhne ke baad → App kholo → Install karo → Claim karo!',
+        actionTitle: '📝 Survey Bharo & Kamao',
+        actionDesc: 'Ad ke baad → Survey kholo → Bharo → Claim karo!',
       },
       {
-        id: 5, icon: '🔗', title: 'App share karo',
+        id: 'd4', icon: '🔗', title: 'App share karo',
         desc: 'Doston ke saath app share karo',
-        coins: 10, tag: 'Easy',
+        coins: 8, tag: 'Daily', resetType: 'daily',
         action: 'share',
         actionTitle: '🔗 App Share Karo',
-        actionDesc: 'Apna referral link doston ke saath share karo aur coins kamao!',
-      },
-      {
-        id: 6, icon: '📢', title: 'Telegram join karo',
-        desc: 'Hamara Telegram channel join karo',
-        coins: 12, tag: 'Easy',
-        action: 'visit', waitSec: 8,
-        link: 'https://t.me/SabkaMastiBazaar',
-        actionTitle: '📢 Telegram Join Karo',
-        actionDesc: 'Ad dekhne ke baad → Channel kholo → Join karo → Claim karo!',
+        actionDesc: 'Apna referral link share karo aur daily coins kamao!',
       },
     ],
   },
   {
-    id: 'special',
-    title: '🎁 Special Tasks',
-    subtitle: 'Zyada kaam, zyada inam',
+    id: '4hour',
+    title: '⏰ 4-Hour Tasks',
+    subtitle: 'Har 4 ghante mein dobara karo',
     color: '#a855f7',
+    resetLabel: '4H',
+    resetType: '4h',
     tasks: [
       {
-        id: 7, icon: '🌐', title: 'Website visit karo',
-        desc: 'Partner website visit karke kamao',
-        coins: 8, tag: 'Easy',
-        action: 'visit', waitSec: 12,
-        link: 'https://sabka-masti-bazaar-71333.web.app',
-        actionTitle: '🌐 Website Visit Karo',
-        actionDesc: 'Ad dekhne ke baad → Website kholo → Visit karo → Claim karo!',
+        id: 'h1', icon: '🔥', title: 'Ad Watch Zone 1',
+        desc: 'Ad dekho — har 4 ghante mein kamao',
+        coins: 5, tag: '4H', resetType: '4h',
+        action: 'video', waitSec: 10,
+        actionTitle: '🔥 Zone 1 Ad Dekho',
+        actionDesc: 'Ad dekho aur har 4 ghante mein yeh coins kamao!',
       },
       {
-        id: 8, icon: '⭐', title: 'App rate karo',
-        desc: '5 star rating dekar kamao',
-        coins: 25, tag: 'Big',
-        action: 'visit', waitSec: 20,
-        link: 'https://t.me/SabkaMastiBazaarBot',
-        actionTitle: '⭐ App Rate Karo',
-        actionDesc: 'Ad dekhne ke baad → App kholo → 5 star do → Claim karo!',
+        id: 'h2', icon: '💎', title: 'Ad Watch Zone 2',
+        desc: 'Doosra zone — alag network, alag reward',
+        coins: 8, tag: '4H', resetType: '4h',
+        action: 'video', waitSec: 10,
+        actionTitle: '💎 Zone 2 Ad Dekho',
+        actionDesc: 'Zone 2 ka ad dekho aur reward lo!',
       },
       {
-        id: 9, icon: '💬', title: 'Bot se baat karo',
-        desc: 'Telegram bot start karke reward lo',
-        coins: 10, tag: 'New',
-        action: 'visit', waitSec: 10,
-        link: 'https://t.me/SabkaMastiBazaarBot',
-        actionTitle: '💬 Bot Start Karo',
-        actionDesc: 'Ad dekhne ke baad → Bot kholo → /start bhejo → Claim karo!',
+        id: 'h3', icon: '⚡', title: 'Ad Watch Zone 3',
+        desc: 'Teesra zone — aur coins kamao',
+        coins: 6, tag: '4H', resetType: '4h',
+        action: 'video', waitSec: 10,
+        actionTitle: '⚡ Zone 3 Ad Dekho',
+        actionDesc: 'Zone 3 ka ad dekho aur coins lo!',
+      },
+      {
+        id: 'h4', icon: '💰', title: 'Bonus Ad Watch',
+        desc: 'Bonus round — sabse zyada reward',
+        coins: 12, tag: '4H', resetType: '4h',
+        action: 'video', waitSec: 10,
+        actionTitle: '💰 Bonus Ad Dekho',
+        actionDesc: 'Bonus round — sabse zyada coins yahan milte hain!',
+      },
+      {
+        id: 'h5', icon: '🎯', title: 'Lucky Ad Watch',
+        desc: 'Lucky round — special reward chance',
+        coins: 10, tag: '4H', resetType: '4h',
+        action: 'video', waitSec: 10,
+        actionTitle: '🎯 Lucky Ad Dekho',
+        actionDesc: 'Lucky round ka ad dekho aur special reward lo!',
       },
     ],
   },
@@ -127,56 +118,140 @@ export const TASK_CATEGORIES = [
 
 export const TASKS = TASK_CATEGORIES.flatMap(c => c.tasks);
 
+/* ──────────────────────────────────────────
+   Cooldown helpers
+────────────────────────────────────────── */
 function getTodayKey() {
   const istMs = Date.now() + 5.5 * 60 * 60 * 1000;
   return new Date(istMs).toISOString().split('T')[0];
 }
-function getTaskUsed(taskId) {
-  try { return localStorage.getItem(`smb_task_${taskId}_${getTodayKey()}`) === '1'; }
-  catch { return false; }
+
+function getMsUntilMidnightIST() {
+  const nowMs = Date.now();
+  const istMs = nowMs + 5.5 * 60 * 60 * 1000;
+  const istDate = new Date(istMs);
+  const nextMidnight = new Date(Date.UTC(
+    istDate.getUTCFullYear(),
+    istDate.getUTCMonth(),
+    istDate.getUTCDate() + 1,
+    18, 30, 0, 0   // 18:30 UTC = 00:00 IST next day
+  ));
+  return nextMidnight.getTime() - nowMs;
 }
-function markTaskUsed(taskId) {
-  try { localStorage.setItem(`smb_task_${taskId}_${getTodayKey()}`, '1'); } catch {}
+
+function getTaskState(task) {
+  try {
+    if (task.resetType === 'daily') {
+      const done = localStorage.getItem(`smb_task_${task.id}_${getTodayKey()}`) === '1';
+      if (!done) return { done: false, cooldownMs: 0 };
+      return { done: true, cooldownMs: getMsUntilMidnightIST() };
+    } else {
+      const stored = parseInt(localStorage.getItem(`smb_task_4h_${task.id}`) || '0');
+      const elapsed = Date.now() - stored;
+      const FOUR_H = 4 * 60 * 60 * 1000;
+      if (!stored || elapsed >= FOUR_H) return { done: false, cooldownMs: 0 };
+      return { done: true, cooldownMs: FOUR_H - elapsed };
+    }
+  } catch { return { done: false, cooldownMs: 0 }; }
+}
+
+function markTaskDone(task) {
+  try {
+    if (task.resetType === 'daily') {
+      localStorage.setItem(`smb_task_${task.id}_${getTodayKey()}`, '1');
+    } else {
+      localStorage.setItem(`smb_task_4h_${task.id}`, Date.now().toString());
+    }
+  } catch {}
+}
+
+function fmtCooldown(ms) {
+  if (ms <= 0) return null;
+  const sec = Math.ceil(ms / 1000);
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  const s = sec % 60;
+  if (h > 0) return `${h}h ${String(m).padStart(2,'0')}m`;
+  if (m > 0) return `${m}m ${String(s).padStart(2,'0')}s`;
+  return `${s}s`;
+}
+
+/* ──────────────────────────────────────────
+   Build initial state from localStorage
+────────────────────────────────────────── */
+function buildInitState() {
+  return Object.fromEntries(
+    TASKS.map(t => [t.id, getTaskState(t)])
+  );
 }
 
 const TAG_COLORS = {
-  easy: '#22c55e',
-  hot:  '#ef4444',
-  new:  '#3b82f6',
-  big:  '#f59e0b',
+  daily: '#f59e0b',
+  '4h':  '#a855f7',
 };
 
+/* ──────────────────────────────────────────
+   Main Component
+────────────────────────────────────────── */
 export default function TaskSection() {
-  const navigate = useNavigate();
   const { user, completeTask, recordTaskCompletion } = useApp();
 
-  const [taskDone, setTaskDone] = useState(() =>
-    Object.fromEntries(TASKS.map(t => [t.id, getTaskUsed(t.id)]))
-  );
+  const [taskState, setTaskState] = useState(buildInitState);
   const [activeTask, setActiveTask] = useState(null);
 
   const referralLink = user?.ref_code
     ? `https://t.me/SabkaMastiBazaarBot?start=${user.ref_code}`
     : 'https://t.me/SabkaMastiBazaarBot';
 
-  const handleTaskClick = (task) => {
-    if (taskDone[task.id]) return;
+  /* Live countdown — har second update */
+  useEffect(() => {
+    const id = setInterval(() => {
+      setTaskState(prev => {
+        const next = { ...prev };
+        let changed = false;
+        TASKS.forEach(t => {
+          const cur = prev[t.id];
+          if (cur.done && cur.cooldownMs > 0) {
+            const newMs = cur.cooldownMs - 1000;
+            if (newMs <= 0) {
+              next[t.id] = { done: false, cooldownMs: 0 };
+            } else {
+              next[t.id] = { done: true, cooldownMs: newMs };
+            }
+            changed = true;
+          }
+        });
+        return changed ? next : prev;
+      });
+    }, 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  const handleTaskClick = useCallback((task) => {
+    if (taskState[task.id]?.done) return;
     setActiveTask(task);
-  };
+  }, [taskState]);
 
   const handleClaim = async () => {
     if (!activeTask) return;
     const t = activeTask;
     setActiveTask(null);
-    markTaskUsed(t.id);
-    setTaskDone(prev => ({ ...prev, [t.id]: true }));
-    recordTaskCompletion(t.id).catch(() => {});
+    markTaskDone(t);
+    setTaskState(prev => ({
+      ...prev,
+      [t.id]: {
+        done: true,
+        cooldownMs: t.resetType === 'daily' ? getMsUntilMidnightIST() : 4 * 60 * 60 * 1000,
+      },
+    }));
+    recordTaskCompletion?.(t.id)?.catch(() => {});
     await completeTask(t.coins);
   };
 
-  const totalDone  = TASKS.filter(t => taskDone[t.id]).length;
+  /* Stats */
   const totalTasks = TASKS.length;
-  const totalCoinsLeft = TASKS.reduce((s, t) => s + (taskDone[t.id] ? 0 : t.coins), 0);
+  const totalDone  = TASKS.filter(t => taskState[t.id]?.done).length;
+  const totalCoinsLeft = TASKS.reduce((s, t) => s + (taskState[t.id]?.done ? 0 : t.coins), 0);
 
   return (
     <div className="tsec-wrap">
@@ -185,20 +260,20 @@ export default function TaskSection() {
       <div className="tsec-master-header">
         <div className="tsec-master-left">
           <span className="tsec-master-title">⚡ Earning Tasks</span>
-          <span className="tsec-master-sub">Roz karo, roz kamao!</span>
+          <span className="tsec-master-sub">Karo, kamao, dobara karo!</span>
         </div>
         <div className="tsec-master-right">
           <div className="tsec-master-count">{totalDone}/{totalTasks}</div>
-          <div className="tsec-master-count-lbl">done</div>
+          <div className="tsec-master-count-lbl">active</div>
         </div>
       </div>
 
-      {/* ── Total coins left banner ── */}
+      {/* ── Coins left banner ── */}
       {totalCoinsLeft > 0 && (
         <div className="tsec-coins-banner">
           <span className="tsec-coins-banner-icon">🪙</span>
           <span className="tsec-coins-banner-txt">
-            Aaj aur <b>{totalCoinsLeft} coins</b> kama sakte ho!
+            Abhi <b>{totalCoinsLeft} coins</b> kama sakte ho!
           </span>
         </div>
       )}
@@ -208,17 +283,17 @@ export default function TaskSection() {
         <div className="tsec-progress-bar">
           <div
             className="tsec-progress-fill"
-            style={{ width: `${(totalDone / totalTasks) * 100}%` }}
+            style={{ width: `${totalTasks ? (totalDone / totalTasks) * 100 : 0}%` }}
           />
         </div>
         <span className="tsec-progress-pct">
-          {Math.round((totalDone / totalTasks) * 100)}%
+          {totalTasks ? Math.round((totalDone / totalTasks) * 100) : 0}%
         </span>
       </div>
 
       {/* ── Category Sections ── */}
       {TASK_CATEGORIES.map(cat => {
-        const catDone = cat.tasks.filter(t => taskDone[t.id]).length;
+        const catDone = cat.tasks.filter(t => taskState[t.id]?.done).length;
         return (
           <div key={cat.id} className="tsec-category">
 
@@ -240,55 +315,69 @@ export default function TaskSection() {
             {/* Task Cards */}
             <div className="tsec-list">
               {cat.tasks.map(task => {
-                const done = taskDone[task.id];
+                const state    = taskState[task.id] || { done: false, cooldownMs: 0 };
+                const onCooldown = state.done;
+                const cdStr    = fmtCooldown(state.cooldownMs);
                 const tagColor = TAG_COLORS[task.tag.toLowerCase()] || '#888';
+
                 return (
                   <div
                     key={task.id}
-                    className={`tcard ${done ? 'tcard-done' : ''}`}
+                    className={`tcard ${onCooldown ? 'tcard-cooldown' : ''}`}
                     style={{ '--cat-color': cat.color }}
-                    onClick={() => handleTaskClick(task)}
+                    onClick={() => !onCooldown && handleTaskClick(task)}
                   >
                     {/* Left accent */}
-                    <div className="tcard-accent" style={{ background: done ? 'rgba(255,255,255,0.1)' : cat.color }} />
+                    <div className="tcard-accent"
+                      style={{ background: onCooldown ? 'rgba(255,255,255,0.06)' : cat.color }} />
 
                     {/* Icon */}
-                    <div className={`tcard-icon-wrap ${done ? 'tcard-icon-done' : ''}`}
-                      style={!done ? {
+                    <div className={`tcard-icon-wrap ${onCooldown ? 'tcard-icon-cd' : ''}`}
+                      style={!onCooldown ? {
                         background: `${cat.color}18`,
                         borderColor: `${cat.color}44`,
                       } : {}}>
-                      <span className="tcard-icon">{done ? '✅' : task.icon}</span>
+                      <span className="tcard-icon">
+                        {onCooldown ? (task.resetType === 'daily' ? '✅' : '⏳') : task.icon}
+                      </span>
                     </div>
 
                     {/* Info */}
                     <div className="tcard-info">
                       <div className="tcard-top-row">
                         <span className="tcard-title">{task.title}</span>
-                        <span
-                          className="tcard-tag"
-                          style={{ background: `${tagColor}22`, color: tagColor, border: `1px solid ${tagColor}44` }}
-                        >
+                        <span className="tcard-tag"
+                          style={{ background: `${tagColor}22`, color: tagColor, border: `1px solid ${tagColor}44` }}>
                           {task.tag}
                         </span>
                       </div>
-                      <div className="tcard-desc">
-                        {done ? '✓ Aaj ka complete! Kal dobara aao.' : task.desc}
-                      </div>
-                      {!done && (
-                        <div className="tcard-ad-hint">🎬 Ad dekhne ke baad milega</div>
+                      {onCooldown ? (
+                        <div className="tcard-cd-info">
+                          {task.resetType === 'daily'
+                            ? <span className="tcard-cd-done">✓ Aaj complete! Kal dobara milega</span>
+                            : <span className="tcard-cd-timer">🔄 Dobara milega: <b>{cdStr}</b></span>
+                          }
+                        </div>
+                      ) : (
+                        <>
+                          <div className="tcard-desc">{task.desc}</div>
+                          <div className="tcard-ad-hint">🎬 Ad dekhne ke baad milega</div>
+                        </>
                       )}
                     </div>
 
-                    {/* Reward button */}
+                    {/* Reward / Cooldown button */}
                     <button
-                      className={`tcard-btn ${done ? 'tcard-btn-done' : ''}`}
-                      disabled={done}
-                      style={!done ? { background: `linear-gradient(135deg, ${cat.color}, ${cat.color}bb)` } : {}}
-                      onClick={e => { e.stopPropagation(); handleTaskClick(task); }}
+                      className={`tcard-btn ${onCooldown ? 'tcard-btn-cd' : ''}`}
+                      disabled={onCooldown}
+                      style={!onCooldown ? { background: `linear-gradient(135deg, ${cat.color}, ${cat.color}bb)` } : {}}
+                      onClick={e => { e.stopPropagation(); !onCooldown && handleTaskClick(task); }}
                     >
-                      {done
-                        ? <span>✅</span>
+                      {onCooldown
+                        ? (task.resetType === 'daily'
+                          ? <span className="tcard-btn-cd-txt">✅</span>
+                          : <span className="tcard-btn-cd-txt" style={{ fontSize: '9px', lineHeight: 1.3 }}>{cdStr || '⏳'}</span>
+                        )
                         : <span className="tcard-btn-coins">+{task.coins}<br />🪙</span>
                       }
                     </button>
@@ -300,11 +389,14 @@ export default function TaskSection() {
         );
       })}
 
-      {/* ── All done message ── */}
+      {/* ── All on cooldown message ── */}
       {totalDone === totalTasks && (
         <div className="tsec-all-done">
           <span className="tsec-all-done-icon">🎉</span>
-          <span className="tsec-all-done-txt">Aaj ke saare tasks complete! Kal dobara aao.</span>
+          <span className="tsec-all-done-txt">
+            Sab tasks complete! Daily tasks kal reset honge.<br />
+            4-Hour tasks thodi der mein wapas aayenge.
+          </span>
         </div>
       )}
 
