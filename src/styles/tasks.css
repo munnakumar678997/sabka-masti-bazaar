@@ -1,67 +1,122 @@
 /* ══════════════════════════════════════════
-   TASKS SECTION — Earning Tasks
+   TASKS SECTION — Category-based Design
 ══════════════════════════════════════════ */
 .tsec-wrap {
   margin-top: 20px;
 }
 
-.tsec-header {
-  margin-bottom: 12px;
-  padding: 0 2px;
-}
-.tsec-title-row {
+/* ── Master Header ── */
+.tsec-master-header {
   display: flex; align-items: center; justify-content: space-between;
-  margin-bottom: 5px;
+  margin-bottom: 10px; padding: 0 2px;
 }
-.tsec-title {
-  font-size: 16px; font-weight: 900; color: #fff;
-  letter-spacing: 0.2px;
+.tsec-master-left {
+  display: flex; flex-direction: column; gap: 2px;
 }
-.tsec-progress {
-  font-size: 11px; font-weight: 700;
-  color: rgba(255,255,255,0.35);
-  background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 20px; padding: 3px 10px;
+.tsec-master-title {
+  font-size: 17px; font-weight: 900; color: #fff; letter-spacing: 0.2px;
 }
-.tsec-potential {
-  font-size: 11px; color: #ffd700; font-weight: 700;
-  opacity: 0.8;
+.tsec-master-sub {
+  font-size: 11px; color: rgba(255,255,255,0.35); font-weight: 600;
+}
+.tsec-master-right {
+  display: flex; flex-direction: column; align-items: center;
+  background: rgba(255,215,0,0.08);
+  border: 1px solid rgba(255,215,0,0.18);
+  border-radius: 14px; padding: 6px 14px;
+}
+.tsec-master-count {
+  font-size: 18px; font-weight: 900; color: #fbbf24; line-height: 1;
+}
+.tsec-master-count-lbl {
+  font-size: 9px; font-weight: 700; color: rgba(255,215,0,0.5);
+  text-transform: uppercase; letter-spacing: 0.5px;
 }
 
-/* ── Task Cards ── */
+/* ── Coins Banner ── */
+.tsec-coins-banner {
+  display: flex; align-items: center; gap: 8px;
+  background: linear-gradient(135deg, rgba(255,106,0,0.1), rgba(238,9,121,0.08));
+  border: 1px solid rgba(255,106,0,0.2);
+  border-radius: 12px; padding: 10px 14px;
+  margin-bottom: 12px;
+}
+.tsec-coins-banner-icon { font-size: 20px; }
+.tsec-coins-banner-txt {
+  font-size: 12px; color: rgba(255,255,255,0.7); font-weight: 600;
+}
+.tsec-coins-banner-txt b { color: #fbbf24; }
+
+/* ── Progress Bar ── */
+.tsec-progress-bar-wrap {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 18px;
+}
+.tsec-progress-bar {
+  flex: 1; height: 6px;
+  background: rgba(255,255,255,0.07);
+  border-radius: 10px; overflow: hidden;
+}
+.tsec-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #ff6a00, #ee0979, #a855f7);
+  border-radius: 10px;
+  transition: width 0.6s cubic-bezier(0.34,1.56,0.64,1);
+}
+.tsec-progress-pct {
+  font-size: 11px; font-weight: 800; color: rgba(255,255,255,0.4);
+  min-width: 30px; text-align: right;
+}
+
+/* ── Category Section ── */
+.tsec-category {
+  margin-bottom: 20px;
+}
+.tsec-cat-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 10px; padding: 0 2px;
+}
+.tsec-cat-left {
+  display: flex; flex-direction: column; gap: 1px;
+}
+.tsec-cat-title {
+  font-size: 13px; font-weight: 900; letter-spacing: 0.2px;
+}
+.tsec-cat-sub {
+  font-size: 10px; color: rgba(255,255,255,0.3); font-weight: 600;
+}
+.tsec-cat-badge {
+  font-size: 10px; font-weight: 800;
+  padding: 3px 10px; border-radius: 20px;
+}
+
+/* ── Task List ── */
 .tsec-list {
-  display: flex; flex-direction: column; gap: 10px;
+  display: flex; flex-direction: column; gap: 9px;
 }
 
+/* ── Task Card ── */
 .tcard {
   display: flex; align-items: center; gap: 12px;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.09);
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
   border-radius: 18px;
-  padding: 14px 14px 14px 14px;
+  padding: 13px 13px 13px 16px;
   cursor: pointer;
   transition: background 0.18s, transform 0.12s, border-color 0.18s;
   position: relative; overflow: hidden;
 }
-.tcard::before {
-  content: ''; position: absolute;
-  left: 0; top: 0; bottom: 0; width: 3px;
-  background: linear-gradient(180deg, #ff6a00, #ee0979);
-  border-radius: 3px 0 0 3px;
-  opacity: 0;
-  transition: opacity 0.18s;
+.tcard-accent {
+  position: absolute; left: 0; top: 0; bottom: 0;
+  width: 3.5px; border-radius: 3px 0 0 3px;
 }
 .tcard:not(.tcard-done):active {
   transform: scale(0.975);
-  background: rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.07);
 }
-.tcard:not(.tcard-done):hover::before { opacity: 1; }
 .tcard-done {
-  opacity: 0.45;
+  opacity: 0.4;
   cursor: default;
 }
-.tcard-done::before { opacity: 0 !important; }
 
 .tcard-icon-wrap {
   width: 46px; height: 46px; border-radius: 14px;
@@ -72,8 +127,8 @@
   transition: background 0.18s;
 }
 .tcard-icon-done {
-  background: rgba(34,197,94,0.12);
-  border-color: rgba(34,197,94,0.25);
+  background: rgba(34,197,94,0.12) !important;
+  border-color: rgba(34,197,94,0.25) !important;
 }
 .tcard-icon { line-height: 1; }
 
@@ -85,7 +140,7 @@
   flex-wrap: wrap;
 }
 .tcard-title {
-  font-size: 13.5px; font-weight: 800; color: #fff;
+  font-size: 13px; font-weight: 800; color: #fff;
   white-space: nowrap;
 }
 .tcard-tag {
@@ -108,20 +163,31 @@
   background: linear-gradient(135deg, #ff6a00, #ee0979);
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
-  box-shadow: 0 4px 14px rgba(238,9,121,0.3);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.3);
   transition: transform 0.12s, box-shadow 0.12s;
   text-align: center; line-height: 1.25;
 }
-.tcard-btn:active { transform: scale(0.9); box-shadow: 0 2px 8px rgba(238,9,121,0.2); }
+.tcard-btn:active { transform: scale(0.9); }
 .tcard-btn-done {
-  background: rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.07) !important;
   box-shadow: none; cursor: default;
 }
 .tcard-btn-coins {
   font-size: 12px; font-weight: 900; color: #fff;
 }
-.tcard-btn-refer {
-  font-size: 10px; font-weight: 800; color: #fff;
+
+/* ── All Done message ── */
+.tsec-all-done {
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  padding: 24px 16px; margin-top: 8px;
+  background: rgba(34,197,94,0.06);
+  border: 1px solid rgba(34,197,94,0.15);
+  border-radius: 20px; text-align: center;
+}
+.tsec-all-done-icon { font-size: 40px; }
+.tsec-all-done-txt  {
+  font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.55);
+  line-height: 1.5;
 }
 
 /* ══════════════════════════════════════════
@@ -173,17 +239,13 @@
   text-align: center; line-height: 1.6; padding: 0 6px;
 }
 
-/* ── Ad Slot ── */
 .tmodal-ad-slot {
   width: 100%; min-height: 2px;
-  /* Real ad network ka content yahan render hoga */
 }
 
-/* ── Ad Loading phase ── */
 .tmodal-ad-loading {
   display: flex; flex-direction: column; align-items: center; gap: 10px;
-  padding: 16px 0 10px;
-  width: 100%;
+  padding: 16px 0 10px; width: 100%;
 }
 .tmodal-spinner {
   width: 44px; height: 44px;
@@ -192,9 +254,7 @@
   border-radius: 50%;
   animation: tmodal-spin 0.85s linear infinite;
 }
-@keyframes tmodal-spin {
-  to { transform: rotate(360deg); }
-}
+@keyframes tmodal-spin { to { transform: rotate(360deg); } }
 .tmodal-loading-txt {
   font-size: 14px; font-weight: 800; color: rgba(255,255,255,0.75);
   min-width: 180px; text-align: center;
@@ -203,21 +263,17 @@
   font-size: 11px; color: rgba(255,255,255,0.3); text-align: center;
 }
 
-/* ── Ad Failed phase ── */
 .tmodal-ad-failed {
   display: flex; flex-direction: column; align-items: center; gap: 8px;
   padding: 12px 0 8px; width: 100%;
 }
 .tmodal-failed-icon { font-size: 36px; }
-.tmodal-failed-txt {
-  font-size: 15px; font-weight: 800; color: #f87171;
-}
-.tmodal-failed-sub {
+.tmodal-failed-txt  { font-size: 15px; font-weight: 800; color: #f87171; }
+.tmodal-failed-sub  {
   font-size: 11px; color: rgba(255,255,255,0.35); text-align: center; line-height: 1.5;
 }
 .tmodal-retry-btn {
-  margin-top: 6px;
-  padding: 12px 28px;
+  margin-top: 6px; padding: 12px 28px;
   background: rgba(248,113,113,0.15);
   border: 1px solid rgba(248,113,113,0.3);
   border-radius: 14px; color: #f87171;
@@ -226,10 +282,8 @@
 }
 .tmodal-retry-btn:active { background: rgba(248,113,113,0.25); }
 
-/* ── Ad loaded → action area ── */
 .tmodal-action-area {
-  display: flex; flex-direction: column; align-items: center; gap: 10px;
-  width: 100%;
+  display: flex; flex-direction: column; align-items: center; gap: 10px; width: 100%;
 }
 .tmodal-ad-done-note {
   font-size: 12px; color: #22c55e; font-weight: 700;
@@ -252,37 +306,25 @@
   box-shadow: 0 6px 20px rgba(0,136,204,0.4);
 }
 
-/* ── Timer ring ── */
 .tmodal-timer-wrap {
   display: flex; flex-direction: column; align-items: center;
-  gap: 6px; padding: 8px 0;
-  position: relative;
+  gap: 6px; padding: 8px 0; position: relative;
 }
-.tmodal-timer-svg {
-  filter: drop-shadow(0 0 14px rgba(255,106,0,0.38));
-}
+.tmodal-timer-svg { filter: drop-shadow(0 0 14px rgba(255,106,0,0.38)); }
 .tmodal-timer-center {
-  position: absolute;
-  top: 50%; left: 50%;
+  position: absolute; top: 50%; left: 50%;
   transform: translate(-50%, -58%);
   display: flex; align-items: baseline; gap: 2px;
   pointer-events: none;
 }
-.tmodal-timer-num {
-  font-size: 28px; font-weight: 900; color: #fff;
-}
-.tmodal-timer-unit {
-  font-size: 12px; color: rgba(255,255,255,0.4); font-weight: 600;
-}
+.tmodal-timer-num  { font-size: 28px; font-weight: 900; color: #fff; }
+.tmodal-timer-unit { font-size: 12px; color: rgba(255,255,255,0.4); font-weight: 600; }
 .tmodal-timer-hint {
-  font-size: 12px; color: rgba(255,255,255,0.32); font-weight: 600;
-  letter-spacing: 0.3px;
+  font-size: 12px; color: rgba(255,255,255,0.32); font-weight: 600; letter-spacing: 0.3px;
 }
 
-/* ── Claim area ── */
 .tmodal-claim-area {
-  display: flex; flex-direction: column; align-items: center;
-  gap: 10px; width: 100%;
+  display: flex; flex-direction: column; align-items: center; gap: 10px; width: 100%;
 }
 .tmodal-success-icon { font-size: 40px; animation: tmodalPop 0.3s cubic-bezier(.34,1.56,.64,1); }
 .tmodal-claim-btn {
@@ -303,7 +345,6 @@
   border-radius: 10px; padding: 7px 14px;
 }
 
-/* ── Reward row ── */
 .tmodal-reward-row {
   display: flex; align-items: center; justify-content: space-between;
   width: 100%;
@@ -311,9 +352,5 @@
   border: 1px solid rgba(255,215,0,0.14);
   border-radius: 12px; padding: 10px 16px;
 }
-.tmodal-reward-lbl {
-  font-size: 13px; color: rgba(255,255,255,0.4);
-}
-.tmodal-reward-val {
-  font-size: 16px; font-weight: 900; color: #ffd700;
-}
+.tmodal-reward-lbl { font-size: 13px; color: rgba(255,255,255,0.4); }
+.tmodal-reward-val { font-size: 16px; font-weight: 900; color: #ffd700; }

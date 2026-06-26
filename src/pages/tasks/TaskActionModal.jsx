@@ -95,7 +95,7 @@ export default function TaskActionModal({ task, onClaim, onClose, referralLink }
 
   // ── Handle action buttons ───────────────────────────────
   const handleActionBtn = () => {
-    if (task.action === 'install' || task.action === 'survey') {
+    if (task.action === 'install' || task.action === 'survey' || task.action === 'visit') {
       window.open(task.link, '_blank');
       setTimeout(() => startTimer(), 600);
     } else if (task.action === 'share') {
@@ -161,12 +161,14 @@ export default function TaskActionModal({ task, onClaim, onClose, referralLink }
           </div>
         )}
 
-        {/* ── PHASE: Action button (install/survey after ad loads) ── */}
-        {phase === 'action' && (task.action === 'install' || task.action === 'survey') && (
+        {/* ── PHASE: Action button (install/survey/visit after ad loads) ── */}
+        {phase === 'action' && (task.action === 'install' || task.action === 'survey' || task.action === 'visit') && (
           <div className="tmodal-action-area">
             <div className="tmodal-ad-done-note">✅ Ad load ho gaya!</div>
             <button className="tmodal-action-btn" onClick={handleActionBtn}>
-              {task.action === 'install' ? '📲 App Kholo & Install Karo' : '📝 Survey Kholo & Bharo'}
+              {task.action === 'install' ? '📲 App Kholo & Install Karo'
+               : task.action === 'survey' ? '📝 Survey Kholo & Bharo'
+               : `${task.icon} ${task.title} — Kholo`}
             </button>
           </div>
         )}

@@ -96,24 +96,25 @@ body {
 
 ---
 
-## 🎮 Games — 4-Network Ad System (Developer Reference)
+## 🎮 Games — 5-Network Ad System (Developer Reference)
 
-Games page pe **4 Ad Network Zones** hain. UI pe sirf short codes dikhte hain — full name sirf developer ke reference ke liye hai.
+Games page pe **5 Ad Network Zones** hain. UI pe sirf short codes dikhte hain — full name sirf developer ke reference ke liye hai.
 
 | UI Label | Code | Full Network Name | Website |
 |----------|------|-------------------|---------|
 | 🔥 MG | `mg` | **Monetag** | monetag.com |
-| ⚡ PA | `pa` | **PropellerAds** | propellerads.com |
 | 💎 AS | `as` | **Adsterra** | adsterra.com |
-| 🌟 EZ | `ez` | **Ezoic** | ezoic.com |
+| 💰 PC | `pc` | **PopCash** | popcash.net |
+| ⚡ CK | `ck` | **Clickadu** | clickadu.com |
+| 🏔️ HT | `ht` | **HilltopAds** | hilltopads.com |
 
-> **Important:** User ko sirf MG / PA / AS / EZ dikhta hai — full network name intentionally hidden hai.
+> **Important:** User ko sirf MG / AS / PC / CK / HT dikhta hai — full network name intentionally hidden hai.
 
 ### Ad Script Kahan Daalen?
 File: `src/pages/games/AdWatchOverlay.jsx`
 ```jsx
 <div className="ad-slot-box" id={`ad-slot-${network.id}`}>
-  {/* network.id = "mg" | "pa" | "as" | "ez" */}
+  {/* network.id = "mg" | "as" | "pc" | "ck" | "ht" */}
   {/* Apna real ad network script yahaan paste karo */}
 </div>
 ```
@@ -122,7 +123,7 @@ File: `src/pages/games/AdWatchOverlay.jsx`
 - Spin Wheel: 3 plays / 4 hours
 - Scratch Card: 3 plays / 4 hours (har card ke liye alag ad)
 - Coin Flip: 3 plays / 4 hours
-- **Total: 9 plays × 4 zones = 36 plays per 4 hours**
+- **Total: 9 plays × 5 zones = 45 plays per 4 hours**
 
 ---
 
