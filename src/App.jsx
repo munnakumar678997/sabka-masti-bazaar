@@ -5,7 +5,6 @@ import Home     from './pages/Home';
 import Store    from './pages/store/index';
 import Wallet   from './pages/Wallet';
 import Profile  from './pages/Profile';
-import Games    from './pages/games/index';
 import Referral from './pages/Referral';
 import FAQ       from './pages/FAQ';
 import BonusCode     from './pages/BonusCode';
@@ -13,7 +12,6 @@ import Notifications from './pages/Notifications';
 import { AppProvider } from './context/AppContext';
 import './styles/global.css';
 
-// sessionStorage use karo — refresh pe user data reload ho (Loading se)
 function SessionGuard({ children }) {
   const location      = useLocation();
   const sessionActive = sessionStorage.getItem('smb_session');
@@ -37,7 +35,7 @@ export default function App() {
               <Route path="/store"    element={<Store    />} />
               <Route path="/wallet"   element={<Wallet   />} />
               <Route path="/profile"  element={<Profile  />} />
-              <Route path="/games"    element={<Games    />} />
+              <Route path="/games"    element={<Navigate to="/home" replace />} />
               <Route path="/referral" element={<Referral />} />
               <Route path="/faq"        element={<FAQ       />} />
               <Route path="/bonus-code"     element={<BonusCode />} />
