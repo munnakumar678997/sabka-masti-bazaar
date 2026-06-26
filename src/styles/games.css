@@ -367,6 +367,182 @@
   to   { opacity: 1; transform: translateY(0); }
 }
 
+/* ══════════════════════════════════════════
+   NETWORK TABS
+══════════════════════════════════════════ */
+.net-tabs-wrap {
+  padding: 10px 14px 8px;
+  background: rgba(255,255,255,0.02);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  flex-shrink: 0;
+}
+.net-tabs-lbl {
+  font-size: 10px; font-weight: 800; color: rgba(255,255,255,0.3);
+  text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px;
+}
+.net-tabs {
+  display: grid; grid-template-columns: repeat(4,1fr); gap: 6px;
+}
+.net-tab {
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  padding: 8px 4px; border-radius: 12px;
+  background: rgba(255,255,255,0.04);
+  border: 1.5px solid rgba(255,255,255,0.08);
+  cursor: pointer; transition: all 0.2s;
+}
+.net-tab-icon { font-size: 12px; font-weight: 900; color: rgba(255,255,255,0.55); }
+.net-tab-count { font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.3); }
+.net-tab-active {
+  background: color-mix(in srgb, var(--nc) 15%, transparent);
+  border-color: color-mix(in srgb, var(--nc) 55%, transparent);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--nc) 22%, transparent);
+}
+.net-tab-active .net-tab-icon { color: var(--nc); }
+.net-tab-active .net-tab-count { color: color-mix(in srgb, var(--nc) 75%, #fff); }
+.net-tab:active { transform: scale(0.95); }
+
+/* ── MODAL NET BADGE ── */
+.gmodal-net-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: color-mix(in srgb, var(--nc) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--nc) 40%, transparent);
+  border-radius: 20px; padding: 5px 14px;
+  font-size: 12px; font-weight: 800;
+  color: color-mix(in srgb, var(--nc) 90%, #fff);
+}
+
+/* ── COOLDOWN BOX ── */
+.net-cooldown-box {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  width: 100%; padding: 14px; border-radius: 14px;
+  background: rgba(248,113,113,0.08);
+  border: 1px solid rgba(248,113,113,0.22);
+  font-size: 13px; font-weight: 700; color: #f87171;
+}
+
+/* ── SCRATCH HINT ── */
+.scratch-hint {
+  font-size: 11px; color: rgba(255,255,255,0.3); font-weight: 600;
+  text-align: center; padding: 4px 0;
+}
+
+/* ══════════════════════════════════════════
+   NET STATUS CARD (in hub)
+══════════════════════════════════════════ */
+.net-status-card {
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--nc) 6%, rgba(255,255,255,0.03));
+  border: 1px solid color-mix(in srgb, var(--nc) 28%, transparent);
+  padding: 14px 16px; margin-bottom: 16px;
+  box-shadow: 0 4px 20px color-mix(in srgb, var(--nc) 10%, transparent);
+}
+.nsc-title {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 12px;
+}
+.nsc-badge {
+  font-size: 11px; font-weight: 900; color: #fff;
+  padding: 4px 10px; border-radius: 20px; letter-spacing: 0.3px;
+}
+.nsc-zone {
+  font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.35);
+  text-transform: uppercase; letter-spacing: 0.5px;
+}
+.nsc-row {
+  display: grid; grid-template-columns: repeat(3,1fr); gap: 8px;
+}
+.nsc-item {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  background: rgba(255,255,255,0.04); border-radius: 12px; padding: 10px 6px;
+}
+.nsc-icon { font-size: 22px; }
+.nsc-val  { font-size: 11px; font-weight: 800; text-align: center; }
+
+/* ══════════════════════════════════════════
+   AD WATCH OVERLAY
+══════════════════════════════════════════ */
+.ad-watch-overlay {
+  position: fixed; inset: 0; z-index: 1000;
+  background: rgba(0,0,0,0.92); backdrop-filter: blur(10px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+  animation: gModalIn 0.22s cubic-bezier(.34,1.4,.64,1);
+}
+.ad-watch-card {
+  width: 100%; max-width: 340px;
+  background: linear-gradient(180deg,#18183a,#101025);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 24px; overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.7);
+}
+.ad-watch-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 18px;
+}
+.ad-watch-net-lbl {
+  font-size: 14px; font-weight: 900; color: #fff; letter-spacing: 0.3px;
+}
+.ad-watch-net-txt {
+  font-size: 11px; font-weight: 700;
+  color: rgba(255,255,255,0.65); letter-spacing: 0.5px;
+}
+.ad-watch-body {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 16px; padding: 20px 20px 24px;
+}
+
+/* Ad Slot Box */
+.ad-slot-box {
+  width: 100%; border-radius: 14px; overflow: hidden;
+  border: 1px dashed rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.03);
+}
+.ad-slot-placeholder {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 6px;
+  padding: 32px 20px; text-align: center;
+}
+.ad-slot-icon  { font-size: 40px; }
+.ad-slot-label { font-size: 16px; font-weight: 800; color: rgba(255,255,255,0.5); }
+.ad-slot-net   { font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.25); letter-spacing: 0.5px; }
+
+/* Timer */
+.ad-timer-row {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+}
+.ad-timer-circle {
+  width: 52px; height: 52px; border-radius: 50%;
+  border: 3px solid var(--nc,#ff6a00);
+  display: flex; align-items: center; justify-content: center;
+  background: color-mix(in srgb, var(--nc,#ff6a00) 12%, transparent);
+  box-shadow: 0 0 18px color-mix(in srgb, var(--nc,#ff6a00) 30%, transparent);
+  animation: timerPulse 1s ease-in-out infinite;
+}
+.ad-timer-circle span {
+  font-size: 20px; font-weight: 900;
+  color: var(--nc,#ff6a00);
+}
+@keyframes timerPulse {
+  0%, 100% { transform: scale(1); }
+  50%       { transform: scale(1.06); }
+}
+.ad-timer-txt {
+  font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.35);
+}
+
+/* Loading / Done states */
+.ad-spinner    { font-size: 36px; animation: spin360 1s linear infinite; }
+@keyframes spin360 { to { transform: rotate(360deg); } }
+.ad-status-txt { font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.5); text-align: center; }
+.ad-done-icon  { font-size: 48px; }
+
+.ad-cancel-btn {
+  padding: 8px 24px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.4);
+  font-size: 12px; font-weight: 700; cursor: pointer;
+  transition: background 0.15s;
+}
+.ad-cancel-btn:active { background: rgba(255,255,255,0.1); }
+
 /* ── TOAST ── */
 .games-toast {
   position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%);
