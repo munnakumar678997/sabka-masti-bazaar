@@ -6,25 +6,28 @@ import AdWatchOverlay from './AdWatchOverlay';
 
 export { FLIP_LIMIT };
 
+const FACES = {
+  heads: { icon: '👑', label: 'HEADS', color: '#ffd700' },
+  tails: { icon: '🔵', label: 'TAILS', color: '#0088cc' },
+};
+
 export default function CoinFlipModal({ onClose, onRefresh, network }) {
   const { addCoins, recordGamePlay } = useApp();
 
-  const [flipChoice,   setFlipChoice]   = useState(null);
-  const [phase,        setPhase]        = useState('choose'); // choose | flipping | result | claiming
-  const [flipFace,     setFlipFace]     = useState('🪙');
-  const [resultData,   setResultData]   = useState(null); // { result, won }
-  const [claimingAd,   setClaimingAd]   = useState(false);
-  const [claimed,      setClaimed]      = useState(false);
-  const [tick,         setTick]         = useState(0);
-  const flipIntervalRef = useRef(null);
-  const timerRef        = useRef(null);
+  const [choice,   setChoice]   = useState(null); // 'heads' | 'tails'
+  const [phase,    setPhase]    = useState('choose'); // choose | flipping | result | claim-ad | claimed
+  const [flipFace, setFlipFace] = useState(null);
+  const [result,   setResult]   = useState(null);  // { face, won }
+  const [tick,     setTick]     = useState(0);
+  const flipRef = useRef(null);
+  const timerRef = useRef(null);
 
   useEffect(() => {
     const id = setInterval(() => setTick(t => t + 1), 1000);
     return () => {
       clearInterval(id);
-      if (flipIntervalRef.current) clearInterval(flipIntervalRef.current);
-      if (timerRef.current)        clearTimeout(timerRef.current);
+      if (flipRef.current)  clearInterval(flipRef.current);
+      if (timerRef.current) clearTimeout(timerRef.current);
     };
   }, []);
 
@@ -33,201 +36,199 @@ export default function CoinFlipModal({ onClose, onRefresh, network }) {
   const timeLeft = isDone ? getNetTimeLeft(network.id, 'flip') : 0;
 
   const doFlip = () => {
-    if (phase !== 'choose' || !flipChoice) return;
     setPhase('flipping');
-    setFlipFace('🌀');
+    setFlipFace(null);
     let count = 0;
-    const faces = ['👑', '🔵'];
-
-    const interval = setInterval(() => {
-      setFlipFace(faces[count % 2]);
+    const cycFaces = ['heads', 'tails'];
+    flipRef.current = setInterval(() => {
+      setFlipFace(cycFaces[count % 2]);
       count++;
       if (count >= 10) {
-        clearInterval(interval);
-        flipIntervalRef.current = null;
-
-        const result = Math.random() < 0.5 ? 'heads' : 'tails';
-        const won    = result === flipChoice;
-        setFlipFace(result === 'heads' ? '👑' : '🔵');
-
+        clearInterval(flipRef.current);
+        flipRef.current = null;
+        const face = Math.random() < 0.5 ? 'heads' : 'tails';
+        const won  = face === choice;
+        setFlipFace(face);
         incNetUsed(network.id, 'flip');
         recordGamePlay('flip').catch(() => {});
         onRefresh();
-
-        setResultData({ result, won });
-        setPhase('result');
+        timerRef.current = setTimeout(() => {
+          setResult({ face, won });
+          setPhase('result');
+        }, 500);
       }
     }, 130);
-    flipIntervalRef.current = interval;
   };
 
-  // Claim coins — watch ad first
-  const handleClaim = () => setClaimingAd(true);
+  const handleClaimAd = () => setPhase('claim-ad');
 
-  const handleAdComplete = async () => {
-    setClaimingAd(false);
+  const handleAdDone = async () => {
     await addCoins(15);
-    setClaimed(true);
     setPhase('claimed');
   };
 
-  const handlePlayAgain = () => {
-    setFlipChoice(null);
-    setResultData(null);
-    setClaimed(false);
+  const resetRound = () => {
+    setChoice(null);
+    setFlipFace(null);
+    setResult(null);
     setPhase('choose');
-    setFlipFace('🪙');
   };
-
-  const canFlip = flipChoice && phase === 'choose' && !isDone;
 
   return (
     <>
-      <div className="gmodal-overlay"
-        onClick={() => phase === 'choose' && !claimingAd && onClose()}>
-        <div className="gmodal flip-gmodal" onClick={e => e.stopPropagation()}>
+      <div className="fs-overlay">
+        {/* Topbar */}
+        <div className="fs-topbar">
+          <div className="fs-net-badge" style={{ background: network.grad }}>{network.label}</div>
+          <div className="fs-title">🪙 Coin Flip</div>
+          {phase === 'choose' ? (
+            <button className="fs-close-btn" onClick={onClose}>✕</button>
+          ) : <div style={{ width: 36 }} />}
+        </div>
 
-          {phase === 'choose' && !claimingAd && (
-            <button className="gmodal-close" onClick={onClose}>✕</button>
-          )}
+        {/* Plays counter */}
+        <div className="fs-plays-row">
+          {[...Array(Math.min(FLIP_LIMIT, 10))].map((_, i) => (
+            <div key={i} className={`fs-play-dot ${i < used ? 'fs-play-dot-used' : 'fs-play-dot-free'}`}
+              style={i >= used ? { background: network.color, opacity: 1 - i * 0.05 } : {}} />
+          ))}
+          <span className="fs-plays-txt">{FLIP_LIMIT - used}/{FLIP_LIMIT} flips</span>
+        </div>
 
-          <div className="gmodal-title">🪙 Coin Flip</div>
-          <div className="gmodal-net-badge" style={{ '--nc': network.color, '--ng': network.grad }}>
-            {network.label} · {FLIP_LIMIT - used}/{FLIP_LIMIT} flips
-          </div>
+        {/* Main arena */}
+        <div className="cf-arena">
 
-          {/* Coin display */}
-          <div className={`flip-display ${phase === 'flipping' ? 'spinning' : ''} ${phase === 'result' || phase === 'claimed' ? 'flip-result-show' : ''}`}>
-            {flipFace}
-          </div>
-
-          {/* Choose phase */}
-          {(phase === 'choose' || phase === 'flipping') && (
-            <>
-              <div className="flip-choices">
-                <button
-                  className={`flip-opt ${flipChoice === 'heads' ? 'sel' : ''}`}
-                  style={flipChoice === 'heads' ? { '--nc': network.color } : {}}
-                  onClick={() => phase === 'choose' && setFlipChoice('heads')}
-                  disabled={phase === 'flipping' || isDone}>
-                  <span className="flip-opt-icon">👑</span>
-                  <span>HEADS</span>
-                </button>
-                <div className="flip-vs">VS</div>
-                <button
-                  className={`flip-opt ${flipChoice === 'tails' ? 'sel' : ''}`}
-                  style={flipChoice === 'tails' ? { '--nc': network.color } : {}}
-                  onClick={() => phase === 'choose' && setFlipChoice('tails')}
-                  disabled={phase === 'flipping' || isDone}>
-                  <span className="flip-opt-icon">🔵</span>
-                  <span>TAILS</span>
-                </button>
+          {/* Big coin display */}
+          <div className={`cf-coin-wrap ${phase === 'flipping' ? 'cf-flipping' : ''} ${phase === 'result' || phase === 'claimed' ? 'cf-result-pop' : ''}`}>
+            {phase === 'choose' && !isDone ? (
+              <div className="cf-coin-idle">🪙</div>
+            ) : phase === 'choose' && isDone ? (
+              <div className="cf-coin-idle">⏰</div>
+            ) : phase === 'flipping' ? (
+              <div className="cf-coin-flip"
+                style={{ color: flipFace ? FACES[flipFace].color : '#fff' }}>
+                {flipFace ? FACES[flipFace].icon : '🪙'}
               </div>
+            ) : (result || phase === 'claimed') ? (
+              <div className={`cf-coin-result ${result?.won ? 'cf-win-glow' : 'cf-loss-glow'}`}
+                style={{ color: result ? FACES[result.face].color : '#4ade80' }}>
+                {phase === 'claimed' ? '✅' : result ? FACES[result.face].icon : '✅'}
+              </div>
+            ) : null}
+          </div>
 
-              {isDone ? (
-                <div className="net-cooldown-box">
-                  {timeLeft > 0
-                    ? <><span>⏰</span><span>{fmtMs(timeLeft)} baad milenge</span></>
-                    : <span>🔄 Ab phir se khel sakte ho!</span>}
-                </div>
-              ) : (
-                <button
-                  className="gmodal-btn"
-                  style={{ background: canFlip ? network.grad : '#2a2a3a' }}
-                  disabled={!canFlip}
-                  onClick={doFlip}>
-                  {phase === 'flipping'
-                    ? '🌀 Flip ho raha hai...'
-                    : !flipChoice
-                    ? '👆 Pehle choose karo'
-                    : '🎲 Flip Karo!'}
+          {/* Choose heads / tails */}
+          {phase === 'choose' && !isDone && (
+            <div className="cf-choices">
+              {['heads', 'tails'].map(f => (
+                <button key={f}
+                  className={`cf-choice-btn ${choice === f ? 'cf-choice-sel' : ''}`}
+                  style={choice === f ? { '--nc': FACES[f].color, borderColor: FACES[f].color, background: `${FACES[f].color}22` } : {}}
+                  onClick={() => setChoice(f)}>
+                  <span className="cf-choice-icon">{FACES[f].icon}</span>
+                  <span className="cf-choice-lbl">{FACES[f].label}</span>
                 </button>
-              )}
-            </>
-          )}
-
-          {/* Result phase */}
-          {phase === 'result' && resultData && (
-            <div className={`flip-result-card ${resultData.won ? 'frc-win' : 'frc-loss'}`}>
-              {resultData.won ? (
-                <>
-                  <div className="frc-particles">
-                    {['🎉','✨','🎊','⭐','🌟','🎊','✨','🎉'].map((p, i) => (
-                      <span key={i} className="frc-particle"
-                        style={{ '--d': `${i * 45}deg`, '--r': `${60 + (i % 3) * 15}px` }}>{p}</span>
-                    ))}
-                  </div>
-                  <div className="frc-status win">🎊 JEET GAYE!</div>
-                  <div className="frc-result-txt">{resultData.result.toUpperCase()} aaya</div>
-                  <div className="frc-coins-box">
-                    <span className="frc-coin-icon">🪙</span>
-                    <span className="frc-coin-val">+15</span>
-                    <span className="frc-coin-lbl">Coins</span>
-                  </div>
-                  <button className="gmodal-btn frc-claim-btn"
-                    style={{ background: network.grad }}
-                    onClick={handleClaim}>
-                    🎬 Ad Dekho & Coins Claim Karo
-                  </button>
-                  {!isDone && (
-                    <button className="frc-again-btn" onClick={handlePlayAgain}>
-                      Dobara Khelo →
-                    </button>
-                  )}
-                </>
-              ) : (
-                <>
-                  <div className="frc-status loss">😅 HAAR GAYE</div>
-                  <div className="frc-result-txt">{resultData.result.toUpperCase()} aaya</div>
-                  <div className="frc-loss-msg">Chinta mat! Agli baar zaroor jeetoge 💪</div>
-                  {!isDone ? (
-                    <button className="gmodal-btn"
-                      style={{ background: network.grad }}
-                      onClick={handlePlayAgain}>
-                      🎲 Dobara Khelo
-                    </button>
-                  ) : (
-                    <div className="net-cooldown-box" style={{ marginTop: 12 }}>
-                      {timeLeft > 0
-                        ? <><span>⏰</span><span>{fmtMs(timeLeft)} baad milenge</span></>
-                        : <span>🔄 Ab phir se khel sakte ho!</span>}
-                    </div>
-                  )}
-                </>
-              )}
+              ))}
             </div>
           )}
 
-          {/* Claimed phase */}
+          {/* Flipping message */}
+          {phase === 'flipping' && (
+            <p className="cf-flip-msg">🌀 Coin Flip ho rahi hai...</p>
+          )}
+
+          {/* WIN result */}
+          {phase === 'result' && result?.won && (
+            <div className="cf-result-win">
+              <div className="cf-result-badge win">🎊 JEET GAYE!</div>
+              <p className="cf-result-face">{result.face.toUpperCase()} aaya!</p>
+              <div className="cf-win-prize">
+                <span>🪙</span>
+                <span className="cf-win-num">+15</span>
+                <span className="cf-win-coins">Coins</span>
+              </div>
+              {/* Win particles */}
+              <div className="cf-particles">
+                {['🎉','✨','🎊','⭐','💫','🌟','✨','🎉'].map((p, i) => (
+                  <span key={i} className="cf-particle"
+                    style={{ '--d': `${i * 45}deg`, '--r': `${70 + (i % 3) * 18}px`, '--delay': `${i * 0.05}s` }}>{p}</span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* LOSS result */}
+          {phase === 'result' && result && !result.won && (
+            <div className="cf-result-loss">
+              <div className="cf-result-badge loss">😅 HAAR GAYE</div>
+              <p className="cf-result-face">{result.face.toUpperCase()} aaya!</p>
+              <p className="cf-loss-msg">Chinta mat — agli baar zaroor jeetoge! 💪</p>
+            </div>
+          )}
+
+          {/* CLAIMED */}
           {phase === 'claimed' && (
-            <div className="flip-result-card frc-claimed">
-              <div className="frc-claimed-icon">✅</div>
-              <div className="frc-status win">+15 Coins Mile!</div>
-              <div className="frc-loss-msg">Coins wallet mein add ho gaye!</div>
-              {!isDone ? (
-                <button className="gmodal-btn"
-                  style={{ background: network.grad, marginTop: 12 }}
-                  onClick={handlePlayAgain}>
-                  🎲 Dobara Khelo
-                </button>
-              ) : (
-                <button className="gmodal-btn"
-                  style={{ background: '#555', marginTop: 12 }}
-                  onClick={onClose}>
-                  Wapas Jao
-                </button>
-              )}
+            <div className="cf-result-win">
+              <div className="cf-result-badge win">✅ Coins Mile!</div>
+              <p className="cf-result-face">+15 🪙 Wallet mein add ho gaye!</p>
             </div>
           )}
 
+          {/* Cooldown */}
+          {phase === 'choose' && isDone && (
+            <div className="cf-cooldown">
+              <p className="cf-cooldown-msg">
+                {timeLeft > 0 ? `⏰ ${fmtMs(timeLeft)} baad milenge` : '🔄 Ab phir se khel sakte ho!'}
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Bottom action */}
+        <div className="fs-bottom">
+          {phase === 'choose' && !isDone && (
+            <button className="fs-action-btn"
+              style={{ background: choice ? network.grad : '#2a2a3e' }}
+              disabled={!choice}
+              onClick={doFlip}>
+              {choice ? `🎲 ${FACES[choice].label} pe Flip Karo!` : '👆 Pehle choose karo'}
+            </button>
+          )}
+          {phase === 'result' && result?.won && (
+            <button className="fs-action-btn" style={{ background: network.grad }}
+              onClick={handleClaimAd}>
+              🎬 Ad Dekho & Coins Claim Karo
+            </button>
+          )}
+          {phase === 'result' && result && !result.won && (
+            isDone ? (
+              <div className="fs-cooldown">⏰ {timeLeft > 0 ? fmtMs(timeLeft) : 'Ready!'}</div>
+            ) : (
+              <button className="fs-action-btn" style={{ background: network.grad }} onClick={resetRound}>
+                🎲 Dobara Khelo
+              </button>
+            )
+          )}
+          {phase === 'claimed' && (
+            isDone ? (
+              <button className="fs-action-btn" style={{ background: '#555' }} onClick={onClose}>Wapas Jao</button>
+            ) : (
+              <button className="fs-action-btn" style={{ background: network.grad }} onClick={resetRound}>
+                🎲 Dobara Khelo
+              </button>
+            )
+          )}
+          {phase === 'flipping' && (
+            <div className="fs-spinning-msg">🌀 Flip ho rahi hai...</div>
+          )}
         </div>
       </div>
 
-      {claimingAd && (
+      {phase === 'claim-ad' && (
         <AdWatchOverlay
           network={network}
-          onComplete={handleAdComplete}
-          onCancel={() => setClaimingAd(false)}
+          onComplete={handleAdDone}
+          onCancel={() => setPhase('result')}
         />
       )}
     </>
