@@ -533,6 +533,7 @@
 .ad-spinner    { font-size: 36px; animation: spin360 1s linear infinite; }
 @keyframes spin360 { to { transform: rotate(360deg); } }
 .ad-status-txt { font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.5); text-align: center; }
+.ad-status-sub { font-size: 11px; color: rgba(255,255,255,0.3); text-align: center; margin-top: 6px; }
 .ad-done-icon  { font-size: 48px; }
 
 .ad-cancel-btn {
