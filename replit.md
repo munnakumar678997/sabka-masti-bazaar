@@ -77,15 +77,68 @@ body {
 
 ---
 
-## Pages — Ek ek karke ban rahe hain
+## Pages — Sab ban chuke hain ✅
 
 | Page | File | Status |
 |------|------|--------|
 | Loading / Splash Screen | `src/pages/Loading.jsx` | ✅ Done |
-| Login Page | `src/pages/Login.jsx` | ⏳ Aage |
-| Home Page | `src/pages/Home.jsx` | ⏳ Aage |
-| Daily Check-in | `src/pages/DailyCheckIn.jsx` | ⏳ Aage |
-| (Aur pages aate jayenge) | | |
+| Login Page | `src/pages/Login.jsx` | ✅ Done |
+| Home Page | `src/pages/Home.jsx` | ✅ Done |
+| Daily Check-in | `src/pages/DailyCheckIn.jsx` | ✅ Done |
+| Games Hub | `src/pages/games/index.jsx` | ✅ Done |
+| Wallet | `src/pages/Wallet.jsx` | ✅ Done |
+| Profile | `src/pages/Profile.jsx` | ✅ Done |
+| Store | `src/pages/store/index.jsx` | ✅ Done |
+| Referral | `src/pages/Referral.jsx` | ✅ Done |
+| Bonus Code | `src/pages/BonusCode.jsx` | ✅ Done |
+| Notifications | `src/pages/Notifications.jsx` | ✅ Done |
+| FAQ / Help | `src/pages/FAQ.jsx` | ✅ Done |
+
+---
+
+## 🎮 Games — 4-Network Ad System (Developer Reference)
+
+Games page pe **4 Ad Network Zones** hain. UI pe sirf short codes dikhte hain — full name sirf developer ke reference ke liye hai.
+
+| UI Label | Code | Full Network Name | Website |
+|----------|------|-------------------|---------|
+| 🔥 MG | `mg` | **Monetag** | monetag.com |
+| ⚡ PA | `pa` | **PropellerAds** | propellerads.com |
+| 💎 AS | `as` | **Adsterra** | adsterra.com |
+| 🌟 EZ | `ez` | **Ezoic** | ezoic.com |
+
+> **Important:** User ko sirf MG / PA / AS / EZ dikhta hai — full network name intentionally hidden hai.
+
+### Ad Script Kahan Daalen?
+File: `src/pages/games/AdWatchOverlay.jsx`
+```jsx
+<div className="ad-slot-box" id={`ad-slot-${network.id}`}>
+  {/* network.id = "mg" | "pa" | "as" | "ez" */}
+  {/* Apna real ad network script yahaan paste karo */}
+</div>
+```
+
+### Game Limits per Zone
+- Spin Wheel: 3 plays / 4 hours
+- Scratch Card: 3 plays / 4 hours (har card ke liye alag ad)
+- Coin Flip: 3 plays / 4 hours
+- **Total: 9 plays × 4 zones = 36 plays per 4 hours**
+
+---
+
+## ⚡ Earning Tasks — Action-Gated
+
+Har task ke liye **actual action required** hai — sirf click se coins nahi milte:
+
+| Task | Action | Wait |
+|------|--------|------|
+| 📺 Video dekho | 10s timer | 10s |
+| 📲 App install karo | App link kholo + wait | 15s |
+| 🔗 Link share karo | Web Share / Clipboard | — |
+| 📝 Survey bharo | Survey link + wait | 30s |
+| 👥 Friend refer karo | Referral page pe jao | — |
+
+> Task links update karne ke liye: `src/pages/Home.jsx` → `TASKS` array → `link` field
 
 ### Page banate waqt:
 1. `src/pages/PageName.jsx` banao

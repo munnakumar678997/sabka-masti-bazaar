@@ -106,29 +106,6 @@ export default function Games() {
           })}
         </div>
 
-        {/* ── NET STATUS CARD ── */}
-        <div className="net-status-card" style={{ '--nc': activeNet.color, '--ng': activeNet.grad }}>
-          <div className="nsc-title">
-            <span className="nsc-badge" style={{ background: activeNet.grad }}>{activeNet.label}</span>
-            <span className="nsc-zone">Zone Status</span>
-          </div>
-          <div className="nsc-row">
-            {GAME_DEFS.map(g => {
-              const left     = NET_LIMIT - getNetUsed(activeNet.id, g.key);
-              const timeLeft = getNetTimeLeft(activeNet.id, g.key);
-              const icons    = { spin: '🎰', scratch: '🎁', flip: '🪙' };
-              return (
-                <div key={g.key} className="nsc-item">
-                  <span className="nsc-icon">{icons[g.key]}</span>
-                  <span className="nsc-val" style={{ color: left > 0 ? activeNet.color : '#f87171' }}>
-                    {left > 0 ? `${left} left` : timeLeft > 0 ? fmtMs(timeLeft) : '✅'}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
         <div style={{ height: 100 }} />
       </div>
 
