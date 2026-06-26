@@ -5,6 +5,7 @@ import Home     from './pages/Home';
 import Store    from './pages/store/index';
 import Wallet   from './pages/Wallet';
 import Profile  from './pages/Profile';
+import Games    from './pages/games/index';
 import Referral from './pages/Referral';
 import FAQ       from './pages/FAQ';
 import BonusCode     from './pages/BonusCode';
@@ -35,7 +36,7 @@ export default function App() {
               <Route path="/store"    element={<Store    />} />
               <Route path="/wallet"   element={<Wallet   />} />
               <Route path="/profile"  element={<Profile  />} />
-              <Route path="/games"    element={<Navigate to="/home" replace />} />
+              <Route path="/games"    element={<Games    />} />
               <Route path="/referral" element={<Referral />} />
               <Route path="/faq"        element={<FAQ       />} />
               <Route path="/bonus-code"     element={<BonusCode />} />
