@@ -3,27 +3,21 @@ import { useApp } from '../../context/AppContext';
 import { getNetUsed, incNetUsed, getNetTimeLeft, fmtMs } from './gameUtils';
 import { NET_LIMIT } from './adNetworks';
 import AdWatchOverlay from './AdWatchOverlay';
+import '../../styles/scratchCard.css';
 
 export const SPIN_LIMIT = NET_LIMIT;
 
-/* ─── Segments (clockwise from top) ─── */
 const SEG = [
-  { label: '1000',    coins: 1000, bg: '#1a3d9e', edge: '#2a5ff5', icon: '🪙', sub: '' },
-  { label: '500',     coins: 500,  bg: '#155f2e', edge: '#22c55e', icon: '🪙', sub: '' },
-  { label: '200',     coins: 200,  bg: '#7f1d1d', edge: '#ef4444', icon: '🪙', sub: '' },
-  { label: 'JACKPOT', coins: 3000, bg: '#2d1570', edge: '#a855f7', icon: '🎁', sub: '' },
-  { label: '50',      coins: 50,   bg: '#1e2d7a', edge: '#60a5fa', icon: '🪙', sub: '' },
-  { label: '100',     coins: 100,  bg: '#5a1010', edge: '#dc2626', icon: '🪙', sub: '' },
+  { label: '1000',    coins: 1000, bg: '#1a3d9e', edge: '#2a5ff5', icon: '🪙' },
+  { label: '500',     coins: 500,  bg: '#155f2e', edge: '#22c55e', icon: '🪙' },
+  { label: '200',     coins: 200,  bg: '#7f1d1d', edge: '#ef4444', icon: '🪙' },
+  { label: 'JACKPOT', coins: 3000, bg: '#2d1570', edge: '#a855f7', icon: '🎁' },
+  { label: '50',      coins: 50,   bg: '#1e2d7a', edge: '#60a5fa', icon: '🪙' },
+  { label: '100',     coins: 100,  bg: '#5a1010', edge: '#dc2626', icon: '🪙' },
   { label: 'Again',   coins: 0,    bg: '#4c1d95', edge: '#8b5cf6', icon: '😢', sub: 'Try' },
-  { label: '2000',    coins: 2000, bg: '#064e29', edge: '#16a34a', icon: '💰', sub: '' },
+  { label: '2000',    coins: 2000, bg: '#064e29', edge: '#16a34a', icon: '💰' },
 ];
 const SEG_ANGLE = 360 / SEG.length;
-
-const WINNERS = [
-  { name: 'Amit Verma',  init: 'A', clr: '#ef4444', coins: 1000 },
-  { name: 'Pooja Singh', init: 'P', clr: '#8b5cf6', coins: 500  },
-  { name: 'Rahul Yadav', init: 'R', clr: '#22c55e', coins: 2000 },
-];
 
 function pickWinner() {
   const weights = [0.04, 0.06, 0.12, 0.02, 0.28, 0.18, 0.25, 0.05];
@@ -32,7 +26,6 @@ function pickWinner() {
   return 4;
 }
 
-/* ─── Gold Ring with Light Dots ─── */
 function GoldRing({ size }) {
   const r = size / 2 - 2;
   const dots = 28;
@@ -43,8 +36,8 @@ function GoldRing({ size }) {
         stroke="url(#goldGrad)" strokeWidth="10" />
       {[...Array(dots)].map((_, i) => {
         const a = (i / dots) * 2 * Math.PI - Math.PI / 2;
-        const dx = size/2 + (r) * Math.cos(a);
-        const dy = size/2 + (r) * Math.sin(a);
+        const dx = size/2 + r * Math.cos(a);
+        const dy = size/2 + r * Math.sin(a);
         return (
           <circle key={i} cx={dx} cy={dy} r="4.5"
             fill={i % 2 === 0 ? '#ffd700' : '#fff'}
@@ -64,8 +57,7 @@ function GoldRing({ size }) {
   );
 }
 
-/* ─── Wheel SVG ─── */
-function WheelSVG({ size }) {
+function WheelSVG({ size, onSpin, canSpin }) {
   const cx = size / 2, cy = size / 2;
   const outerR = cx - 12;
   const labelR = outerR * 0.70;
@@ -78,7 +70,6 @@ function WheelSVG({ size }) {
   function segPath(i) {
     const s = i * SEG_ANGLE, e = s + SEG_ANGLE;
     const p1 = polar(s, outerR), p2 = polar(e, outerR);
-    const lg = i % 2 === 0 ? 0 : 0;
     return `M ${cx} ${cy} L ${p1.x} ${p1.y} A ${outerR} ${outerR} 0 0 1 ${p2.x} ${p2.y} Z`;
   }
 
@@ -102,7 +93,6 @@ function WheelSVG({ size }) {
         </filter>
       </defs>
 
-      {/* Segments */}
       {SEG.map((s, i) => {
         const mid = i * SEG_ANGLE + SEG_ANGLE / 2;
         const lp  = polar(mid, labelR);
@@ -111,13 +101,11 @@ function WheelSVG({ size }) {
         return (
           <g key={i}>
             <path d={segPath(i)} fill={`url(#sg${i})`} stroke="#000" strokeWidth="1.5" />
-            {/* Divider line shimmer */}
             <line
               x1={cx} y1={cy}
               x2={polar(i * SEG_ANGLE, outerR).x}
               y2={polar(i * SEG_ANGLE, outerR).y}
               stroke="rgba(255,255,255,0.15)" strokeWidth="1.5" />
-            {/* Icon */}
             <text x={ip.x} y={ip.y}
               textAnchor="middle" dominantBaseline="middle"
               fontSize="15"
@@ -125,7 +113,6 @@ function WheelSVG({ size }) {
               style={{ userSelect: 'none', pointerEvents: 'none' }}>
               {s.icon}
             </text>
-            {/* Label */}
             {s.sub ? (
               <>
                 <text x={lp.x} y={lp.y - 7}
@@ -156,66 +143,44 @@ function WheelSVG({ size }) {
         );
       })}
 
-      {/* Center gold circle */}
+      {/* Center gold circle — clickable */}
       <circle cx={cx} cy={cy} r="34" fill="url(#centerGold)"
         stroke="#fff" strokeWidth="2.5"
-        style={{ filter: 'drop-shadow(0 0 12px rgba(255,215,0,0.8))' }} />
+        onClick={canSpin ? onSpin : undefined}
+        style={{
+          filter: 'drop-shadow(0 0 12px rgba(255,215,0,0.8))',
+          cursor: canSpin ? 'pointer' : 'default',
+        }} />
       <text x={cx} y={cy + 1}
         textAnchor="middle" dominantBaseline="middle"
-        fontSize="14" fontWeight="900" fill="#3d1a00"
-        style={{ userSelect: 'none', pointerEvents: 'none' }}>
+        fontSize="13" fontWeight="900" fill="#3d1a00"
+        onClick={canSpin ? onSpin : undefined}
+        style={{ userSelect: 'none', cursor: canSpin ? 'pointer' : 'default' }}>
         SPIN
       </text>
     </svg>
   );
 }
 
-/* ─── Daily Bonus Countdown ─── */
-function useDailyCountdown() {
-  const [ms, setMs] = useState(0);
-  useEffect(() => {
-    const calc = () => {
-      const now  = Date.now();
-      const istMs = now + 5.5 * 3600000;
-      const d    = new Date(istMs);
-      const toMid = new Date(istMs);
-      toMid.setUTCHours(18, 30, 0, 0);
-      if (toMid.getTime() <= istMs) toMid.setUTCDate(toMid.getUTCDate() + 1);
-      setMs(toMid.getTime() - now);
-    };
-    calc();
-    const id = setInterval(calc, 1000);
-    return () => clearInterval(id);
-  }, []);
-  const h = Math.floor(ms / 3600000);
-  const m = Math.floor((ms % 3600000) / 60000);
-  const s = Math.floor((ms % 60000) / 1000);
-  return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-}
-
-/* ─── Sparkle background ─── */
 const SPARKS = Array.from({ length: 18 }, (_, i) => ({
   id: i,
   left: `${5 + (i * 17 + i * i * 3) % 90}%`,
-  top:  `${5 + (i * 23 + i * 7)    % 85}%`,
+  top:  `${5 + (i * 23 + i * 7) % 85}%`,
   size: 6 + (i % 4) * 4,
   delay: `${(i * 0.4) % 2.5}s`,
   dur:   `${2 + (i % 3) * 0.7}s`,
 }));
 
-/* ─── Main Component ─── */
 export default function SpinWheelModal({ onClose, onRefresh, network }) {
-  const { addCoins, recordGamePlay, balance, user } = useApp();
+  const { addCoins, recordGamePlay, balance } = useApp();
 
   const [rotateDeg,  setRotateDeg]  = useState(0);
   const [transition, setTransition] = useState('none');
   const [phase,      setPhase]      = useState('idle'); // idle | ad | spinning | result
   const [result,     setResult]     = useState(null);
   const [tick,       setTick]       = useState(0);
-  const rotRef    = useRef(0);
-  const timerRef  = useRef(null);
-
-  const bonusTime = useDailyCountdown();
+  const rotRef   = useRef(0);
+  const timerRef = useRef(null);
 
   useEffect(() => {
     const id = setInterval(() => setTick(t => t + 1), 1000);
@@ -252,11 +217,23 @@ export default function SpinWheelModal({ onClose, onRefresh, network }) {
     }, 6000);
   };
 
+  const handleCenterClick = () => {
+    if (phase === 'spinning') return;
+    if (isDone) return;
+    if (phase === 'result') {
+      setResult(null);
+      setPhase('ad');
+      return;
+    }
+    setPhase('ad');
+  };
+
   const WHEEL = 310;
+  const canSpin = phase === 'idle' && !isDone;
 
   return (
     <>
-      <div className="ls-page">
+      <div className="ls-page" style={{ overflow: 'hidden' }}>
         {/* Sparkles */}
         <div className="ls-sparks">
           {SPARKS.map(s => (
@@ -266,23 +243,13 @@ export default function SpinWheelModal({ onClose, onRefresh, network }) {
           ))}
         </div>
 
-        {/* Header */}
+        {/* Header — back button + coin balance */}
         <div className="ls-header">
-          <div className="ls-user-chip">
-            <div className="ls-avatar">
-              {user?.user_metadata?.full_name?.[0]?.toUpperCase() || '🎮'}
-            </div>
-            <div className="ls-user-info">
-              <span className="ls-hello">Hello, {user?.user_metadata?.full_name?.split(' ')[0] || 'Player'}</span>
-              <span className="ls-level">⭐ {network.label} Zone</span>
-            </div>
-          </div>
-          <div className="ls-header-right">
-            <div className="ls-balance">
-              <span className="ls-bal-icon">🪙</span>
-              <span className="ls-bal-num">{balance.toLocaleString()}</span>
-            </div>
-            <button className="ls-close" onClick={onClose}>✕</button>
+          <button className="sc2-back-btn" onClick={onClose}>←</button>
+          <div className="sc2-balance-pill">
+            <span className="sc2-coin-icon">🪙</span>
+            <span className="sc2-balance-val">{balance.toLocaleString()}</span>
+            <button className="sc2-plus-btn" onClick={onClose}>✕</button>
           </div>
         </div>
 
@@ -297,25 +264,20 @@ export default function SpinWheelModal({ onClose, onRefresh, network }) {
         </div>
 
         {/* Wheel area */}
-        <div className="ls-wheel-wrap">
-          {/* Outer glow */}
+        <div className="ls-wheel-wrap" style={{ margin: '0 auto' }}>
           <div className="ls-wheel-glow" style={{ '--nc': network.color }} />
-
-          {/* Pointer gem */}
           <div className="ls-pointer">
             <div className="ls-gem">◆</div>
           </div>
-
-          {/* Wheel + Gold ring */}
           <div className="ls-wheel-spin-wrap"
             style={{ transform: `rotate(${rotateDeg}deg)`, transition,
                      willChange: 'transform', position: 'relative' }}>
-            <WheelSVG size={WHEEL} />
+            <WheelSVG size={WHEEL} onSpin={handleCenterClick} canSpin={canSpin} />
             <GoldRing size={WHEEL} />
           </div>
         </div>
 
-        {/* Win result popup */}
+        {/* Result strip */}
         {phase === 'result' && result && (
           <div className={`ls-result ${result.coins === 0 ? 'ls-result-try' : 'ls-result-win'}`}>
             <span className="ls-result-icon">{result.coins > 0 ? '🎉' : '😢'}</span>
@@ -327,55 +289,49 @@ export default function SpinWheelModal({ onClose, onRefresh, network }) {
           </div>
         )}
 
-        {/* SPIN NOW button */}
-        <div className="ls-spin-btn-wrap">
-          {isDone ? (
-            <div className="fs-cooldown" style={{ margin: '0 20px' }}>
-              <span>⏰</span>
-              <span>{timeLeft > 0 ? `${fmtMs(timeLeft)} baad milenge` : '🔄 Ready!'}</span>
-            </div>
-          ) : phase === 'spinning' ? (
-            <button className="ls-spin-btn ls-spin-btn-spinning" disabled>
-              🌀 Spinning...
-            </button>
-          ) : (
-            <button className="ls-spin-btn" onClick={() => setPhase('ad')}>
-              SPIN NOW
-            </button>
-          )}
-        </div>
-
-        {/* Bottom 2-col cards */}
-        <div className="ls-bottom-cards">
-          {/* Recent Winners */}
-          <div className="ls-card">
-            <div className="ls-card-title">RECENT WINNERS</div>
-            <div className="ls-winners-list">
-              {WINNERS.map((w, i) => (
-                <div key={i} className="ls-winner-row">
-                  <div className="ls-winner-init" style={{ background: w.clr }}>{w.init}</div>
-                  <div className="ls-winner-name">
-                    <span className="ls-wname">{w.name}</span>
-                    <span className="ls-wcoins">🪙 {w.coins}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <button className="ls-view-all">VIEW ALL</button>
+        {/* Cooldown */}
+        {isDone && (
+          <div className="ls-result ls-result-try" style={{ margin: '8px 20px 0' }}>
+            <span className="ls-result-icon">⏰</span>
+            <span className="ls-result-txt">
+              {timeLeft > 0 ? `${fmtMs(timeLeft)} baad milenge` : '🔄 Ready!'}
+            </span>
           </div>
+        )}
 
-          {/* Daily Bonus */}
-          <div className="ls-card">
-            <div className="ls-card-title">DAILY BONUS</div>
-            <div className="ls-daily-gift">🎁</div>
-            <div className="ls-countdown">{bonusTime}</div>
-            <button className="ls-claim-btn" onClick={onClose}
-              style={{ background: 'linear-gradient(135deg,#22c55e,#15803d)' }}>
-              CLAIM
+        {/* Spinning hint */}
+        {phase === 'spinning' && (
+          <div style={{ textAlign: 'center', fontSize: 13, color: 'rgba(255,255,255,0.4)',
+                        fontWeight: 700, padding: '8px 0', flexShrink: 0 }}>
+            🌀 Spinning...
+          </div>
+        )}
+
+        {/* Idle hint */}
+        {phase === 'idle' && !isDone && (
+          <div style={{ textAlign: 'center', fontSize: 13, color: 'rgba(255,255,255,0.35)',
+                        fontWeight: 700, padding: '8px 0', flexShrink: 0 }}>
+            👆 Beech mein SPIN dabao
+          </div>
+        )}
+
+        {/* Next spin hint (after result) */}
+        {phase === 'result' && !isDone && (
+          <div style={{ padding: '8px 20px 0', flexShrink: 0 }}>
+            <button
+              onClick={handleCenterClick}
+              style={{
+                width: '100%', padding: '15px', border: 'none', borderRadius: 14,
+                background: 'linear-gradient(135deg,#7c3aed,#a855f7)',
+                color: '#fff', fontSize: 15, fontWeight: 900, cursor: 'pointer',
+                boxShadow: '0 6px 20px rgba(168,85,247,0.4)',
+              }}>
+              🎰 Dobara Spin Karo ({NET_LIMIT - used - 1} bache)
             </button>
           </div>
-        </div>
+        )}
 
+        <div style={{ flex: 1 }} />
       </div>
 
       {phase === 'ad' && (

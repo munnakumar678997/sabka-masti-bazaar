@@ -3,15 +3,13 @@ import { useApp } from '../../context/AppContext';
 import BottomNav from '../../components/BottomNav';
 import SpinWheelModal  from './SpinWheel';
 import ScratchCardModal from './ScratchCard';
-import CoinFlipModal   from './CoinFlip';
 import { getNetUsed, getNetTimeLeft, fmtMs } from './gameUtils';
-import { AD_NETWORKS, NET_LIMIT, FLIP_LIMIT } from './adNetworks';
+import { AD_NETWORKS, NET_LIMIT } from './adNetworks';
 import '../../styles/games.css';
 
 const GAME_DEFS = [
-  { key: 'spin',    icon: '🎰', name: 'Spin Wheel',  color: '#ff6a00', earn: 'Up to 200🪙', limit: NET_LIMIT  },
-  { key: 'scratch', icon: '🎁', name: 'Scratch Card', color: '#22c55e', earn: 'Up to 200🪙', limit: NET_LIMIT  },
-  { key: 'flip',    icon: '🪙', name: 'Coin Flip',    color: '#ffd700', earn: '+15🪙 per win', limit: FLIP_LIMIT },
+  { key: 'spin',    icon: '🎰', name: 'Spin Wheel',   color: '#ff6a00', earn: 'Up to 3000🪙', limit: NET_LIMIT },
+  { key: 'scratch', icon: '🎁', name: 'Scratch Card',  color: '#a855f7', earn: 'Up to 200🪙',  limit: NET_LIMIT },
 ];
 
 export default function Games() {
@@ -30,13 +28,13 @@ export default function Games() {
   return (
     <div className="games-page">
 
-      {/* ── TOPBAR ── */}
+      {/* TOPBAR */}
       <div className="games-topbar">
         <div className="games-topbar-title">🎮 Games Hub</div>
         <div className="games-balance-chip">🪙 {balance.toLocaleString()}</div>
       </div>
 
-      {/* ── NETWORK SELECTOR TABS ── */}
+      {/* NETWORK SELECTOR TABS */}
       <div className="net-tabs-wrap">
         <div className="net-tabs-lbl">🎯 Ad Zone चुनो</div>
         <div className="net-tabs">
@@ -58,14 +56,14 @@ export default function Games() {
         </div>
       </div>
 
-      {/* ── SCROLLABLE CONTENT ── */}
+      {/* SCROLLABLE CONTENT */}
       <div className="games-scroll">
 
         <div className="games-hero-note">
           ⏰ Har zone 4 ghante baad reset · Ad dekho = Reward pao!
         </div>
 
-        {/* ── GAME GRID ── */}
+        {/* GAME GRID */}
         <div className="games-grid">
           {GAME_DEFS.map(g => {
             const used     = getNetUsed(activeNet.id, g.key);
@@ -113,7 +111,6 @@ export default function Games() {
 
       {openGame === 'spin'    && <SpinWheelModal   network={activeNet} onClose={() => setOpenGame(null)} onRefresh={refresh} />}
       {openGame === 'scratch' && <ScratchCardModal  network={activeNet} onClose={() => setOpenGame(null)} onRefresh={refresh} />}
-      {openGame === 'flip'    && <CoinFlipModal     network={activeNet} onClose={() => setOpenGame(null)} onRefresh={refresh} />}
     </div>
   );
 }

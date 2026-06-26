@@ -8,16 +8,15 @@ import '../../styles/scratchCard.css';
 export const SCRATCH_LIMIT = NET_LIMIT;
 
 const TOP_PRIZES = [
-  { icon: '🪙', val: '10,000', key: 10000 },
-  { icon: '🏆', val: '5,000',  key: 5000  },
-  { icon: '💰', val: '2,000',  key: 2000  },
-  { icon: '🎖️', val: '500',    key: 500   },
+  { icon: '🪙', val: '10,000' },
+  { icon: '🏆', val: '5,000'  },
+  { icon: '💰', val: '2,000'  },
+  { icon: '🎖️', val: '500'    },
 ];
 
 const PRIZES = [5, 10, 15, 25, 50, 50, 100, 150, 200];
 function pick() { return PRIZES[Math.floor(Math.random() * PRIZES.length)]; }
 
-/* ── Sparkle stars in background ── */
 const STARS = Array.from({ length: 20 }, (_, i) => ({
   id: i,
   x: Math.random() * 100,
@@ -27,7 +26,7 @@ const STARS = Array.from({ length: 20 }, (_, i) => ({
 }));
 
 /* ── Canvas Scratch Layer ── */
-function ScratchCanvas({ prize, onDone }) {
+function ScratchCanvas({ onDone }) {
   const ref     = useRef(null);
   const drawing = useRef(false);
   const count   = useRef(0);
@@ -50,7 +49,7 @@ function ScratchCanvas({ prize, onDone }) {
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, W, H);
 
-    /* Brush stroke texture on top */
+    /* Brush stroke texture */
     ctx.globalAlpha = 0.25;
     for (let i = 0; i < 18; i++) {
       const brushGrad = ctx.createLinearGradient(
@@ -78,18 +77,17 @@ function ScratchCanvas({ prize, onDone }) {
     }
 
     /* Hand icon */
-    ctx.globalAlpha = 0.28;
-    ctx.font = '54px serif';
+    ctx.globalAlpha = 0.3;
+    ctx.font = '52px serif';
     ctx.textAlign = 'center';
     ctx.fillStyle = '#555';
-    ctx.fillText('☝️', W / 2, H / 2 - 10);
+    ctx.fillText('☝️', W / 2, H / 2 - 8);
 
-    /* "SCRATCH HERE" */
-    ctx.globalAlpha = 0.35;
+    /* SCRATCH HERE */
+    ctx.globalAlpha = 0.38;
     ctx.font = 'bold 15px sans-serif';
     ctx.fillStyle = '#444';
-    ctx.letterSpacing = '3px';
-    ctx.fillText('SCRATCH HERE', W / 2, H / 2 + 40);
+    ctx.fillText('SCRATCH HERE', W / 2, H / 2 + 38);
     ctx.globalAlpha = 1;
   }, []);
 
@@ -141,55 +139,68 @@ function ScratchCanvas({ prize, onDone }) {
 export default function ScratchCardModal({ onClose, onRefresh, network }) {
   const { balance, addCoins, recordGamePlay } = useApp();
 
-  const [cardIdx,  setCardIdx]  = useState(0);
-  const [phase,    setPhase]    = useState('idle'); // idle | ad | scratching | win | all-done
-  const [prize,    setPrize]    = useState(null);
-  const [prizes,   setPrizes]   = useState([]);
-  const [total,    setTotal]    = useState(0);
-  const [tick,     setTick]     = useState(0);
+  const [cardIdx,    setCardIdx]    = useState(0);
+  // phases: 'scratching' | 'ad' | 'win' | 'all-done' | 'cooldown'
+  const [phase,      setPhase]      = useState('scratching');
+  const [prize,      setPrize]      = useState(null);
+  const [prizes,     setPrizes]     = useState([]);
+  const [total,      setTotal]      = useState(0);
+  const [tick,       setTick]       = useState(0);
   const [showPrizes, setShowPrizes] = useState(false);
+  const [canvasKey,  setCanvasKey]  = useState(0);
 
   useEffect(() => {
     const id = setInterval(() => setTick(t => t + 1), 1000);
     return () => clearInterval(id);
   }, []);
 
-  const used     = getNetUsed(network.id, 'scratch');
-  const isCool   = used >= NET_LIMIT;
-  const timeLeft = isCool ? getNetTimeLeft(network.id, 'scratch') : 0;
+  /* Check cooldown on mount and on cardIdx change */
+  useEffect(() => {
+    const used = getNetUsed(network.id, 'scratch');
+    if (used >= NET_LIMIT) {
+      setPhase('cooldown');
+    } else {
+      setPhase('scratching');
+    }
+  }, [cardIdx, network.id]);
 
+  const used     = getNetUsed(network.id, 'scratch');
+  const timeLeft = phase === 'cooldown' ? getNetTimeLeft(network.id, 'scratch') : 0;
+
+  /* Scratch done → show ad */
+  const handleScratched = useCallback(() => {
+    setPhase('ad');
+  }, []);
+
+  /* Ad done → add coins → show win */
   const handleAdDone = useCallback(async () => {
     const coins = pick();
     setPrize(coins);
-    setPhase('scratching');
     incNetUsed(network.id, 'scratch');
     recordGamePlay('scratch').catch(() => {});
     await addCoins(coins);
     setTotal(t => t + coins);
     setPrizes(p => [...p, coins]);
     onRefresh();
+    setPhase('win');
   }, [network.id, addCoins, recordGamePlay, onRefresh]);
-
-  const handleScratched = () => setPhase('win');
 
   const handleNext = () => {
     const next = cardIdx + 1;
-    if (next >= NET_LIMIT) { setPhase('all-done'); return; }
+    if (next >= NET_LIMIT) {
+      setPhase('all-done');
+      return;
+    }
     setCardIdx(next);
-    setPhase('idle');
     setPrize(null);
+    setCanvasKey(k => k + 1);
   };
-
-  const isIdle       = phase === 'idle';
-  const isScratching = phase === 'scratching';
-  const isWin        = phase === 'win';
-  const isAllDone    = phase === 'all-done';
 
   return (
     <>
       <div className="sc2-page">
 
-        {/* ── Starfield ── */}
+        {/* Starfield */}
         <div className="sc2-stars">
           {STARS.map(s => (
             <div key={s.id} className="sc2-star" style={{
@@ -200,7 +211,7 @@ export default function ScratchCardModal({ onClose, onRefresh, network }) {
           ))}
         </div>
 
-        {/* ── HEADER ── */}
+        {/* Header */}
         <div className="sc2-header">
           <button className="sc2-back-btn" onClick={onClose}>←</button>
           <div className="sc2-balance-pill">
@@ -210,7 +221,7 @@ export default function ScratchCardModal({ onClose, onRefresh, network }) {
           </div>
         </div>
 
-        {/* ── TITLE ── */}
+        {/* Title */}
         <div className="sc2-title-wrap">
           <div className="sc2-title-stars">
             <span className="sc2-star-deco">⭐</span>
@@ -225,20 +236,22 @@ export default function ScratchCardModal({ onClose, onRefresh, network }) {
           </div>
         </div>
 
-        {/* ── SCRATCH CARD AREA ── */}
+        {/* Scratch Card Area */}
         <div className="sc2-card-wrap">
           <div className="sc2-card-border">
             <div className="sc2-card-inner">
 
-              {/* Prize bg (always rendered behind) */}
-              <div className="sc2-prize-reveal">
-                <span className="sc2-prize-icon">🎉</span>
-                <span className="sc2-prize-amount">+{prize ?? '?'}</span>
-                <span className="sc2-prize-lbl">🪙 Coins Mile!</span>
-              </div>
+              {/* Prize behind canvas */}
+              {phase !== 'cooldown' && (
+                <div className="sc2-prize-reveal">
+                  <span className="sc2-prize-icon">🎉</span>
+                  <span className="sc2-prize-amount">{prize != null ? `+${prize}` : '?'}</span>
+                  <span className="sc2-prize-lbl">🪙 Coins Mile!</span>
+                </div>
+              )}
 
-              {/* Cooldown state */}
-              {isCool && isIdle && (
+              {/* Cooldown */}
+              {phase === 'cooldown' && (
                 <div className="sc2-cooldown-overlay">
                   <div className="sc2-cooldown-icon">⏰</div>
                   <div className="sc2-cooldown-title">Aaj ke Cards Khatam!</div>
@@ -249,23 +262,13 @@ export default function ScratchCardModal({ onClose, onRefresh, network }) {
                 </div>
               )}
 
-              {/* Idle — tap to play */}
-              {isIdle && !isCool && (
-                <div className="sc2-locked-overlay" onClick={() => setPhase('ad')}>
-                  <div className="sc2-locked-icon">🎁</div>
-                  <div className="sc2-locked-title">Card {cardIdx + 1} Ready!</div>
-                  <div className="sc2-locked-sub">Ad dekho aur scratch karo</div>
-                  <button className="sc2-locked-btn">🎬 Play Now</button>
-                </div>
-              )}
-
               {/* Scratch canvas */}
-              {isScratching && (
-                <ScratchCanvas prize={prize} onDone={handleScratched} />
+              {phase === 'scratching' && (
+                <ScratchCanvas key={canvasKey} onDone={handleScratched} />
               )}
 
               {/* Win reveal */}
-              {isWin && (
+              {phase === 'win' && (
                 <div className="sc2-win-overlay">
                   <div className="sc2-win-icon">🎊</div>
                   <div className="sc2-win-amount">+{prize}</div>
@@ -274,7 +277,7 @@ export default function ScratchCardModal({ onClose, onRefresh, network }) {
               )}
 
               {/* Progress dots */}
-              {!isAllDone && (
+              {phase !== 'all-done' && phase !== 'cooldown' && (
                 <div className="sc2-progress-row">
                   {[...Array(NET_LIMIT)].map((_, i) => (
                     <div key={i} className={`sc2-progress-dot ${
@@ -289,7 +292,7 @@ export default function ScratchCardModal({ onClose, onRefresh, network }) {
           </div>
         </div>
 
-        {/* ── TOP PRIZES ── */}
+        {/* TOP PRIZES */}
         <div className="sc2-prizes-section">
           <div className="sc2-prizes-header">
             <div className="sc2-prizes-divider-left" />
@@ -299,8 +302,8 @@ export default function ScratchCardModal({ onClose, onRefresh, network }) {
             <div className="sc2-prizes-divider-right" />
           </div>
           <div className="sc2-prizes-grid">
-            {TOP_PRIZES.map(p => (
-              <div key={p.key} className="sc2-prize-tile">
+            {TOP_PRIZES.map((p, i) => (
+              <div key={i} className="sc2-prize-tile">
                 <span className="sc2-prize-tile-icon">{p.icon}</span>
                 <span className="sc2-prize-tile-val">
                   <span className="sc2-prize-coin-icon">🪙</span>
@@ -311,8 +314,8 @@ export default function ScratchCardModal({ onClose, onRefresh, network }) {
           </div>
         </div>
 
-        {/* ── BOTTOM BUTTONS / ACTIONS ── */}
-        {(isIdle || (isCool && isIdle)) && (
+        {/* Bottom actions */}
+        {(phase === 'scratching' || phase === 'cooldown') && (
           <div className="sc2-bottom-btns" style={{ marginTop: 14 }}>
             <button className="sc2-btn-view" onClick={() => setShowPrizes(true)}>
               <span className="sc2-btn-icon">👁️</span>
@@ -325,7 +328,7 @@ export default function ScratchCardModal({ onClose, onRefresh, network }) {
           </div>
         )}
 
-        {isWin && (
+        {phase === 'win' && (
           <button className="sc2-next-btn" onClick={handleNext}>
             {cardIdx + 1 < NET_LIMIT
               ? `➡️ Agla Card (${cardIdx + 2}/${NET_LIMIT})`
@@ -333,18 +336,8 @@ export default function ScratchCardModal({ onClose, onRefresh, network }) {
           </button>
         )}
 
-        {isScratching && (
-          <div style={{
-            color: 'rgba(255,255,255,0.4)', fontSize: 13, fontWeight: 700,
-            textAlign: 'center', paddingBottom: 20, position: 'relative', zIndex: 2,
-            marginTop: 14, flexShrink: 0,
-          }}>
-            👆 Upar scratch karo prize dekhne ke liye...
-          </div>
-        )}
-
-        {/* ── ALL DONE SUMMARY ── */}
-        {isAllDone && (
+        {/* All done summary */}
+        {phase === 'all-done' && (
           <div className="sc2-summary">
             <div className="sc2-summary-emoji">🎊</div>
             <div className="sc2-summary-title">Teeno Cards Complete!</div>
@@ -368,28 +361,28 @@ export default function ScratchCardModal({ onClose, onRefresh, network }) {
 
       </div>
 
-      {/* ── AD OVERLAY ── */}
+      {/* Ad Overlay */}
       {phase === 'ad' && (
         <AdWatchOverlay
           network={network}
           onComplete={handleAdDone}
-          onCancel={() => setPhase('idle')}
+          onCancel={() => setPhase('scratching')}
         />
       )}
 
-      {/* ── PRIZES MODAL ── */}
+      {/* Prizes Modal */}
       {showPrizes && (
         <div className="sc2-prizes-modal-overlay" onClick={() => setShowPrizes(false)}>
           <div className="sc2-prizes-modal" onClick={e => e.stopPropagation()}>
             <div className="sc2-pm-handle" />
             <div className="sc2-pm-title">🏆 Prize Table</div>
             {[
-              { icon: '🪙', name: 'Gold Coins',    val: '10,000 🪙', chance: 'Very Rare' },
-              { icon: '🏆', name: 'Trophy',         val: '5,000 🪙',  chance: 'Rare' },
-              { icon: '💰', name: 'Money Bag',      val: '2,000 🪙',  chance: 'Uncommon' },
-              { icon: '🎖️', name: 'Silver Medal',   val: '500 🪙',    chance: 'Common' },
-              { icon: '🎁', name: 'Bonus Coins',    val: '200 🪙',    chance: 'Very Common' },
-              { icon: '⭐', name: 'Star Reward',    val: '50 🪙',     chance: 'Most Common' },
+              { icon: '🪙', name: 'Gold Coins',   val: '10,000 🪙', chance: 'Very Rare' },
+              { icon: '🏆', name: 'Trophy',        val: '5,000 🪙',  chance: 'Rare' },
+              { icon: '💰', name: 'Money Bag',     val: '2,000 🪙',  chance: 'Uncommon' },
+              { icon: '🎖️', name: 'Silver Medal',  val: '500 🪙',    chance: 'Common' },
+              { icon: '🎁', name: 'Bonus Coins',   val: '200 🪙',    chance: 'Very Common' },
+              { icon: '⭐', name: 'Star Reward',   val: '50 🪙',     chance: 'Most Common' },
             ].map((p, i) => (
               <div key={i} className="sc2-pm-row">
                 <div className="sc2-pm-left">
