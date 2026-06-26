@@ -3,74 +3,130 @@ import { useApp } from '../../context/AppContext';
 import { getNetUsed, incNetUsed, getNetTimeLeft, fmtMs } from './gameUtils';
 import { NET_LIMIT } from './adNetworks';
 import AdWatchOverlay from './AdWatchOverlay';
+import '../../styles/scratchCard.css';
 
-const PRIZES   = [5, 5, 10, 10, 25, 25, 50, 100, 200];
-const THEMES   = [
-  { grad: 'linear-gradient(135deg,#ff6a00,#ee0979)', icon: '💎' },
-  { grad: 'linear-gradient(135deg,#22c55e,#0d6632)',  icon: '🏆' },
-  { grad: 'linear-gradient(135deg,#7b2ff7,#0088cc)',  icon: '⭐' },
-];
 export const SCRATCH_LIMIT = NET_LIMIT;
 
+const TOP_PRIZES = [
+  { icon: '🪙', val: '10,000', key: 10000 },
+  { icon: '🏆', val: '5,000',  key: 5000  },
+  { icon: '💰', val: '2,000',  key: 2000  },
+  { icon: '🎖️', val: '500',    key: 500   },
+];
+
+const PRIZES = [5, 10, 15, 25, 50, 50, 100, 150, 200];
 function pick() { return PRIZES[Math.floor(Math.random() * PRIZES.length)]; }
 
-/* ── Canvas Scratch Component ── */
-function ScratchLayer({ onDone }) {
-  const ref      = useRef(null);
-  const drawing  = useRef(false);
-  const scratched = useRef(0);
-  const notified = useRef(false);
+/* ── Sparkle stars in background ── */
+const STARS = Array.from({ length: 20 }, (_, i) => ({
+  id: i,
+  x: Math.random() * 100,
+  y: Math.random() * 100,
+  size: 1 + Math.random() * 2.5,
+  delay: Math.random() * 2.5,
+}));
+
+/* ── Canvas Scratch Layer ── */
+function ScratchCanvas({ prize, onDone }) {
+  const ref     = useRef(null);
+  const drawing = useRef(false);
+  const count   = useRef(0);
+  const done    = useRef(false);
 
   useEffect(() => {
     const c = ref.current;
     if (!c) return;
     const ctx = c.getContext('2d');
-    ctx.fillStyle = '#1a1a3e';
-    ctx.fillRect(0, 0, c.width, c.height);
+    const W = c.width, H = c.height;
 
-    /* Texture lines */
-    ctx.strokeStyle = 'rgba(255,255,255,0.04)';
-    ctx.lineWidth = 1;
-    for (let y = 0; y < c.height; y += 12) {
-      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(c.width, y); ctx.stroke();
+    /* Silver metallic gradient */
+    const grad = ctx.createLinearGradient(0, 0, W, H);
+    grad.addColorStop(0,   '#c8c8c8');
+    grad.addColorStop(0.2, '#e8e8e8');
+    grad.addColorStop(0.4, '#b0b0b0');
+    grad.addColorStop(0.6, '#d8d8d8');
+    grad.addColorStop(0.8, '#a8a8a8');
+    grad.addColorStop(1,   '#c0c0c0');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, W, H);
+
+    /* Brush stroke texture on top */
+    ctx.globalAlpha = 0.25;
+    for (let i = 0; i < 18; i++) {
+      const brushGrad = ctx.createLinearGradient(
+        Math.random() * W, Math.random() * H,
+        Math.random() * W, Math.random() * H
+      );
+      brushGrad.addColorStop(0, 'rgba(255,255,255,0)');
+      brushGrad.addColorStop(0.5, 'rgba(255,255,255,0.6)');
+      brushGrad.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.fillStyle = brushGrad;
+      ctx.beginPath();
+      ctx.ellipse(
+        Math.random() * W, Math.random() * H,
+        80 + Math.random() * 100, 20 + Math.random() * 30,
+        Math.random() * Math.PI, 0, Math.PI * 2
+      );
+      ctx.fill();
     }
-    /* Centre text */
-    ctx.fillStyle = 'rgba(255,255,255,0.18)';
-    ctx.font = 'bold 15px sans-serif'; ctx.textAlign = 'center';
-    ctx.fillText('✦  SCRATCH KARO  ✦', c.width / 2, c.height / 2 - 10);
-    ctx.fillStyle = 'rgba(255,255,255,0.1)';
-    ctx.font = '12px sans-serif';
-    ctx.fillText('👆 Yahan se scratch karo', c.width / 2, c.height / 2 + 12);
+    ctx.globalAlpha = 1;
+
+    /* Dark speckles */
+    ctx.fillStyle = 'rgba(80,80,80,0.08)';
+    for (let i = 0; i < 600; i++) {
+      ctx.fillRect(Math.random() * W, Math.random() * H, 1, 1);
+    }
+
+    /* Hand icon */
+    ctx.globalAlpha = 0.28;
+    ctx.font = '54px serif';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#555';
+    ctx.fillText('☝️', W / 2, H / 2 - 10);
+
+    /* "SCRATCH HERE" */
+    ctx.globalAlpha = 0.35;
+    ctx.font = 'bold 15px sans-serif';
+    ctx.fillStyle = '#444';
+    ctx.letterSpacing = '3px';
+    ctx.fillText('SCRATCH HERE', W / 2, H / 2 + 40);
+    ctx.globalAlpha = 1;
   }, []);
 
-  const pos = (e, c) => {
-    const r = c.getBoundingClientRect();
-    const sx = c.width  / r.width, sy = c.height / r.height;
+  const getPos = (e, c) => {
+    const r  = c.getBoundingClientRect();
+    const sx = c.width / r.width, sy = c.height / r.height;
     const src = e.touches ? e.touches[0] : e;
     return { x: (src.clientX - r.left) * sx, y: (src.clientY - r.top) * sy };
   };
 
   const erase = (e) => {
     e.preventDefault();
-    if (!drawing.current) return;
+    if (!drawing.current || done.current) return;
     const c = ref.current; if (!c) return;
     const ctx = c.getContext('2d');
-    const { x, y } = pos(e, c);
+    const { x, y } = getPos(e, c);
     ctx.globalCompositeOperation = 'destination-out';
     ctx.beginPath();
-    ctx.arc(x, y, 26, 0, Math.PI * 2);
+    ctx.arc(x, y, 30, 0, Math.PI * 2);
     ctx.fill();
-    scratched.current++;
-    if (scratched.current % 15 === 0 && !notified.current) {
+    count.current++;
+    if (count.current % 12 === 0) {
       const d = ctx.getImageData(0, 0, c.width, c.height).data;
       let t = 0;
       for (let i = 3; i < d.length; i += 4) if (d[i] === 0) t++;
-      if (t / (c.width * c.height) > 0.55) { notified.current = true; onDone(); }
+      if (t / (c.width * c.height) > 0.52) {
+        done.current = true;
+        onDone();
+      }
     }
   };
 
   return (
-    <canvas ref={ref} width={300} height={170} className="sc-canvas"
+    <canvas
+      ref={ref}
+      width={340} height={210}
+      className="sc2-canvas"
       onMouseDown={e => { drawing.current = true; erase(e); }}
       onMouseMove={erase}
       onMouseUp={() => { drawing.current = false; }}
@@ -83,14 +139,15 @@ function ScratchLayer({ onDone }) {
 }
 
 export default function ScratchCardModal({ onClose, onRefresh, network }) {
-  const { addCoins, recordGamePlay } = useApp();
+  const { balance, addCoins, recordGamePlay } = useApp();
 
-  const [cardIdx,   setCardIdx]   = useState(0);
-  const [phase,     setPhase]     = useState('pre'); // pre | ad | scratching | done-card | all-done
-  const [prize,     setPrize]     = useState(null);
-  const [total,     setTotal]     = useState(0);
-  const [prizes,    setPrizes]    = useState([]);
-  const [tick,      setTick]      = useState(0);
+  const [cardIdx,  setCardIdx]  = useState(0);
+  const [phase,    setPhase]    = useState('idle'); // idle | ad | scratching | win | all-done
+  const [prize,    setPrize]    = useState(null);
+  const [prizes,   setPrizes]   = useState([]);
+  const [total,    setTotal]    = useState(0);
+  const [tick,     setTick]     = useState(0);
+  const [showPrizes, setShowPrizes] = useState(false);
 
   useEffect(() => {
     const id = setInterval(() => setTick(t => t + 1), 1000);
@@ -98,8 +155,8 @@ export default function ScratchCardModal({ onClose, onRefresh, network }) {
   }, []);
 
   const used     = getNetUsed(network.id, 'scratch');
-  const isDone   = used >= NET_LIMIT;
-  const timeLeft = isDone ? getNetTimeLeft(network.id, 'scratch') : 0;
+  const isCool   = used >= NET_LIMIT;
+  const timeLeft = isCool ? getNetTimeLeft(network.id, 'scratch') : 0;
 
   const handleAdDone = useCallback(async () => {
     const coins = pick();
@@ -113,143 +170,243 @@ export default function ScratchCardModal({ onClose, onRefresh, network }) {
     onRefresh();
   }, [network.id, addCoins, recordGamePlay, onRefresh]);
 
-  const handleScratched = () => setPhase('done-card');
+  const handleScratched = () => setPhase('win');
 
   const handleNext = () => {
     const next = cardIdx + 1;
     if (next >= NET_LIMIT) { setPhase('all-done'); return; }
     setCardIdx(next);
-    setPhase('pre');
+    setPhase('idle');
     setPrize(null);
   };
 
-  const theme = THEMES[cardIdx % THEMES.length];
+  const isIdle       = phase === 'idle';
+  const isScratching = phase === 'scratching';
+  const isWin        = phase === 'win';
+  const isAllDone    = phase === 'all-done';
 
   return (
     <>
-      <div className="fs-overlay">
-        {/* Top bar */}
-        <div className="fs-topbar">
-          <div className="fs-net-badge" style={{ background: network.grad }}>{network.label}</div>
-          <div className="fs-title">🎁 Scratch Card</div>
-          {(phase === 'pre' || phase === 'all-done') && (
-            <button className="fs-close-btn" onClick={onClose}>✕</button>
-          )}
-          {phase !== 'pre' && phase !== 'all-done' && <div style={{ width: 36 }} />}
-        </div>
+      <div className="sc2-page">
 
-        {/* Progress dots */}
-        <div className="fs-plays-row">
-          {[...Array(NET_LIMIT)].map((_, i) => (
-            <div key={i} className={`fs-play-dot ${
-              prizes[i] !== undefined ? 'fs-play-dot-used' :
-              i === cardIdx ? 'fs-play-dot-active' : 'fs-play-dot-free'
-            }`} style={
-              prizes[i] === undefined && i >= cardIdx
-                ? { background: network.color, opacity: i === cardIdx ? 1 : 0.3 } : {}
-            } />
+        {/* ── Starfield ── */}
+        <div className="sc2-stars">
+          {STARS.map(s => (
+            <div key={s.id} className="sc2-star" style={{
+              left: `${s.x}%`, top: `${s.y}%`,
+              width: s.size, height: s.size,
+              animationDelay: `${s.delay}s`,
+            }} />
           ))}
-          <span className="fs-plays-txt">Card {Math.min(cardIdx + 1, NET_LIMIT)}/{NET_LIMIT}</span>
         </div>
 
-        {/* Main content */}
-        <div className="sc-main">
+        {/* ── HEADER ── */}
+        <div className="sc2-header">
+          <button className="sc2-back-btn" onClick={onClose}>←</button>
+          <div className="sc2-balance-pill">
+            <span className="sc2-coin-icon">🪙</span>
+            <span className="sc2-balance-val">{balance.toLocaleString()}</span>
+            <button className="sc2-plus-btn">+</button>
+          </div>
+        </div>
 
-          {isDone && phase === 'pre' ? (
-            <div className="fs-empty-state">
-              <div style={{ fontSize: 60 }}>⏰</div>
-              <p className="fs-empty-title">Aaj ke cards khatam!</p>
-              <p className="fs-empty-sub">{timeLeft > 0 ? fmtMs(timeLeft) + ' baad milenge' : '🔄 Ready ho gaye!'}</p>
+        {/* ── TITLE ── */}
+        <div className="sc2-title-wrap">
+          <div className="sc2-title-stars">
+            <span className="sc2-star-deco">⭐</span>
+            <div>
+              <span className="sc2-title-scratch">SCRATCH</span>
+              <span className="sc2-title-card">CARD</span>
             </div>
-          ) : phase === 'pre' ? (
-            /* Locked card */
-            <div className="sc-locked-card" style={{ background: theme.grad }}
-              onClick={() => setPhase('ad')}>
-              <div className="sc-lock-icon-big">🎁</div>
-              <p className="sc-lock-title">Card {cardIdx + 1}</p>
-              <p className="sc-lock-sub">Tap karke ad dekho</p>
-              <div className="sc-lock-shine" />
-            </div>
-          ) : phase === 'scratching' ? (
-            /* Scratch area */
-            <div className="sc-scratch-wrap">
-              <div className="sc-prize-bg" style={{ background: theme.grad }}>
-                <span className="sc-prize-bg-icon">{theme.icon}</span>
-                <span className="sc-prize-bg-val">+{prize}</span>
-                <span className="sc-prize-bg-lbl">🪙 Coins</span>
+            <span className="sc2-star-deco">⭐</span>
+          </div>
+          <div className="sc2-subtitle-banner">
+            <span>MATCH &amp; <b>WIN BIG!</b></span>
+          </div>
+        </div>
+
+        {/* ── SCRATCH CARD AREA ── */}
+        <div className="sc2-card-wrap">
+          <div className="sc2-card-border">
+            <div className="sc2-card-inner">
+
+              {/* Prize bg (always rendered behind) */}
+              <div className="sc2-prize-reveal">
+                <span className="sc2-prize-icon">🎉</span>
+                <span className="sc2-prize-amount">+{prize ?? '?'}</span>
+                <span className="sc2-prize-lbl">🪙 Coins Mile!</span>
               </div>
-              <div className="sc-canvas-wrap">
-                <ScratchLayer onDone={handleScratched} />
-              </div>
-              <p className="sc-hint">👆 ऊपर scratch karo prize dekhne ke liye</p>
-            </div>
-          ) : phase === 'done-card' ? (
-            /* Card revealed */
-            <div className="sc-reveal-screen">
-              <div className="sc-reveal-card" style={{ background: theme.grad }}>
-                <div className="sc-reveal-icon">{theme.icon}</div>
-                <div className="sc-reveal-val">+{prize}</div>
-                <div className="sc-reveal-lbl">🪙 Coins Mile!</div>
-              </div>
-            </div>
-          ) : phase === 'all-done' ? (
-            /* Summary */
-            <div className="sc-summary-screen">
-              <div className="sc-summary-emoji">🎊</div>
-              <p className="sc-summary-heading">Teeno Cards Complete!</p>
-              <div className="sc-summary-list">
-                {prizes.map((p, i) => (
-                  <div key={i} className="sc-summary-item">
-                    <span>Card {i + 1}</span>
-                    <span style={{ color: '#fbbf24', fontWeight: 900 }}>+{p} 🪙</span>
+
+              {/* Cooldown state */}
+              {isCool && isIdle && (
+                <div className="sc2-cooldown-overlay">
+                  <div className="sc2-cooldown-icon">⏰</div>
+                  <div className="sc2-cooldown-title">Aaj ke Cards Khatam!</div>
+                  <div className="sc2-cooldown-time">
+                    {timeLeft > 0 ? fmtMs(timeLeft) : '🔄 Ready!'}
                   </div>
-                ))}
-              </div>
-              <div className="sc-summary-total">
-                <span>Total</span>
-                <span>+{total} 🪙</span>
-              </div>
+                  <div className="sc2-cooldown-sub">4 ghante baad naye cards milenge</div>
+                </div>
+              )}
+
+              {/* Idle — tap to play */}
+              {isIdle && !isCool && (
+                <div className="sc2-locked-overlay" onClick={() => setPhase('ad')}>
+                  <div className="sc2-locked-icon">🎁</div>
+                  <div className="sc2-locked-title">Card {cardIdx + 1} Ready!</div>
+                  <div className="sc2-locked-sub">Ad dekho aur scratch karo</div>
+                  <button className="sc2-locked-btn">🎬 Play Now</button>
+                </div>
+              )}
+
+              {/* Scratch canvas */}
+              {isScratching && (
+                <ScratchCanvas prize={prize} onDone={handleScratched} />
+              )}
+
+              {/* Win reveal */}
+              {isWin && (
+                <div className="sc2-win-overlay">
+                  <div className="sc2-win-icon">🎊</div>
+                  <div className="sc2-win-amount">+{prize}</div>
+                  <div className="sc2-win-lbl">🪙 Coins Jeet Liye!</div>
+                </div>
+              )}
+
+              {/* Progress dots */}
+              {!isAllDone && (
+                <div className="sc2-progress-row">
+                  {[...Array(NET_LIMIT)].map((_, i) => (
+                    <div key={i} className={`sc2-progress-dot ${
+                      prizes[i] !== undefined ? 'used' :
+                      i === cardIdx ? 'active' : ''
+                    }`} />
+                  ))}
+                </div>
+              )}
+
             </div>
-          ) : null}
-
+          </div>
         </div>
 
-        {/* Bottom action */}
-        <div className="fs-bottom">
-          {phase === 'pre' && !isDone && (
-            <button className="fs-action-btn" style={{ background: network.grad }}
-              onClick={() => setPhase('ad')}>
-              🎬 Ad Dekho & Scratch Karo
-            </button>
-          )}
-          {phase === 'done-card' && (
-            cardIdx + 1 < NET_LIMIT ? (
-              <button className="fs-action-btn" style={{ background: network.grad }} onClick={handleNext}>
-                Agla Card → Card {cardIdx + 2}
-              </button>
-            ) : (
-              <button className="fs-action-btn" style={{ background: '#22c55e' }} onClick={handleNext}>
-                🎊 Complete! Summary Dekho
-              </button>
-            )
-          )}
-          {phase === 'all-done' && (
-            <button className="fs-action-btn" style={{ background: network.grad }} onClick={onClose}>
-              Wapas Jao
-            </button>
-          )}
-          {phase === 'scratching' && (
-            <p className="fs-spinning-msg">👆 Scratch karte raho...</p>
-          )}
+        {/* ── TOP PRIZES ── */}
+        <div className="sc2-prizes-section">
+          <div className="sc2-prizes-header">
+            <div className="sc2-prizes-divider-left" />
+            <span className="sc2-prizes-header-star">⭐</span>
+            <span className="sc2-prizes-title">TOP PRIZES</span>
+            <span className="sc2-prizes-header-star">⭐</span>
+            <div className="sc2-prizes-divider-right" />
+          </div>
+          <div className="sc2-prizes-grid">
+            {TOP_PRIZES.map(p => (
+              <div key={p.key} className="sc2-prize-tile">
+                <span className="sc2-prize-tile-icon">{p.icon}</span>
+                <span className="sc2-prize-tile-val">
+                  <span className="sc2-prize-coin-icon">🪙</span>
+                  {p.val}
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
+
+        {/* ── BOTTOM BUTTONS / ACTIONS ── */}
+        {(isIdle || (isCool && isIdle)) && (
+          <div className="sc2-bottom-btns" style={{ marginTop: 14 }}>
+            <button className="sc2-btn-view" onClick={() => setShowPrizes(true)}>
+              <span className="sc2-btn-icon">👁️</span>
+              VIEW PRIZES
+            </button>
+            <button className="sc2-btn-upgrade">
+              <span className="sc2-btn-icon">🎫</span>
+              UPGRADE CARD
+            </button>
+          </div>
+        )}
+
+        {isWin && (
+          <button className="sc2-next-btn" onClick={handleNext}>
+            {cardIdx + 1 < NET_LIMIT
+              ? `➡️ Agla Card (${cardIdx + 2}/${NET_LIMIT})`
+              : '🎊 Complete! Summary Dekho'}
+          </button>
+        )}
+
+        {isScratching && (
+          <div style={{
+            color: 'rgba(255,255,255,0.4)', fontSize: 13, fontWeight: 700,
+            textAlign: 'center', paddingBottom: 20, position: 'relative', zIndex: 2,
+            marginTop: 14, flexShrink: 0,
+          }}>
+            👆 Upar scratch karo prize dekhne ke liye...
+          </div>
+        )}
+
+        {/* ── ALL DONE SUMMARY ── */}
+        {isAllDone && (
+          <div className="sc2-summary">
+            <div className="sc2-summary-emoji">🎊</div>
+            <div className="sc2-summary-title">Teeno Cards Complete!</div>
+            <div className="sc2-summary-list">
+              {prizes.map((p, i) => (
+                <div key={i} className="sc2-summary-row">
+                  <span className="sc2-summary-row-lbl">🎁 Card {i + 1}</span>
+                  <span className="sc2-summary-row-val">+{p} 🪙</span>
+                </div>
+              ))}
+            </div>
+            <div className="sc2-summary-total">
+              <span className="sc2-summary-total-lbl">💰 Total Jeeta</span>
+              <span className="sc2-summary-total-val">+{total} 🪙</span>
+            </div>
+            <button className="sc2-summary-done-btn" onClick={onClose}>
+              🏠 Wapas Jao
+            </button>
+          </div>
+        )}
+
       </div>
 
+      {/* ── AD OVERLAY ── */}
       {phase === 'ad' && (
         <AdWatchOverlay
           network={network}
           onComplete={handleAdDone}
-          onCancel={() => setPhase('pre')}
+          onCancel={() => setPhase('idle')}
         />
+      )}
+
+      {/* ── PRIZES MODAL ── */}
+      {showPrizes && (
+        <div className="sc2-prizes-modal-overlay" onClick={() => setShowPrizes(false)}>
+          <div className="sc2-prizes-modal" onClick={e => e.stopPropagation()}>
+            <div className="sc2-pm-handle" />
+            <div className="sc2-pm-title">🏆 Prize Table</div>
+            {[
+              { icon: '🪙', name: 'Gold Coins',    val: '10,000 🪙', chance: 'Very Rare' },
+              { icon: '🏆', name: 'Trophy',         val: '5,000 🪙',  chance: 'Rare' },
+              { icon: '💰', name: 'Money Bag',      val: '2,000 🪙',  chance: 'Uncommon' },
+              { icon: '🎖️', name: 'Silver Medal',   val: '500 🪙',    chance: 'Common' },
+              { icon: '🎁', name: 'Bonus Coins',    val: '200 🪙',    chance: 'Very Common' },
+              { icon: '⭐', name: 'Star Reward',    val: '50 🪙',     chance: 'Most Common' },
+            ].map((p, i) => (
+              <div key={i} className="sc2-pm-row">
+                <div className="sc2-pm-left">
+                  <span className="sc2-pm-icon">{p.icon}</span>
+                  <div>
+                    <div className="sc2-pm-name">{p.name}</div>
+                    <div className="sc2-pm-chance">{p.chance}</div>
+                  </div>
+                </div>
+                <span className="sc2-pm-val">{p.val}</span>
+              </div>
+            ))}
+            <button className="sc2-pm-close" onClick={() => setShowPrizes(false)}>
+              Theek Hai ✓
+            </button>
+          </div>
+        </div>
       )}
     </>
   );
