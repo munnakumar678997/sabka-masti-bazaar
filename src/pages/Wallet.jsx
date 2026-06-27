@@ -266,21 +266,6 @@ export default function Wallet() {
               )}
             </div>
 
-            {/* Quick chips */}
-            <div className="wlt-quick-label">⚡ Quick Select</div>
-            <div className="wlt-quick-row">
-              {[500, 1000, 2000, 5000].map(v => (
-                <button
-                  key={v}
-                  className={`wlt-quick-chip ${parseInt(amount) === v ? 'selected' : ''} ${balance < v ? 'disabled' : ''}`}
-                  onClick={() => balance >= v && setAmount(String(v))}
-                >
-                  <span className="wlt-chip-label">{v >= 1000 ? `${v/1000}K` : v}</span>
-                  <span className="wlt-chip-inr">₹{(v/100).toFixed(0)}</span>
-                </button>
-              ))}
-            </div>
-
             {/* UPI Input */}
             <div className="wlt-field">
               <div className="wlt-field-label">
@@ -327,15 +312,9 @@ export default function Wallet() {
             </button>
 
             {/* Info cards */}
-            <div className="wlt-info-grid">
-              <div className="wlt-info-card">
-                <div className="wlt-info-icon">⏰</div>
-                <div className="wlt-info-text">24-48 ghante mein process hota hai</div>
-              </div>
-              <div className="wlt-info-card">
-                <div className="wlt-info-icon">🎯</div>
-                <div className="wlt-info-text">100 Coins = ₹1 — koi hidden charges nahi</div>
-              </div>
+            <div className="wlt-info-card wlt-info-full">
+              <div className="wlt-info-icon">⏰</div>
+              <div className="wlt-info-text">24-48 ghante mein process hota hai</div>
             </div>
           </div>
         )}
