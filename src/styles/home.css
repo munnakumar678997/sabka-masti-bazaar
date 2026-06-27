@@ -475,14 +475,28 @@
 }
 .popup-cancel:active { border-color: rgba(255,255,255,0.25); }
 
-/* ══ PAGE ENTRY ANIMATIONS ══ */
-/* 😊 Topbar upar se slide-in 😊 */
+/* ══ PAGE ENTRY ANIMATIONS — Premium Spring ══ */
+/* Spring easing: slight overshoot = native app feel */
+
+/* 😊 Topbar upar se spring-drop 😊 */
 .home-topbar {
-  animation: fadeDown 0.28s ease both;
+  animation: smbDropIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
 
-/* 😊 Scroll sections ek ke baad ek neeche se 😊 */
-.home-scroll > *:nth-child(1) { animation: fadeUp 0.32s 0.06s ease both; }
-.home-scroll > *:nth-child(2) { animation: fadeUp 0.32s 0.14s ease both; }
-.home-scroll > *:nth-child(3) { animation: fadeUp 0.32s 0.22s ease both; }
-.home-scroll > *:nth-child(4) { animation: fadeUp 0.32s 0.30s ease both; }
+/* 😊 Balance card — sabse pehle, thodi badi delay 😊 */
+.home-scroll > *:nth-child(1) {
+  animation: smbPop 0.42s cubic-bezier(0.34, 1.56, 0.64, 1) 0.08s both;
+}
+
+/* 😊 Stats row — teeno boxes ek ek karke pop 😊 */
+.home-scroll > *:nth-child(2) {
+  animation: none; /* parent nahi, children animate honge */
+}
+.quick-stats .stat-box:nth-child(1) { animation: smbPop 0.38s cubic-bezier(0.34,1.56,0.64,1) 0.18s both; }
+.quick-stats .stat-box:nth-child(2) { animation: smbPop 0.38s cubic-bezier(0.34,1.56,0.64,1) 0.26s both; }
+.quick-stats .stat-box:nth-child(3) { animation: smbPop 0.38s cubic-bezier(0.34,1.56,0.64,1) 0.34s both; }
+
+/* 😊 Daily Check-in section 😊 */
+.home-scroll > *:nth-child(3) {
+  animation: smbPop 0.42s cubic-bezier(0.34, 1.56, 0.64, 1) 0.42s both;
+}

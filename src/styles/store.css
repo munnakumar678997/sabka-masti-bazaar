@@ -275,16 +275,34 @@
 }
 .confirm-go-btn:active { transform: scale(0.97); }
 
-/* ══ PAGE ENTRY ANIMATIONS ══ */
-/* 😊 Topbar upar se slide-in 😊 */
+/* ══ PAGE ENTRY ANIMATIONS — Premium Spring ══ */
+
+/* 😊 Topbar spring-drop 😊 */
 .store-topbar {
-  animation: fadeDown 0.28s ease both;
+  animation: smbDropIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
 
-/* 😊 Scroll sections ek ke baad ek neeche se 😊 */
-.store-scroll > *:nth-child(1) { animation: fadeUp 0.32s 0.06s ease both; }
-.store-scroll > *:nth-child(2) { animation: fadeUp 0.32s 0.14s ease both; }
-.store-scroll > *:nth-child(3) { animation: fadeUp 0.32s 0.22s ease both; }
+/* 😊 "12 Products" sub-label 😊 */
+.store-scroll > *:nth-child(1) {
+  animation: smbPop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) 0.06s both;
+}
+
+/* 😊 Grid parent — animation nahi, sirf children 😊 */
+.store-scroll > *:nth-child(2) { animation: none; }
+
+/* 😊 Har product card individually pop — 2-column mein cascade 😊 */
+.product-card:nth-child(1)  { animation: smbPop 0.40s cubic-bezier(0.34,1.56,0.64,1) 0.10s both; }
+.product-card:nth-child(2)  { animation: smbPop 0.40s cubic-bezier(0.34,1.56,0.64,1) 0.16s both; }
+.product-card:nth-child(3)  { animation: smbPop 0.40s cubic-bezier(0.34,1.56,0.64,1) 0.22s both; }
+.product-card:nth-child(4)  { animation: smbPop 0.40s cubic-bezier(0.34,1.56,0.64,1) 0.28s both; }
+.product-card:nth-child(5)  { animation: smbPop 0.40s cubic-bezier(0.34,1.56,0.64,1) 0.34s both; }
+.product-card:nth-child(6)  { animation: smbPop 0.40s cubic-bezier(0.34,1.56,0.64,1) 0.40s both; }
+.product-card:nth-child(7)  { animation: smbPop 0.40s cubic-bezier(0.34,1.56,0.64,1) 0.46s both; }
+.product-card:nth-child(8)  { animation: smbPop 0.40s cubic-bezier(0.34,1.56,0.64,1) 0.52s both; }
+.product-card:nth-child(9)  { animation: smbPop 0.40s cubic-bezier(0.34,1.56,0.64,1) 0.58s both; }
+.product-card:nth-child(10) { animation: smbPop 0.40s cubic-bezier(0.34,1.56,0.64,1) 0.62s both; }
+.product-card:nth-child(11) { animation: smbPop 0.40s cubic-bezier(0.34,1.56,0.64,1) 0.66s both; }
+.product-card:nth-child(12) { animation: smbPop 0.40s cubic-bezier(0.34,1.56,0.64,1) 0.70s both; }
 
 /* 😊 Toast message — order success dikhata hai 😊 */
 .toast-box {
