@@ -14,7 +14,6 @@ import { redeemCodeTransaction, saveBonusHistoryToDb } from '../services/bonusSe
 
 const AppContext          = createContext(null);
 const CHECKIN_BACKUP_KEY = 'smb_checkin_ist';
-const SESSION_KEY        = 'smb_session';
 
 function getISTDateStr() {
   const istMs = Date.now() + 5.5 * 60 * 60 * 1000;
@@ -279,14 +278,6 @@ export function AppProvider({ children }) {
 
   const fetchWithdrawals = async () => fetchWithdrawalsFromDb(userIdRef.current);
 
-  const markCodeRedeemed = async (code) => {
-    if (!userIdRef.current) return;
-    try {
-      await updateDoc(doc(db, 'users', String(userIdRef.current)), { redeemed_codes: arrayUnion(code) });
-      setRedeemedCodes(prev => [...prev, code]);
-    } catch (e) { console.error('markCodeRedeemed err:', e); }
-  };
-
   const redeemBonusCode = async (code) => {
     if (!userIdRef.current) throw new Error('NOT_LOGGED_IN');
     const { coinsEarned, codeDesc } = await redeemCodeTransaction(userIdRef.current, code);
@@ -338,9 +329,9 @@ export function AppProvider({ children }) {
       loadUser, saveMobile, addCoins, deductCoins,
       updateCheckIn, updateUserName,
       saveOrder, saveWithdrawal, fetchWithdrawals,
-      redeemedCodes, markCodeRedeemed, redeemBonusCode,
+      redeemedCodes, redeemBonusCode,
       notifUnreadCount, fetchNotifications, markNotifRead, markAllNotifsRead,
-      CHECKIN_BACKUP_KEY, SESSION_KEY,
+      CHECKIN_BACKUP_KEY,
       bonusHistory,
     }}>
       {children}

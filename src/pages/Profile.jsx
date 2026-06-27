@@ -4,11 +4,6 @@ import { useApp } from '../context/AppContext';
 import BottomNav from '../components/BottomNav';
 import '../styles/profile.css';
 
-function getTodayKey() {
-  const istMs = Date.now() + 5.5 * 60 * 60 * 1000;
-  return new Date(istMs).toISOString().split('T')[0];
-}
-
 export default function Profile() {
   const navigate = useNavigate();
   const { user, balance, streak, referrals, updateUserName, CHECKIN_BACKUP_KEY } = useApp();
