@@ -1,102 +1,43 @@
 # 🎪 Sabka Masti Bazaar
 
-> **Khelo • Jeeto • Kamao** — Desh ka sabse mast earning app! 🇮🇳
+<div align="center">
 
-## 📱 App ke baare mein
+**Khelo • Jeeto • Kamao** — Desh ka sabse mast earning app! 🇮🇳
 
-**Sabka Masti Bazaar** ek desi earning web app hai jo bilkul mobile app jaisa dikhta aur feel karta hai. Yeh app Telegram ke saath tightly integrated hai — Telegram Mini App ke andar kaam karta hai. Users daily tasks karke, games khelke, aur referrals se coins kamate hain jo UPI pe withdraw kar sakte hain.
+[![Live App](https://img.shields.io/badge/🚀_Live_App-Firebase-orange?style=for-the-badge)](https://sabka-masti-bazaar-71333.web.app)
+[![React](https://img.shields.io/badge/React-18.3-blue?style=for-the-badge&logo=react)](https://react.dev)
+[![Firebase](https://img.shields.io/badge/Firebase-10.14-yellow?style=for-the-badge&logo=firebase)](https://firebase.google.com)
+[![Vite](https://img.shields.io/badge/Vite-5.4-purple?style=for-the-badge&logo=vite)](https://vitejs.dev)
 
-**100 Coins = ₹1 | Minimum Withdrawal: 500 Coins (₹5)**
-
----
-
-## ✨ Pages / Features
-
-| Page | File | Status | Kaam kya karta hai |
-|------|------|--------|-------------------|
-| 🎪 Loading / Splash | `Loading.jsx` | ✅ Done | Animated splash screen, user auth check, session setup |
-| 🔐 Login | `Login.jsx` | ✅ Done | Telegram Mini App auto-login + mobile number verify |
-| 🏠 Home | `Home.jsx` | ✅ Done | Balance, daily tasks (action-gated), quick actions, check-in |
-| 📅 Daily Check-in | `DailyCheckIn.jsx` | ✅ Done | 7-day streak system, roz coins, IST midnight reset |
-| 🎮 Games | `games/index.jsx` | ✅ Done | Spin Wheel, Scratch Card, Coin Flip — 4-network ad system |
-| 💰 Wallet | `Wallet.jsx` | ✅ Done | Balance, UPI withdrawal request, withdrawal history |
-| 👤 Profile | `Profile.jsx` | ✅ Done | User info, referral stats, settings, FAQ link |
-| 🛒 Store | `store/index.jsx` | ✅ Done | Coins se products/recharge kharido |
-| 👥 Referral | `Referral.jsx` | ✅ Done | Referral link share karo, +50 coins per referral |
-| 🎁 Bonus Code | `BonusCode.jsx` | ✅ Done | Special codes redeem karo — Firestore anti-cheat |
-| 🔔 Notifications | `Notifications.jsx` | ✅ Done | App notifications, read/unread, mark all read |
-| ❓ FAQ / Help | `FAQ.jsx` | ✅ Done | Search + category filter ke saath help center |
-
----
-
-## 🎮 Games — 4-Network Ad System
-
-Games page pe **4 Ad Network Zones** hain. Har zone pe alag-alag 3 plays milte hain, 4 ghante ka cooldown hota hai.
-
-### Ad Network Codes (Developer Reference)
-
-| UI Label | Code | Full Name | Description |
-|----------|------|-----------|-------------|
-| 🔥 MG | `mg` | **Monetag** | High CPM push + interstitial network |
-| ⚡ PA | `pa` | **PropellerAds** | Global push + pop-under network |
-| 💎 AS | `as` | **Adsterra** | Premium display + native ad network |
-| 🌟 EZ | `ez` | **Ezoic** | AI-powered optimization ad platform |
-
-> **Note:** UI pe sirf short codes (MG, PA, AS, EZ) dikhte hain — users ko full network name pata nahi chalta. Yeh intentional hai. Developer aur owner ko reference ke liye yeh table hai.
-
-### Ad Slot Integration
-
-Jab tumhara ad network account ready ho, `src/pages/games/AdWatchOverlay.jsx` mein yeh jagah pe real ad script daalna hai:
-
-```jsx
-{/* ══ AD SLOT ══ Real ad script yahaan replace karna ══ */}
-<div className="ad-slot-box" id={`ad-slot-${network.id}`}>
-  {/* network.id = "mg" | "pa" | "as" | "ez" */}
-  {/* Yahan apna ad network script/component paste karo */}
 </div>
-```
-
-### Game Limits
-
-```
-Har network zone mein:
-  - Spin Wheel:   3 plays / 4 hours
-  - Scratch Card: 3 plays / 4 hours (har card ke liye alag ad)
-  - Coin Flip:    3 plays / 4 hours
-
-Total plays per zone: 9 plays
-Total zones: 4 (MG + PA + AS + EZ)
-Total max plays: 36 plays per 4 hours
-```
 
 ---
 
-## ⚡ Earning Tasks — Action-Gated System
+## 📱 App Overview
 
-Home page pe 5 tasks hain. Ab har task mein **actual action required** hai — sirf button dabane se coins nahi milenge.
+**Sabka Masti Bazaar** ek desi earning web app hai jo bilkul **mobile app** jaisa dikhta aur feel karta hai. Yeh Telegram Mini App ke andar bhi kaam karta hai. Users:
 
-| Task | Action Required | Wait Time | Coins |
-|------|----------------|-----------|-------|
-| 📺 Video dekho | 10-second timer dekho | 10s | +5 🪙 |
-| 📲 App install karo | App link kholo + wait | 15s | +20 🪙 |
-| 🔗 Link share karo | Web Share / Clipboard copy | — | +10 🪙 |
-| 📝 Survey bharo | Survey kholo + wait | 30s | +15 🪙 |
-| 👥 Friend ko refer karo | Referral page pe jao | — | +50 🪙 |
+- ✅ **Daily tasks** karke coins kamate hain
+- ✅ **Daily check-in** streak se bonus coins paate hain
+- ✅ **Referrals** se per-invite earnings kamate hain
+- ✅ **Bonus codes** redeem karke extra coins paate hain
+- ✅ **UPI / Store** pe coins withdraw / spend karte hain
+- 🔜 **Games** — jald aa rahe hain!
 
-> **Note:** Task links (App install URL, Survey URL) `src/pages/Home.jsx` ke `TASKS` array mein update karo jab real links available ho.
+> **Conversion Rate:** `100 Coins = ₹1` | **Minimum Withdrawal:** `500 Coins (₹5)`
 
 ---
 
 ## 🛠️ Tech Stack
 
-| Layer | Technology | Version |
-|-------|-----------|---------|
-| Frontend Framework | React | 18.3.1 |
-| Build Tool | Vite | 5.4.21 |
-| Routing | React Router DOM | 6.30.4 |
-| Backend / Database | Firebase (Firestore) | 10.14.1 |
-| Hosting | Firebase Hosting | — |
-| Package Manager | pnpm | 10.x |
+| Layer | Technology | Version | Use |
+|-------|-----------|---------|-----|
+| **Frontend** | React | 18.3.1 | UI components |
+| **Build Tool** | Vite | 5.4.21 | Fast dev + prod build |
+| **Routing** | React Router DOM | 6.30.4 | Page navigation |
+| **Database** | Firebase Firestore | 10.14.1 | Users, coins, history |
+| **Hosting** | Firebase Hosting | — | Production deployment |
+| **Auth** | Telegram OAuth / Mini App | — | Login system |
 
 ---
 
@@ -104,119 +45,194 @@ Home page pe 5 tasks hain. Ab har task mein **actual action required** hai — s
 
 ```
 sabka-masti-bazaar/
-├── src/
-│   ├── pages/
-│   │   ├── games/
-│   │   │   ├── index.jsx         → Games Hub — 4-network zone selector + game grid
-│   │   │   ├── adNetworks.js     → Ad network config (MG/PA/AS/EZ codes, limits, colors)
-│   │   │   ├── gameUtils.js      → Per-network play tracking + cooldown timers
-│   │   │   ├── AdWatchOverlay.jsx → Ad-watching overlay (5s timer + ad slot placeholder)
-│   │   │   ├── SpinWheel.jsx     → Spin wheel game (3 plays/network)
-│   │   │   ├── ScratchCard.jsx   → Scratch card game (3 individual cards/network)
-│   │   │   └── CoinFlip.jsx      → Coin flip game (3 flips/network)
-│   │   ├── store/
-│   │   │   ├── index.jsx         → Store page
-│   │   │   └── ProductModal.jsx  → Product detail modal
-│   │   ├── Home.jsx              → Home + Earning Tasks (action-gated)
-│   │   ├── DailyCheckIn.jsx      → 7-day streak check-in
-│   │   ├── Wallet.jsx            → Wallet + withdrawal
-│   │   ├── Profile.jsx           → User profile
-│   │   ├── Referral.jsx          → Referral system
-│   │   ├── BonusCode.jsx         → Bonus code redemption
-│   │   ├── Notifications.jsx     → Notification center
-│   │   ├── FAQ.jsx               → Help / FAQ
-│   │   ├── Login.jsx             → Auth page
-│   │   └── Loading.jsx           → Splash screen
-│   ├── components/
-│   │   └── BottomNav.jsx         → Bottom navigation bar
-│   ├── styles/                   → Har page ka alag CSS file + global.css
-│   ├── context/
-│   │   └── AppContext.jsx        → Global state (user, balance, streak, tasks)
-│   ├── lib/
-│   │   └── firebase.js           → Firestore connection
-│   ├── App.jsx                   → Routes setup + SessionGuard
-│   └── main.jsx                  → Entry point + bfcache fix
-├── public/                       → favicon.svg, icons.svg
-├── .github/workflows/            → Firebase auto-deploy CI/CD
-├── .firebaserc                   → Firebase project ID
-├── firebase.json                 → Hosting config (rewrites, cache headers)
-├── vite.config.js                → Vite config (port 5000, version plugin)
-├── package.json                  → Dependencies
-└── pnpm-lock.yaml                → Exact versions locked
+│
+├── 📁 src/
+│   ├── 📁 pages/               → Har page ka alag JSX file
+│   │   ├── 📁 games/
+│   │   │   └── index.jsx       → Games Coming Soon placeholder
+│   │   ├── 📁 store/
+│   │   │   ├── index.jsx       → Store page
+│   │   │   ├── ProductModal.jsx → Product detail modal
+│   │   │   └── storeData.js    → Products ka data
+│   │   ├── 📁 tasks/
+│   │   │   ├── index.jsx       → Earning Tasks section
+│   │   │   └── TaskActionModal.jsx → Ad-gated task reward modal
+│   │   ├── Home.jsx            → Home + balance + tasks
+│   │   ├── DailyCheckIn.jsx    → 7-day streak check-in
+│   │   ├── Wallet.jsx          → Balance + UPI withdrawal
+│   │   ├── Profile.jsx         → User profile + stats
+│   │   ├── Referral.jsx        → Referral system + milestones
+│   │   ├── BonusCode.jsx       → Bonus code redemption
+│   │   ├── Notifications.jsx   → Notification center
+│   │   ├── FAQ.jsx             → Help center + search
+│   │   ├── Login.jsx           → Telegram auth page
+│   │   └── Loading.jsx         → Splash screen + session check
+│   │
+│   ├── 📁 components/
+│   │   └── BottomNav.jsx       → Bottom navigation (5 tabs)
+│   │
+│   ├── 📁 styles/              → Har page ka alag CSS file
+│   │   ├── global.css          → Body, #app-root, mobile frame
+│   │   ├── shared.css          → Shared animations + utilities
+│   │   ├── bottomNav.css       → Bottom navigation styles
+│   │   ├── home.css            → Home page styles
+│   │   ├── loading.css         → Splash screen styles
+│   │   ├── wallet.css          → Wallet page styles
+│   │   ├── profile.css         → Profile page styles
+│   │   ├── store.css           → Store page styles
+│   │   ├── tasks.css           → Tasks + modal styles
+│   │   ├── dailyCheckIn.css    → Check-in component styles
+│   │   ├── bonusCode.css       → Bonus code page styles
+│   │   ├── notifications.css   → Notifications page styles
+│   │   ├── referral.css        → Referral page styles
+│   │   └── faq.css             → FAQ page styles
+│   │
+│   ├── 📁 context/
+│   │   ├── AppContext.jsx      → Global state (user, balance, streak)
+│   │   └── 📁 services/
+│   │       ├── bonusService.js → Bonus code logic (Firestore)
+│   │       ├── notifService.js → Notification CRUD (Firestore)
+│   │       └── walletService.js → Orders + withdrawals (Firestore)
+│   │
+│   ├── 📁 lib/
+│   │   └── firebase.js         → Firestore connection
+│   │
+│   ├── App.jsx                 → Routes + SessionGuard
+│   └── main.jsx                → Entry point + bfcache fix
+│
+├── 📁 public/
+│   ├── favicon.svg             → App icon
+│   └── manifest.json           → PWA manifest
+│
+├── 📁 .github/workflows/       → CI/CD pipeline (auto Firebase deploy)
+│
+├── index.html                  → Root HTML + ad network meta tags
+├── vite.config.js              → Port 5000, version plugin
+├── firebase.json               → Hosting config + cache headers
+├── package.json                → Dependencies
+└── pnpm-lock.yaml              → Locked versions
 ```
 
 ---
 
-## 🚀 Naye Developer ke liye — Quick Setup
+## 📄 Pages & Features
 
-Agar tum is repo ko apne Replit account mein import kar rahe ho:
-
-### 1. Packages install karo
-```bash
-pnpm install
-```
-
-### 2. Firebase setup karo
-`src/lib/firebase.js` mein apna Firebase config daalo:
-```js
-const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "your-project.firebaseapp.com",
-  projectId: "your-project-id",
-  // ...
-};
-```
-
-### 3. Dev server start karo
-```bash
-pnpm run dev
-# App: http://localhost:5000
-```
-
-### 4. Ad Networks setup karo
-- **Monetag** (MG): [monetag.com](https://monetag.com) — Account banao, ad zone ID lo
-- **PropellerAds** (PA): [propellerads.com](https://propellerads.com) — Publisher account, zone setup
-- **Adsterra** (AS): [adsterra.com](https://adsterra.com) — Publisher signup, ad code lo
-- **Ezoic** (EZ): [ezoic.com](https://ezoic.com) — Site verification + ad setup
-
-Real ad script `src/pages/games/AdWatchOverlay.jsx` mein `ad-slot-{network.id}` div ke andar daalo.
+| # | Page | File | Status | Description |
+|---|------|------|--------|-------------|
+| 1 | 🎪 Splash Screen | `Loading.jsx` | ✅ Live | Animated splash, session check, Telegram auth |
+| 2 | 🔐 Login | `Login.jsx` | ✅ Live | Telegram Mini App + Web widget login |
+| 3 | 🏠 Home | `Home.jsx` | ✅ Live | Balance card, quick stats, tasks, check-in |
+| 4 | 📅 Daily Check-in | `DailyCheckIn.jsx` | ✅ Live | 7-day streak, IST midnight reset, bonus coins |
+| 5 | 🎮 Games | `games/index.jsx` | 🔜 Coming Soon | Placeholder with countdown timer |
+| 6 | 💰 Wallet | `Wallet.jsx` | ✅ Live | Balance, UPI withdrawal, history |
+| 7 | 👤 Profile | `Profile.jsx` | ✅ Live | User info, stats, referral code, settings |
+| 8 | 🛒 Store | `store/index.jsx` | ✅ Live | Coins se products + recharge kharido |
+| 9 | 👥 Referral | `Referral.jsx` | ✅ Live | Referral link, +50 coins/invite, milestones |
+| 10 | 🎟️ Bonus Code | `BonusCode.jsx` | ✅ Live | Special codes redeem — Firestore anti-cheat |
+| 11 | 🔔 Notifications | `Notifications.jsx` | ✅ Live | Real-time notifications, read/unread status |
+| 12 | ❓ FAQ / Help | `FAQ.jsx` | ✅ Live | Search + category filter, contact support |
 
 ---
 
-## 🔧 Production build karo
+## ⚡ Earning Tasks — Action-Gated System
 
-```bash
-pnpm run build
-# dist/ folder ban jaayega — Firebase pe yahi upload hota hai
-```
+Tasks pe sirf click karne se coins nahi milte — **actual action required** hai.
+
+| Task | Category | Reset | Action Required | Coins |
+|------|----------|-------|-----------------|-------|
+| 📺 Video Ad dekho | Daily | Midnight IST | 10s timer | +5 🪙 |
+| 🎬 Bonus Video dekho | Daily | Midnight IST | 10s timer | +10 🪙 |
+| 📝 Survey bharo | Daily | Midnight IST | Survey link + 30s | +15 🪙 |
+| 🔗 App share karo | Daily | Midnight IST | Web Share API | +8 🪙 |
+| 🔥 Ad Zone 1 | 4-Hour | Every 4h | 10s ad watch | +5 🪙 |
+| 💎 Ad Zone 2 | 4-Hour | Every 4h | 10s ad watch | +8 🪙 |
+| ⚡ Ad Zone 3 | 4-Hour | Every 4h | 10s ad watch | +6 🪙 |
+| 💰 Bonus Ad | 4-Hour | Every 4h | 10s ad watch | +12 🪙 |
+| 🎯 Lucky Ad | 4-Hour | Every 4h | 10s ad watch | +10 🪙 |
+
+> **Total daily potential:** `~314 coins/day` from tasks alone
 
 ---
 
-## 🚀 Deploy Pipeline (Auto)
+## 🔮 Games — Coming Soon
+
+> Games section abhi development mein hai. Placeholder page active hai countdown timer ke saath.
+
+**Planned Games:**
+
+| Game | Type | Reward | Ad Requirement |
+|------|------|--------|---------------|
+| 🎰 Spin Wheel | Luck-based | 5–50 🪙 | 1 ad per spin |
+| 🃏 Scratch Card | Reveal | 3–30 🪙 | 1 ad per card |
+| 🪙 Coin Flip | 50/50 | 2x bet | 1 ad per flip |
+| 🎯 Lucky Zone | Skill+Luck | 10–100 🪙 | 1 ad per play |
+
+---
+
+## 📣 Ad Networks — Verification Tags
+
+`index.html` mein yeh verification meta tags hain — **delete mat karna**:
+
+| Network | Meta Tag | Status |
+|---------|----------|--------|
+| 🔥 Monetag | `name="monetag"` | ✅ Verified |
+| 💰 PopCash | `name="ppck-ver"` | ✅ Verified |
+| ⚡ Clickadu | `name="clckd"` | ✅ Verified |
+| 🏔️ HilltopAds | `name="f0eb1f43..."` | ✅ Verified |
+
+> **Monetag SDK** bhi `index.html` mein load hota hai (`//libtl.com/sdk.js`)
+
+---
+
+## 🚀 CI/CD Deploy Pipeline
 
 ```
-Replit mein code change karo
+Replit mein code edit karo
         ↓
-GitHub pe push karo (git push)
+GitHub pe push karo
         ↓
-GitHub Actions automatically trigger hoga
+GitHub Actions auto-trigger → (.github/workflows/)
         ↓
 pnpm install → vite build → Firebase deploy
         ↓
-Live: https://sabka-masti-bazaar-71333.web.app ✅
+✅ Live: https://sabka-masti-bazaar-71333.web.app
 ```
 
 ---
 
-## 💡 Key Technical Details
+## 💡 Key Technical Features
 
-- **Anti-Cheat:** Bonus codes aur referrals Firestore mein track hote hain — localStorage se bypass nahi ho sakta
-- **bfcache Fix:** Telegram WebView back button bug ke liye 3-layer fix (pageshow + version.json + activated event)
-- **IST Timezone:** Sab daily resets Indian Standard Time ke hisab se hote hain (midnight 12:00 IST)
-- **Mobile-First UI:** Max 430px width — website hai lekin bilkul app jaisa dikhta hai
-- **Ad Network Cooldown:** LocalStorage-based per-network, per-game, per-device tracking (4-hour reset)
-- **Task Action Gates:** Har task mein actual action required hai — timer/share/link — sirf click se coins nahi milte
+| Feature | Implementation |
+|---------|---------------|
+| **Anti-Cheat** | Bonus codes + tasks Firestore mein track — localStorage bypass impossible |
+| **bfcache Fix** | 4-layer fix: `pageshow` + `visibilitychange` + Telegram events + `version.json` |
+| **IST Timezone** | Sab daily resets Indian Standard Time pe (midnight 12:00 IST = 18:30 UTC) |
+| **Mobile-First UI** | Max `430px` width, `min-height: 100dvh`, `#app-root` container |
+| **SessionGuard** | Bina login ke koi bhi page direct nahi khulta — `/loading` pe redirect |
+| **Optimistic UI** | Coins instantly update (local), Firestore mein async save hota hai |
+| **Referral Milestones** | `runTransaction` se race-condition safe: 1→+50, 5→+500, 10→+1200 coins bonus |
 
 ---
 
-Made with ❤️ in India 🇮🇳
+## ⚙️ Local Development Setup
+
+```bash
+# 1. Dependencies install karo
+pnpm install
+
+# 2. Dev server start karo (port 5000)
+pnpm run dev
+
+# 3. Production build test karo
+pnpm run build
+```
+
+**Firebase config** → `src/lib/firebase.js` mein apna project ID daalo
+
+---
+
+<div align="center">
+
+Made with ❤️ in India 🇮🇳 | **Sabka Masti Bazaar** © 2026
+
+</div>
