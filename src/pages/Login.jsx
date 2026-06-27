@@ -139,6 +139,22 @@ export default function Login() {
   useEffect(() => {
     const tg = window.Telegram?.WebApp;
 
+    // initDataUnsafe?.user unreliable hai — seedha initData parse karo
+    function parseTgUser(tg) {
+      if (!tg?.initData) return null;
+      const u1 = tg.initDataUnsafe?.user;
+      if (u1?.id) return u1;
+      try {
+        const params  = new URLSearchParams(tg.initData);
+        const userStr = params.get('user');
+        if (userStr) {
+          const u2 = JSON.parse(userStr);
+          if (u2?.id) return u2;
+        }
+      } catch (_) {}
+      return null;
+    }
+
     // ── MINI APP ──
     if (tg && tg.initData && tg.initData.length > 0) {
       tg.ready();
@@ -148,7 +164,7 @@ export default function Login() {
       setIsMiniApp(true);
 
       if (!passedTgData) {
-        const user = tg.initDataUnsafe?.user;
+        const user = parseTgUser(tg);
         if (user) {
           setTgUser({
             id:        user.id,

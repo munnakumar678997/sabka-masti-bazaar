@@ -30,12 +30,23 @@
 
     <title>Sabka Masti Bazaar</title>
 
-    <!-- ══ Session alive check — bfcache se wapas aane pe session preserve karo ══ -->
-    <!-- Reload sirf tabhi hoga jab version.json mein naya build mile (main.jsx handle karta hai) -->
+    <!-- ══ Telegram WebView cache bust ══ -->
+    <!-- Telegram apna cache rakhta hai — har fresh open pe naya URL load karo -->
     <script>
       (function () {
-        // bfcache restore pe kuch nahi karo — session intact rehne do
-        // Telegram WebView bfcache use nahi karta, isliye yeh safe hai
+        // sessionStorage tab saaf hoti hai jab window band ho — isliye yeh safe flag hai
+        // Agar flag nahi hai matlab fresh open hai (Telegram ka cached version)
+        // Tab redirect karo fresh timestamp URL pe taaki Telegram bypass kare cache
+        if (!sessionStorage.getItem('_smb_fresh')) {
+          sessionStorage.setItem('_smb_fresh', '1');
+          // Sirf redirect karo agar already timestamp URL nahi hai
+          if (!window.location.search.includes('_t=')) {
+            var freshUrl = window.location.origin
+              + window.location.pathname
+              + '?_t=' + Date.now();
+            window.location.replace(freshUrl);
+          }
+        }
       })();
     </script>
 

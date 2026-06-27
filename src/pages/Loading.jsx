@@ -32,20 +32,35 @@ export default function Loading() {
 
     const minTimer = new Promise(res => setTimeout(res, 2500));
 
-    // Telegram initDataUnsafe?.user kabhi kabhi null aata hai (timing issue)
-    // Isliye retry karte hain 3 baar — 300ms interval
-    const getTgUser = () => new Promise((resolve) => {
-      const tg = window.Telegram?.WebApp;
-      if (!tg || !tg.initData || tg.initData.length === 0) { resolve(null); return; }
-      let attempts = 0;
-      const check = () => {
-        const u = tg.initDataUnsafe?.user;
-        if (u || attempts >= 3) { resolve(u || null); return; }
-        attempts++;
-        setTimeout(check, 300);
-      };
-      check();
-    });
+    // initDataUnsafe?.user kabhi kabhi null hota hai — seedha initData string parse karo
+    // initData ek URLencoded string hai: user={"id":...}&hash=...
+    function parseTgUser(tg) {
+      if (!tg?.initData) return null;
+      // Method 1: initDataUnsafe (fastest)
+      const u1 = tg.initDataUnsafe?.user;
+      if (u1?.id) return u1;
+      // Method 2: URLSearchParams se seedha parse karo (reliable fallback)
+      try {
+        const params = new URLSearchParams(tg.initData);
+        const userStr = params.get('user');
+        if (userStr) {
+          const u2 = JSON.parse(userStr);
+          if (u2?.id) return u2;
+        }
+      } catch (_) {}
+      return null;
+    }
+
+    function parseTgStartParam(tg) {
+      // Method 1: initDataUnsafe
+      const sp1 = tg?.initDataUnsafe?.start_param;
+      if (sp1) return sp1;
+      // Method 2: URLSearchParams
+      try {
+        const params = new URLSearchParams(tg.initData);
+        return params.get('start_param') || null;
+      } catch (_) { return null; }
+    }
 
     const checkUser = async () => {
       const tg = window.Telegram?.WebApp;
@@ -57,11 +72,10 @@ export default function Loading() {
         tg.setHeaderColor('#1a1a2e');
         tg.setBackgroundColor('#1a1a2e');
 
-        const startParam = tg.initDataUnsafe?.start_param || null;
+        const startParam = parseTgStartParam(tg);
         const referredBy = startParam && /^SMB\d+$/i.test(startParam) ? startParam : null;
 
-        // Retry se user lo — timing issue fix
-        const user = await getTgUser();
+        const user = parseTgUser(tg);
 
         if (user) {
           const tgData = {
