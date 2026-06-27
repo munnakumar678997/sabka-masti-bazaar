@@ -234,7 +234,7 @@ export default function SpinGame() {
     if (!spinning) drawWheel(rotationRef.current);
   }, [spinning, spinsLeft, drawWheel]);
 
-  const handleCanvasTap = (e) => {
+  const handleCanvasTap = async (e) => {
     if (!canSpin) return;
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -243,7 +243,14 @@ export default function SpinGame() {
     const tapY = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
     const cx   = CANVAS_SIZE / 2;
     const cy   = CANVAS_SIZE / 2;
-    if (Math.sqrt((tapX - cx) ** 2 + (tapY - cy) ** 2) <= 32) doSpin();
+    if (Math.sqrt((tapX - cx) ** 2 + (tapY - cy) ** 2) <= 32) {
+      // AudioContext pre-warm — user gesture ke saath turant resume karo
+      try {
+        const ac = getAudioCtx();
+        if (ac.state !== 'running') await ac.resume();
+      } catch (_) {}
+      doSpin();
+    }
   };
 
   const doSpin = () => {
@@ -266,6 +273,7 @@ export default function SpinGame() {
     lastSegRef.current = -1;
     setSpinning(true);
     setWinner(null);
+    playTick(8); // pehla tick — turant click pe
 
     const animate = (now) => {
       const elapsed  = now - startTime;
