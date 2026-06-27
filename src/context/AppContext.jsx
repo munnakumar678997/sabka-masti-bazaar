@@ -112,6 +112,7 @@ export function AppProvider({ children }) {
           last_active_at:     new Date().toISOString(),
           total_coins_earned: WELCOME_BONUS,
           total_coins_spent:  0,
+          last_spin_date:     null,
           schema_version:     SCHEMA_VERSION,
         };
         await setDoc(userRef, newUser);
@@ -196,19 +197,32 @@ export function AppProvider({ children }) {
     setUser(prev => prev ? { ...prev, mobile } : prev);
   };
 
-  const addCoins = async (amount) => {
+  const addCoins = async (amount, extraFields = {}) => {
     const newBalance   = balanceRef.current + amount;
     balanceRef.current = newBalance;
     setBalance(newBalance);
-    setUser(prev => prev ? { ...prev, balance: newBalance } : prev);
+    setUser(prev => prev ? { ...prev, balance: newBalance, ...extraFields } : prev);
     if (userIdRef.current) {
       try {
         await updateDoc(doc(db, 'users', String(userIdRef.current)), {
           balance:            increment(amount),
           total_coins_earned: increment(amount),
+          ...extraFields,
         });
       } catch (e) { console.error('addCoins err:', e); }
     }
+  };
+
+  const spinWheelClaim = async (coins) => {
+    if (!userIdRef.current) return;
+    const todayIST = getISTDateStr();
+    await addCoins(coins, { last_spin_date: todayIST });
+    _addNotification(userIdRef.current, {
+      title: '🎰 Spin Wheel Jeeto!',
+      desc:  `Badhai ho! +${coins} coins tumhare wallet mein add ho gaye! Kal phir aana. 🎉`,
+      icon:  '🎰',
+      type:  'games',
+    });
   };
 
   const deductCoins = async (amount) => {
@@ -365,6 +379,7 @@ export function AppProvider({ children }) {
       updateCheckIn, updateUserName,
       saveOrder, saveWithdrawal, fetchWithdrawals,
       redeemedCodes, redeemBonusCode,
+      spinWheelClaim,
       notifUnreadCount, fetchNotifications, markNotifRead, markAllNotifsRead,
       CHECKIN_BACKUP_KEY,
       bonusHistory,
