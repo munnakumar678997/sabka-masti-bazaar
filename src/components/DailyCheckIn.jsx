@@ -56,8 +56,9 @@ export default function DailyCheckIn() {
     claimTimerRef.current = setTimeout(() => setShowClaimed(false), 2500);
   };
 
+  const broken   = isStreakBroken();
   const gridDays = DAY_REWARDS.map((reward, i) => {
-    const streakPos = checkedIn ? streak : streak + 1;
+    const streakPos = checkedIn ? streak : (broken ? 1 : streak + 1);
     const cyclePos  = ((streakPos - 1) % 7) + 1;
     let state = 'locked';
     if (i < cyclePos - 1)       state = 'done';

@@ -22,7 +22,11 @@ export default function ProductModal({ product, onClose }) {
   const [toast,          setToast]          = useState('');
 
   const toastTimerRef = useRef(null);
-  useEffect(() => () => { if (toastTimerRef.current) clearTimeout(toastTimerRef.current); }, []);
+  const closeTimerRef = useRef(null);
+  useEffect(() => () => {
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
+  }, []);
 
   const showToast = (msg) => {
     if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
@@ -104,7 +108,7 @@ export default function ProductModal({ product, onClose }) {
     setConfirmPending(false);
     setConfirming(false);
     showToast(`✅ ₹${total} ka order place ho gaya! Telegram pe confirm karo.`);
-    onClose();
+    closeTimerRef.current = setTimeout(onClose, 2800);
   };
 
   return (
