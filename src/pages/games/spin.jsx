@@ -46,6 +46,67 @@ export default function SpinGame() {
   const rotationRef = useRef(0);
   const rafRef      = useRef(null);
   const dprRef      = useRef(1);
+  const audioCtxRef = useRef(null);
+  const lastSegRef  = useRef(-1);
+
+  // AudioContext lazy-init (user gesture ke baad)
+  const getAudioCtx = () => {
+    if (!audioCtxRef.current) {
+      audioCtxRef.current = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (audioCtxRef.current.state === 'suspended') {
+      audioCtxRef.current.resume();
+    }
+    return audioCtxRef.current;
+  };
+
+  // Tick sound — segment cross pe click/pop
+  const playTick = useCallback((speed = 1) => {
+    try {
+      const ctx  = getAudioCtx();
+      const t    = ctx.currentTime;
+      const buf  = ctx.createBuffer(1, ctx.sampleRate * 0.025, ctx.sampleRate);
+      const data = buf.getChannelData(0);
+      for (let i = 0; i < data.length; i++) {
+        data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (data.length * 0.15));
+      }
+      const src  = ctx.createBufferSource();
+      src.buffer = buf;
+      const gain = ctx.createGain();
+      gain.gain.setValueAtTime(Math.min(0.35, 0.18 + speed * 0.04), t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.025);
+      const bpf  = ctx.createBiquadFilter();
+      bpf.type  = 'bandpass';
+      bpf.frequency.value = 1800 + speed * 200;
+      bpf.Q.value = 1.2;
+      src.connect(bpf);
+      bpf.connect(gain);
+      gain.connect(ctx.destination);
+      src.start(t);
+    } catch (_) {}
+  }, []);
+
+  // Win jingle — ascending chime
+  const playWin = useCallback(() => {
+    try {
+      const ctx    = getAudioCtx();
+      const notes  = [523, 659, 784, 1047, 1319];
+      notes.forEach((freq, i) => {
+        const t    = ctx.currentTime + i * 0.12;
+        const osc  = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, t);
+        gain.gain.setValueAtTime(0, t);
+        gain.gain.linearRampToValueAtTime(0.28, t + 0.03);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(t);
+        osc.stop(t + 0.38);
+      });
+    } catch (_) {}
+  }, []);
 
   const hourKey   = getHourKey();
   const spinCount = (user?.spin_hour_key === hourKey) ? (user?.spin_hour_count ?? 0) : 0;
@@ -202,6 +263,7 @@ export default function SpinGame() {
     const duration     = 4200 + Math.random() * 600;
     const startTime    = performance.now();
 
+    lastSegRef.current = -1;
     setSpinning(true);
     setWinner(null);
 
@@ -212,6 +274,17 @@ export default function SpinGame() {
       const current  = startRot + totalSpin * ease;
       rotationRef.current = current;
       drawWheel(current);
+
+      // Tick sound — jab bhi naya segment pointer ke neeche aaye
+      const normDeg  = ((current % 360) + 360) % 360;
+      const curSeg   = Math.floor(normDeg / arc) % n;
+      if (curSeg !== lastSegRef.current) {
+        lastSegRef.current = curSeg;
+        // speed = derivative (fast pe tez, slow pe halka)
+        const speed = Math.max(0, 1 - progress) * 8;
+        playTick(speed);
+      }
+
       if (progress < 1) {
         rafRef.current = requestAnimationFrame(animate);
       } else {
@@ -221,6 +294,7 @@ export default function SpinGame() {
         setWinner(won);
         setSpinning(false);
         setShowResult(true);
+        playWin();
         spinWheelClaim(won.coins).catch(() => {});
       }
     };
