@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
-import DailyCheckIn from './DailyCheckIn';
+import DailyCheckIn from '../components/DailyCheckIn';
 import BottomNav from '../components/BottomNav';
 import '../styles/home.css';
 

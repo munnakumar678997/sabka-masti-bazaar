@@ -1,7 +1,7 @@
 // 😊 Games Coming Soon page — naye games aane wale hain! 😊
 import { useEffect, useState } from 'react';
 import BottomNav from '../../components/BottomNav';
-import './games.css';
+import '../../styles/games.css';
 
 // 😊 Launch date — yahan change karo jab games ready hon 😊
 const LAUNCH_DATE = new Date('2026-07-15T00:00:00+05:30');

@@ -8,9 +8,9 @@ import {
 import {
   addNotifToDb, fetchUnreadCountFromDb,
   fetchNotifsFromDb, markNotifReadInDb, markAllNotifsReadInDb,
-} from './services/notifService';
-import { saveOrderToDb, saveWithdrawalToDb, fetchWithdrawalsFromDb } from './services/walletService';
-import { redeemCodeTransaction, saveBonusHistoryToDb } from './services/bonusService';
+} from '../services/notifService';
+import { saveOrderToDb, saveWithdrawalToDb, fetchWithdrawalsFromDb } from '../services/walletService';
+import { redeemCodeTransaction, saveBonusHistoryToDb } from '../services/bonusService';
 
 const AppContext          = createContext(null);
 const CHECKIN_BACKUP_KEY = 'smb_checkin_ist';

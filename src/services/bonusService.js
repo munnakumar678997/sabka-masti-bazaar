@@ -1,4 +1,4 @@
-import { db } from '../../lib/firebase';
+import { db } from '../lib/firebase';
 import { doc, runTransaction, arrayUnion, updateDoc } from 'firebase/firestore';
 
 const VALID_CODES_FALLBACK = {
