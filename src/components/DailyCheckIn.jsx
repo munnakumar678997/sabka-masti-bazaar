@@ -5,34 +5,17 @@ import '../styles/dailyCheckIn.css';
 const DAY_REWARDS = [10, 15, 25, 35, 50, 75, 100];
 
 function getISTDateStr() {
-  const now   = new Date();
-  const istMs = now.getTime() + 5.5 * 60 * 60 * 1000;
+  const istMs = Date.now() + 5.5 * 60 * 60 * 1000;
   return new Date(istMs).toISOString().split('T')[0];
-}
-
-function getSecsUntilISTMidnight() {
-  const now   = new Date();
-  const istMs = now.getTime() + 5.5 * 60 * 60 * 1000;
-  const ist   = new Date(istMs);
-  const h = ist.getUTCHours(), m = ist.getUTCMinutes(), s = ist.getUTCSeconds();
-  return 86400 - (h * 3600 + m * 60 + s);
-}
-
-function fmtCountdown(secs) {
-  const h = Math.floor(secs / 3600);
-  const m = Math.floor((secs % 3600) / 60);
-  const s = secs % 60;
-  return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
 }
 
 export default function DailyCheckIn() {
   const { user, streak, updateCheckIn, CHECKIN_BACKUP_KEY } = useApp();
 
-  const [countdown,      setCountdown]      = useState(getSecsUntilISTMidnight());
   const [checkInLoading, setCheckInLoading] = useState(false);
   const [showClaimed,    setShowClaimed]    = useState(false);
   const [claimedCoins,   setClaimedCoins]   = useState(0);
-  const claimTimerRef = useRef(null); // unmount pe clear karo
+  const claimTimerRef = useRef(null);
 
   const todayIST = getISTDateStr();
 
@@ -41,7 +24,6 @@ export default function DailyCheckIn() {
     && localStorage.getItem(CHECKIN_BACKUP_KEY) === todayIST;
   const checkedIn = checkedInFirestore || checkedInLocal;
 
-  // isStreakBroken pehle define karo — todayReward mein use hoga
   const isStreakBroken = useCallback(() => {
     if (!user?.last_checkin_date) return false;
     const last     = new Date(user.last_checkin_date + 'T00:00:00+05:30');
@@ -50,16 +32,6 @@ export default function DailyCheckIn() {
     return diffDays > 1;
   }, [user?.last_checkin_date, todayIST]);
 
-  const dayIndex    = Math.max(0, (streak - 1)) % 7;
-  // BUG FIX B1: Streak broken hone pe Day 1 reward (10 coins) dikhao — warna UI mein galat amount dikhta tha
-  const todayReward = DAY_REWARDS[checkedIn ? dayIndex : (isStreakBroken() ? 0 : streak % 7)];
-
-  useEffect(() => {
-    const interval = setInterval(() => setCountdown(getSecsUntilISTMidnight()), 1000);
-    return () => clearInterval(interval);
-  }, []);
-
-  // Unmount pe claim popup timer clear karo (memory leak fix)
   useEffect(() => {
     return () => {
       if (claimTimerRef.current) clearTimeout(claimTimerRef.current);
@@ -116,65 +88,44 @@ export default function DailyCheckIn() {
         <div className={`dci-glow-bar ${checkedIn ? 'dci-glow-green' : 'dci-glow-orange'}`} />
 
         <div className="dci-grid">
-          {gridDays.map(({ dayNum, reward, state }) => (
-            <div key={dayNum} className={`dci-day dci-day-${state}`}>
-              <div className="dci-day-icon">
-                {state === 'done'    ? '✅' :
-                 state === 'claimed' ? '🎁' :
-                 state === 'today'   ? '🪙' : '🔒'}
-              </div>
-              <div className="dci-day-num">Day {dayNum}</div>
-              <div className="dci-day-rew">
-                {state === 'done' || state === 'claimed'
-                  ? <span className="dci-rew-done">Done</span>
-                  : <span className={state === 'locked' ? 'dci-rew-locked' : 'dci-rew-coins'}>
-                      +{reward}
-                    </span>
-                }
-              </div>
-            </div>
-          ))}
+          {gridDays.map(({ dayNum, reward, state }) => {
+            const isToday = state === 'today';
+            const Tag = isToday ? 'button' : 'div';
+            return (
+              <Tag
+                key={dayNum}
+                className={`dci-day dci-day-${state}${checkInLoading && isToday ? ' dci-day-loading' : ''}`}
+                onClick={isToday ? handleCheckIn : undefined}
+                disabled={isToday ? (checkInLoading || checkedIn) : undefined}
+              >
+                {isToday && !checkInLoading && (
+                  <>
+                    <span className="dci-scan-ring dci-scan-ring-1" />
+                    <span className="dci-scan-ring dci-scan-ring-2" />
+                  </>
+                )}
+                <div className="dci-day-icon">
+                  {state === 'done'    ? '✅' :
+                   state === 'claimed' ? '🎁' :
+                   state === 'today'   ? (checkInLoading ? '⏳' : '🎁') : '🔒'}
+                </div>
+                <div className="dci-day-num">Day {dayNum}</div>
+                <div className="dci-day-rew">
+                  {state === 'done' || state === 'claimed'
+                    ? <span className="dci-rew-done">Done</span>
+                    : <span className={state === 'locked' ? 'dci-rew-locked' : 'dci-rew-coins'}>
+                        +{reward}
+                      </span>
+                  }
+                </div>
+              </Tag>
+            );
+          })}
         </div>
 
-        <div className="dci-divider" />
-
-        {checkedIn ? (
-          <div className="dci-done-area">
-            <div className="dci-countdown-box">
-              <div className="dci-cd-label">⏰ Next check-in mein bacha</div>
-              <div className="dci-cd-timer">{fmtCountdown(countdown)}</div>
-              <div className="dci-cd-sub">India time (IST) ke hisab se</div>
-            </div>
-          </div>
-        ) : (
-          <div className="dci-claim-area">
-            <div className="dci-reward-row">
-              <div>
-                <div className="dci-reward-label">Aaj ka reward</div>
-                <div className="dci-reward-coins">🪙 +{todayReward} Coins</div>
-              </div>
-              {streak > 0 && (
-                <div className="dci-streak-pill">🔥 {streak} din ki streak!</div>
-              )}
-            </div>
-
-            {isStreakBroken() && (
-              <div className="dci-broken-warn">
-                ⚠️ Streak toot gayi — aaj se naya shuru!
-              </div>
-            )}
-
-            <button
-              className="dci-claim-btn"
-              onClick={handleCheckIn}
-              disabled={checkedIn || checkInLoading}
-            >
-              <span className="dci-btn-icon">{checkInLoading ? '⏳' : '🎁'}</span>
-              <span className="dci-btn-text">
-                {checkInLoading ? 'Save ho raha hai...' : 'Aaj ka Check-in Karo'}
-              </span>
-              <span className="dci-btn-badge">+{todayReward} 🪙</span>
-            </button>
+        {isStreakBroken() && !checkedIn && (
+          <div className="dci-broken-warn">
+            ⚠️ Streak toot gayi — aaj se naya shuru!
           </div>
         )}
       </div>
