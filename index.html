@@ -30,11 +30,45 @@
 
     <title>Sabka Masti Bazaar</title>
 
-    <!-- Telegram Mini App SDK — SABSE PEHLE LOAD HONA CHAHIYE -->
+    <!--
+      ══ TELEGRAM CACHE BUST — HASH SAFE ══
+      Telegram apna internal cache rakhta hai aur purana version serve karta hai.
+      ?_t=timestamp URL se Telegram forced fresh load karta hai.
+
+      IMPORTANT: window.location.hash preserve karo!
+      Telegram initData URL hash mein pass hota hai (#tgWebAppData=...)
+      Agar hash strip ho gaya toh initData null ho jaata hai.
+
+      sessionStorage sirf current tab session mein rehti hai:
+      - Fresh Telegram open = new session = flag nahi = redirect hoga ✅
+      - Same session mein dobara = flag hai = redirect nahi hoga ✅
+    -->
+    <script>
+      (function () {
+        try {
+          var FRESH_KEY = '_smb_v2_fresh';
+          if (!sessionStorage.getItem(FRESH_KEY)) {
+            sessionStorage.setItem(FRESH_KEY, '1');
+            // _t= already hai to redirect mat karo (infinite loop prevent)
+            if (!window.location.search.includes('_t=')) {
+              var freshUrl =
+                window.location.origin +
+                window.location.pathname +
+                '?_t=' + Date.now() +
+                window.location.hash; // ← HASH PRESERVE — initData intact rehega
+              window.location.replace(freshUrl);
+            }
+          }
+        } catch (e) {
+          // sessionStorage block ho toh silently ignore karo
+        }
+      })();
+    </script>
+
+    <!-- Telegram Mini App SDK — redirect ke baad load hoga, hash se initData milega -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
     <!-- ══ MONETAG TELEGRAM MINI APP SDK ══ -->
-    <!-- App ID: 3386197 | Zone: 11204152 (Rewarded Popup) -->
     <script src='//libtl.com/sdk.js' data-zone='11204152' data-sdk='show_11204152'></script>
   </head>
   <body>
