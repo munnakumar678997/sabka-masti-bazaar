@@ -3,6 +3,7 @@ import { db } from '../lib/firebase';
 import {
   doc, getDoc, setDoc, updateDoc, collection,
   increment, getDocs, query, where, arrayUnion,
+  runTransaction,
 } from 'firebase/firestore';
 import {
   addNotifToDb, fetchUnreadCountFromDb,
@@ -174,8 +175,7 @@ export function AppProvider({ children }) {
     let newRefCount   = 0;
     let milestoneBonus = 0;
 
-    const { runTransaction: rt } = await import('firebase/firestore');
-    await rt(db, async (txn) => {
+    await runTransaction(db, async (txn) => {
       const referrerSnap = await txn.get(referrerRef);
       if (!referrerSnap.exists()) throw new Error('REFERRER_NOT_FOUND');
 
@@ -233,7 +233,6 @@ export function AppProvider({ children }) {
   const deductCoins = async (amount) => {
     if (!userIdRef.current) return false;
     try {
-      const { runTransaction } = await import('firebase/firestore');
       const userRef = doc(db, 'users', String(userIdRef.current));
       let actualDeducted = 0;
       let success        = false;
