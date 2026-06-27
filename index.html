@@ -23,34 +23,14 @@
     <!-- ══ HILLTOPADS VERIFICATION ══ -->
     <meta name="f0eb1f4314a8fbaf73267970da5198157a87ec48" content="f0eb1f4314a8fbaf73267970da5198157a87ec48" />
 
-    <!-- ══ CACHE BUSTING — Telegram WebView bfcache bypass ══ -->
+    <!-- ══ NO CACHE — index.html hamesha fresh load hoga ══ -->
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
 
     <title>Sabka Masti Bazaar</title>
 
-    <!-- ══ Telegram WebView cache bust ══ -->
-    <!-- Telegram apna cache rakhta hai — har fresh open pe naya URL load karo -->
-    <script>
-      (function () {
-        // sessionStorage tab saaf hoti hai jab window band ho — isliye yeh safe flag hai
-        // Agar flag nahi hai matlab fresh open hai (Telegram ka cached version)
-        // Tab redirect karo fresh timestamp URL pe taaki Telegram bypass kare cache
-        if (!sessionStorage.getItem('_smb_fresh')) {
-          sessionStorage.setItem('_smb_fresh', '1');
-          // Sirf redirect karo agar already timestamp URL nahi hai
-          if (!window.location.search.includes('_t=')) {
-            var freshUrl = window.location.origin
-              + window.location.pathname
-              + '?_t=' + Date.now();
-            window.location.replace(freshUrl);
-          }
-        }
-      })();
-    </script>
-
-    <!-- Telegram Mini App SDK -->
+    <!-- Telegram Mini App SDK — SABSE PEHLE LOAD HONA CHAHIYE -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
     <!-- ══ MONETAG TELEGRAM MINI APP SDK ══ -->
