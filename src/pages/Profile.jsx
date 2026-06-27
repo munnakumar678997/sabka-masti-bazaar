@@ -11,7 +11,7 @@ function getTodayKey() {
 
 export default function Profile() {
   const navigate = useNavigate();
-  const { user, balance, streak, tasksCompleted, referrals, updateUserName, CHECKIN_BACKUP_KEY } = useApp();
+  const { user, balance, streak, referrals, updateUserName, CHECKIN_BACKUP_KEY } = useApp();
 
   const [showEdit,    setShowEdit]    = useState(false);
   const [editName,    setEditName]    = useState('');
@@ -22,7 +22,6 @@ export default function Profile() {
   const toastTimerRef = useRef(null);
   useEffect(() => () => { if (toastTimerRef.current) clearTimeout(toastTimerRef.current); }, []);
 
-  /* ── Profile display ── */
   const displayName  = user?.name?.trim() || user?.username || 'User';
   const avatarLetter = displayName.charAt(0).toUpperCase();
   const photoUrl     = (!avatarError && user?.photo_url) || null;
@@ -92,7 +91,6 @@ export default function Profile() {
         {/* ── STATS ROW ── */}
         <div className="profile-stats-row">
           {[
-            { icon: '🏆', val: tasksCompleted,          lbl: 'Tasks'     },
             { icon: '🔥', val: streak,                  lbl: 'Streak'    },
             { icon: '👥', val: referrals,               lbl: 'Referrals' },
             { icon: '📅', val: user?.total_checkins||0, lbl: 'Check-ins' },

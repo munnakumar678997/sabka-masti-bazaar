@@ -7,7 +7,7 @@ import '../styles/home.css';
 
 export default function Home() {
   const navigate = useNavigate();
-  const { user, balance, streak, tasksCompleted, referrals,
+  const { user, balance, streak, referrals,
           notifUnreadCount } = useApp();
 
   const [showWithdraw, setShowWithdraw] = useState(false);
@@ -79,11 +79,6 @@ export default function Home() {
         {/* ── QUICK STATS ── */}
         <div className="quick-stats">
           <div className="stat-box">
-            <div className="stat-icon">🏆</div>
-            <div className="stat-val">{tasksCompleted}</div>
-            <div className="stat-lbl">Tasks Done</div>
-          </div>
-          <div className="stat-box">
             <div className="stat-icon">🔥</div>
             <div className="stat-val">{streak}</div>
             <div className="stat-lbl">Day Streak</div>
@@ -92,6 +87,11 @@ export default function Home() {
             <div className="stat-icon">👥</div>
             <div className="stat-val">{referrals}</div>
             <div className="stat-lbl">Referrals</div>
+          </div>
+          <div className="stat-box">
+            <div className="stat-icon">📅</div>
+            <div className="stat-val">{user?.total_checkins || 0}</div>
+            <div className="stat-lbl">Check-ins</div>
           </div>
         </div>
 
@@ -115,7 +115,7 @@ export default function Home() {
             </div>
             {balance >= 500
               ? <button className="popup-main-btn" onClick={() => { setShowWithdraw(false); navigate('/wallet'); }}>🏦 Wallet Pe Jao</button>
-              : <div className="popup-low">Abhi balance kam hai — aur tasks karo!</div>
+              : <div className="popup-low">Abhi balance kam hai — Daily Check-in karo aur kamao!</div>
             }
             <button className="popup-cancel" onClick={() => setShowWithdraw(false)}>
               Band karo
