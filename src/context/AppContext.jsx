@@ -217,14 +217,36 @@ export function AppProvider({ children }) {
 
   const spinWheelClaim = async (coins) => {
     if (!userIdRef.current) return;
-    const hourKey      = Math.floor(Date.now() / 3600000);
-    const prevKey      = user?.spin_hour_key;
-    const prevCount    = (prevKey === hourKey) ? (user?.spin_hour_count ?? 0) : 0;
-    const newCount     = prevCount + 1;
-    await addCoins(coins, {
+    const hourKey = Math.floor(Date.now() / 3600000);
+    const userRef = doc(db, 'users', String(userIdRef.current));
+    let newCount  = 1;
+
+    // Firestore transaction — stale state se nahi, DB se read karo
+    await runTransaction(db, async (txn) => {
+      const snap = await txn.get(userRef);
+      if (!snap.exists()) throw new Error('user not found');
+      const data    = snap.data();
+      const prev    = (data.spin_hour_key === hourKey) ? (data.spin_hour_count ?? 0) : 0;
+      newCount      = prev + 1;
+      txn.update(userRef, {
+        balance:            increment(coins),
+        total_coins_earned: increment(coins),
+        spin_hour_key:      hourKey,
+        spin_hour_count:    newCount,
+      });
+    });
+
+    // Local state sync
+    const newBalance   = balanceRef.current + coins;
+    balanceRef.current = newBalance;
+    setBalance(newBalance);
+    setUser(prev => prev ? {
+      ...prev,
+      balance:         newBalance,
       spin_hour_key:   hourKey,
       spin_hour_count: newCount,
-    });
+    } : prev);
+
     _addNotification(userIdRef.current, {
       title: '🎰 Spin Wheel Jeeto!',
       desc:  `Badhai ho! +${coins} coins tumhare wallet mein add ho gaye! 🎉`,

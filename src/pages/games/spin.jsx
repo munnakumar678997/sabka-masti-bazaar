@@ -113,6 +113,31 @@ export default function SpinGame() {
   const spinsLeft = Math.max(0, MAX_SPINS - spinCount);
   const canSpin   = !spinning && spinsLeft > 0 && !!user;
 
+  // Audio pre-warm — component mount pe pehle touch/click pe hi ready karo
+  useEffect(() => {
+    let primed = false;
+    const prime = async () => {
+      if (primed) return;
+      primed = true;
+      try {
+        const ac = getAudioCtx();
+        if (ac.state !== 'running') await ac.resume();
+        // Silent 1-frame buffer — hardware activate karne ke liye
+        const buf  = ac.createBuffer(1, 1, ac.sampleRate);
+        const src  = ac.createBufferSource();
+        src.buffer = buf;
+        src.connect(ac.destination);
+        src.start(0);
+      } catch (_) {}
+    };
+    document.addEventListener('touchstart', prime, { capture: true, once: true });
+    document.addEventListener('mousedown',  prime, { capture: true, once: true });
+    return () => {
+      document.removeEventListener('touchstart', prime, true);
+      document.removeEventListener('mousedown',  prime, true);
+    };
+  }, []);
+
   // Live countdown when spins exhausted
   useEffect(() => {
     if (spinsLeft > 0) return;
