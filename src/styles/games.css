@@ -3,7 +3,8 @@
 /* 😊 Main page wrapper — dark background, full height 😊 */
 .gs-page {
   width: 100%;
-  min-height: 100dvh;
+  height: 100dvh;
+  max-height: 100dvh;
   background: linear-gradient(160deg, #08081a 0%, #0d0d22 50%, #060610 100%);
   display: flex;
   flex-direction: column;
