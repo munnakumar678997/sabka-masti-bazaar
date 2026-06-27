@@ -113,6 +113,8 @@ export function AppProvider({ children }) {
           total_coins_earned: WELCOME_BONUS,
           total_coins_spent:  0,
           last_spin_date:     null,
+          spin_hour_key:      null,
+          spin_hour_count:    0,
           schema_version:     SCHEMA_VERSION,
         };
         await setDoc(userRef, newUser);
@@ -215,11 +217,17 @@ export function AppProvider({ children }) {
 
   const spinWheelClaim = async (coins) => {
     if (!userIdRef.current) return;
-    const todayIST = getISTDateStr();
-    await addCoins(coins, { last_spin_date: todayIST });
+    const hourKey      = Math.floor(Date.now() / 3600000);
+    const prevKey      = user?.spin_hour_key;
+    const prevCount    = (prevKey === hourKey) ? (user?.spin_hour_count ?? 0) : 0;
+    const newCount     = prevCount + 1;
+    await addCoins(coins, {
+      spin_hour_key:   hourKey,
+      spin_hour_count: newCount,
+    });
     _addNotification(userIdRef.current, {
       title: '🎰 Spin Wheel Jeeto!',
-      desc:  `Badhai ho! +${coins} coins tumhare wallet mein add ho gaye! Kal phir aana. 🎉`,
+      desc:  `Badhai ho! +${coins} coins tumhare wallet mein add ho gaye! 🎉`,
       icon:  '🎰',
       type:  'games',
     });
