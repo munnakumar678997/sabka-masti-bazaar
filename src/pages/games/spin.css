@@ -84,69 +84,29 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
-  padding: 4px 20px 8px;
+  padding: 2px 20px 8px;
   position: relative;
   z-index: 1;
   flex-shrink: 0;
-}
-
-.sw-spins-badge {
-  display: flex;
-  align-items: baseline;
-  gap: 3px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 30px;
-  padding: 6px 16px;
-}
-
-.sw-spins-used {
-  font-size: 18px;
-  font-weight: 900;
-  color: #ff6a00;
-  line-height: 1;
-}
-
-.sw-spins-slash {
-  font-size: 16px;
-  font-weight: 700;
-  color: rgba(255, 255, 255, 0.35);
-  line-height: 1;
-}
-
-.sw-spins-total {
-  font-size: 18px;
-  font-weight: 900;
-  color: rgba(255, 255, 255, 0.7);
-  line-height: 1;
-}
-
-.sw-spins-label {
-  font-size: 11px;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.38);
-  margin-left: 4px;
-  align-self: center;
 }
 
 /* Dot indicators */
 .sw-dots {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
 }
 
 .sw-dot {
-  width: 10px;
-  height: 10px;
+  width: 11px;
+  height: 11px;
   border-radius: 50%;
-  transition: background 0.3s;
+  transition: background 0.3s, box-shadow 0.3s;
 }
 
 .sw-dot-used {
   background: #ff6a00;
-  box-shadow: 0 0 6px rgba(255, 106, 0, 0.6);
+  box-shadow: 0 0 8px rgba(255, 106, 0, 0.7);
 }
 
 .sw-dot-free {
@@ -313,43 +273,6 @@
 .sw-reward-chip span:first-child {
   font-size: 18px;
   line-height: 1;
-}
-
-/* ── HOW TO PLAY CARD ─────────────────────────── */
-
-.sw-how-card {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  border-radius: 18px;
-  padding: 12px 16px;
-}
-
-.sw-how-title {
-  font-size: 12px;
-  font-weight: 800;
-  color: rgba(255, 255, 255, 0.5);
-  margin-bottom: 10px;
-  letter-spacing: 0.3px;
-}
-
-.sw-how-rows {
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
-}
-
-.sw-how-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.45);
-  font-weight: 600;
-}
-
-.sw-how-row span:first-child {
-  font-size: 14px;
-  flex-shrink: 0;
 }
 
 /* ── RESULT OVERLAY ───────────────────────────── */

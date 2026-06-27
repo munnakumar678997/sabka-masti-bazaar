@@ -252,16 +252,8 @@ export default function SpinGame() {
         </div>
       </div>
 
-      {/* ── Spins counter bar ── */}
+      {/* ── Spins dot indicators ── */}
       <div className="sw-spins-row">
-        <div className="sw-spins-badge">
-          <span className="sw-spins-used">{spinsDone}</span>
-          <span className="sw-spins-slash">/</span>
-          <span className="sw-spins-total">{MAX_SPINS}</span>
-          <span className="sw-spins-label">used this hour</span>
-        </div>
-
-        {/* Dot indicators */}
         <div className="sw-dots">
           {Array.from({ length: MAX_SPINS }).map((_, i) => (
             <div
@@ -319,15 +311,6 @@ export default function SpinGame() {
           </div>
         )}
 
-        {/* How to play */}
-        <div className="sw-how-card">
-          <div className="sw-how-title">📖 Kaise khelein?</div>
-          <div className="sw-how-rows">
-            <div className="sw-how-row"><span>1️⃣</span><span>Wheel ke beech TAP karo</span></div>
-            <div className="sw-how-row"><span>2️⃣</span><span>Wheel ghoomegi aur coin milega</span></div>
-            <div className="sw-how-row"><span>3️⃣</span><span>Har ghante mein 3 baar khel sakte ho</span></div>
-          </div>
-        </div>
       </div>
 
       {/* ── Result overlay ── */}
