@@ -132,9 +132,12 @@ export default function Login() {
   const referredBy   = location.state?.referredBy  || null;
   // mode: 'new' | 'need_mobile'
 
-  const [isMiniApp,  setIsMiniApp]  = useState(false);
-  const [tgUser,     setTgUser]     = useState(passedTgData);
-  const [btnLoading, setBtnLoading] = useState(false);
+  const [isMiniApp,    setIsMiniApp]    = useState(false);
+  const [tgUser,       setTgUser]       = useState(passedTgData);
+  const [btnLoading,   setBtnLoading]   = useState(false);
+  const [contactState, setContactState] = useState('idle');
+  // contactState: 'idle' | 'waiting' | 'saving' | 'cancelled' | 'error'
+  const contactTimeoutRef = useRef(null);
 
   useEffect(() => {
     const tg = window.Telegram?.WebApp;
@@ -203,15 +206,31 @@ export default function Login() {
   }, []);
 
   // ── Mini App: button → phone maango ──
-  // Dono cases (new + need_mobile) mein same flow
   const handleMiniAppBtn = () => {
     const tg = window.Telegram?.WebApp;
     if (!tg || btnLoading || !tgUser) return;
     setBtnLoading(true);
+    setContactState('waiting');
 
-    // Handler ko named function banao taaki remove kar sakein (listener leak fix)
+    // Cleanup helper
+    const cleanup = (handler) => {
+      tg.offEvent('contactRequested', handler);
+      if (contactTimeoutRef.current) {
+        clearTimeout(contactTimeoutRef.current);
+        contactTimeoutRef.current = null;
+      }
+    };
+
     const onContact = async (eventData) => {
-      tg.offEvent('contactRequested', onContact); // sirf ek baar fire ho
+      cleanup(onContact);
+
+      // User ne cancel kiya ya number share nahi kiya
+      const status = eventData?.status || '';
+      if (status === 'cancelled' || status === 'declined') {
+        setContactState('cancelled');
+        setBtnLoading(false);
+        return;
+      }
 
       let phone = null;
       try {
@@ -223,19 +242,49 @@ export default function Login() {
         }
       } catch (_) {}
 
+      setContactState('saving');
       try {
-        // Naya ho ya purana — dono ke liye loadUser (mobile + referral save hoga)
         await loadUser(tgUser, phone, referredBy);
         sessionStorage.setItem('smb_session', '1');
         navigate('/home');
       } catch (err) {
         console.error('loadUser error in miniapp:', err);
-        setBtnLoading(false); // Button phir se enable karo — dobara try kar sake user
+        setContactState('error');
+        setBtnLoading(false);
       }
     };
 
+    // 30 second timeout — agar Telegram response nahi deta
+    contactTimeoutRef.current = setTimeout(() => {
+      cleanup(onContact);
+      setContactState('cancelled');
+      setBtnLoading(false);
+    }, 30000);
+
     tg.onEvent('contactRequested', onContact);
     tg.requestContact();
+  };
+
+  // ── Phone skip karo — bina number ke bhi account ban sakta hai ──
+  const handleSkipPhone = async () => {
+    if (btnLoading || !tgUser) return;
+    setBtnLoading(true);
+    setContactState('saving');
+    try {
+      await loadUser(tgUser, null, referredBy);
+      sessionStorage.setItem('smb_session', '1');
+      navigate('/home');
+    } catch (err) {
+      console.error('loadUser error (skip):', err);
+      setContactState('error');
+      setBtnLoading(false);
+    }
+  };
+
+  // ── Retry karo — cancel ke baad dobara try ──
+  const handleRetry = () => {
+    setContactState('idle');
+    setBtnLoading(false);
   };
 
   // ── Web: Account banao ──
@@ -255,7 +304,7 @@ export default function Login() {
 
   // ── Button text — mode ke hisab se ──
   const btnText = mode === 'need_mobile'
-    ? '📱 Mobile Number Dao & Jao'
+    ? '📱 Mobile Number Share Karo'
     : '🚀 Account Banao & Shuru Karo';
 
   return (
@@ -331,23 +380,84 @@ export default function Login() {
       <div style={S.bottomSection}>
         {tgUser && (
           <>
-            {btnLoading ? (
-              <div style={S.savingText}>⏳ Account save ho raha hai...</div>
-            ) : (
-              <button
-                style={S.createBtn}
-                onClick={isMiniApp ? handleMiniAppBtn : handleWebBtn}
-              >
-                {btnText}
-              </button>
+            {/* ── State: waiting — Telegram popup khula hai ── */}
+            {contactState === 'waiting' && (
+              <div style={S.savingText}>
+                📲 Telegram mein "Allow" dabao...
+              </div>
             )}
-            <div style={S.termsText}>
-              {mode === 'need_mobile'
-                ? '📱 Mobile number share karo — yeh sirf ek baar puchha jaayega!'
-                : isMiniApp
-                  ? 'Apna Telegram number share karke account banao — 100% free!'
-                  : 'Telegram verified — tumhara account ready hai! 🎉'}
-            </div>
+
+            {/* ── State: saving — account ban raha hai ── */}
+            {contactState === 'saving' && (
+              <div style={S.savingText}>
+                ⏳ Account save ho raha hai...
+              </div>
+            )}
+
+            {/* ── State: cancelled — user ne cancel kiya ya timeout ── */}
+            {contactState === 'cancelled' && (
+              <div style={{
+                width: '100%',
+                background: 'rgba(255,100,0,0.08)',
+                border: '1px solid rgba(255,100,0,0.25)',
+                borderRadius: 16, padding: '14px 16px',
+                display: 'flex', flexDirection: 'column', gap: 10,
+              }}>
+                <div style={{ fontSize: 13, color: '#ffaa55', textAlign: 'center', lineHeight: 1.5 }}>
+                  ⚠️ Number share nahi hua. Fir try karo ya bina number ke chalao.
+                </div>
+                <button style={{ ...S.createBtn, background: 'linear-gradient(135deg,#0088cc,#005fa3)', boxShadow: '0 6px 20px rgba(0,136,204,0.35)' }}
+                  onClick={handleRetry}>
+                  🔄 Dobara Try Karo
+                </button>
+                <button style={{
+                  width: '100%', padding: '14px',
+                  background: 'rgba(255,255,255,0.07)',
+                  color: 'rgba(255,255,255,0.65)', border: '1px solid rgba(255,255,255,0.12)',
+                  borderRadius: 14, fontSize: 14, fontWeight: 700, cursor: 'pointer',
+                }}
+                  onClick={handleSkipPhone}>
+                  ⏩ Skip Karo — Bina Number Ke Chalo
+                </button>
+              </div>
+            )}
+
+            {/* ── State: error — network ya Firestore error ── */}
+            {contactState === 'error' && (
+              <div style={{
+                width: '100%',
+                background: 'rgba(255,50,50,0.08)',
+                border: '1px solid rgba(255,80,80,0.25)',
+                borderRadius: 16, padding: '14px 16px',
+                display: 'flex', flexDirection: 'column', gap: 10,
+              }}>
+                <div style={{ fontSize: 13, color: '#ff7070', textAlign: 'center', lineHeight: 1.5 }}>
+                  ❌ Kuch galat ho gaya. Internet check karo aur fir try karo.
+                </div>
+                <button style={S.createBtn} onClick={handleRetry}>
+                  🔄 Fir Se Try Karo
+                </button>
+              </div>
+            )}
+
+            {/* ── State: idle — normal button ── */}
+            {contactState === 'idle' && (
+              <>
+                <button
+                  style={S.createBtn}
+                  onClick={isMiniApp ? handleMiniAppBtn : handleWebBtn}
+                >
+                  {btnText}
+                </button>
+                <div style={S.termsText}>
+                  {mode === 'need_mobile'
+                    ? '📱 Mobile number share karo — withdrawal ke liye zaruri hai'
+                    : isMiniApp
+                      ? 'Apna Telegram number share karke account banao — 100% free!'
+                      : 'Telegram verified — tumhara account ready hai! 🎉'}
+                </div>
+              </>
+            )}
           </>
         )}
 
