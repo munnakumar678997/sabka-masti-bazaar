@@ -255,6 +255,44 @@ export function AppProvider({ children }) {
     });
   };
 
+  const scratchClaim = async (coins) => {
+    if (!userIdRef.current) return;
+    const hourKey = Math.floor(Date.now() / 3600000);
+    const userRef = doc(db, 'users', String(userIdRef.current));
+    let newCount  = 1;
+
+    await runTransaction(db, async (txn) => {
+      const snap = await txn.get(userRef);
+      if (!snap.exists()) throw new Error('user not found');
+      const data = snap.data();
+      const prev = (data.scratch_hour_key === hourKey) ? (data.scratch_hour_count ?? 0) : 0;
+      newCount   = prev + 1;
+      txn.update(userRef, {
+        balance:              increment(coins),
+        total_coins_earned:   increment(coins),
+        scratch_hour_key:     hourKey,
+        scratch_hour_count:   newCount,
+      });
+    });
+
+    const newBalance   = balanceRef.current + coins;
+    balanceRef.current = newBalance;
+    setBalance(newBalance);
+    setUser(prev => prev ? {
+      ...prev,
+      balance:            newBalance,
+      scratch_hour_key:   hourKey,
+      scratch_hour_count: newCount,
+    } : prev);
+
+    _addNotification(userIdRef.current, {
+      title: '🎁 Scratch Card Jeeto!',
+      desc:  `Badhai ho! +${coins} coins tumhare wallet mein add ho gaye! 🎉`,
+      icon:  '🎁',
+      type:  'games',
+    });
+  };
+
   const deductCoins = async (amount) => {
     if (!userIdRef.current) return false;
     try {
@@ -410,6 +448,7 @@ export function AppProvider({ children }) {
       saveOrder, saveWithdrawal, fetchWithdrawals,
       redeemedCodes, redeemBonusCode,
       spinWheelClaim,
+      scratchClaim,
       notifUnreadCount, fetchNotifications, markNotifRead, markAllNotifsRead,
       CHECKIN_BACKUP_KEY,
       bonusHistory,

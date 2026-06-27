@@ -26,14 +26,14 @@ const GAMES = [
     id: 'scratch',
     emoji: '🎁',
     name: 'Scratch Card',
-    rewardText: 'Coming Soon',
+    rewardText: 'Up to 50',
     rewardColor: '#22c55e',
     borderColor: '#22c55e',
     glowColor: 'rgba(34,197,94,0.15)',
     btnGradient: 'linear-gradient(135deg, #16a34a, #22c55e)',
     btnShadow: 'rgba(34,197,94,0.4)',
-    path: null,
-    live: false,
+    path: '/games/scratch',
+    live: true,
   },
 ];
 
@@ -47,9 +47,11 @@ export default function GamesHub() {
     return () => clearTimeout(t);
   }, []);
 
-  const hourKey   = getHourKey();
-  const spinCount = (user?.spin_hour_key === hourKey) ? (user?.spin_hour_count ?? 0) : 0;
-  const spinsLeft = Math.max(0, 3 - spinCount);
+  const hourKey      = getHourKey();
+  const spinCount    = (user?.spin_hour_key    === hourKey) ? (user?.spin_hour_count    ?? 0) : 0;
+  const scratchCount = (user?.scratch_hour_key === hourKey) ? (user?.scratch_hour_count ?? 0) : 0;
+  const spinsLeft    = Math.max(0, 3 - spinCount);
+  const scratchLeft  = Math.max(0, 3 - scratchCount);
 
   const handlePlay = (game) => {
     if (game.live && game.path) navigate(game.path);
@@ -105,10 +107,17 @@ export default function GamesHub() {
 
               <div className="gh-divider" />
 
-              {isSpinLive && (
+              {game.id === 'spin' && (
                 <div className="gh-plays">
                   {spinsLeft > 0
                     ? `${spinsLeft} spin${spinsLeft > 1 ? 's' : ''} left this hour`
+                    : 'Next reset: next hour'}
+                </div>
+              )}
+              {game.id === 'scratch' && (
+                <div className="gh-plays">
+                  {scratchLeft > 0
+                    ? `${scratchLeft} card${scratchLeft > 1 ? 's' : ''} left this hour`
                     : 'Next reset: next hour'}
                 </div>
               )}

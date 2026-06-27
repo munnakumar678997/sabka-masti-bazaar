@@ -7,8 +7,9 @@ import Home     from './pages/Home';
 import Store    from './pages/store/index';
 import Wallet   from './pages/Wallet';
 import Profile  from './pages/Profile';
-import Games    from './pages/games/index';
-import SpinGame from './pages/games/spin';
+import Games       from './pages/games/index';
+import SpinGame    from './pages/games/spin';
+import ScratchGame from './pages/games/scratch';
 import Referral from './pages/Referral';
 import FAQ       from './pages/FAQ';
 import BonusCode     from './pages/BonusCode';
@@ -83,7 +84,8 @@ export default function App() {
               <Route path="/wallet"   element={<Wallet   />} />
               <Route path="/profile"  element={<Profile  />} />
               <Route path="/games"      element={<Games    />} />
-              <Route path="/games/spin" element={<SpinGame />} />
+              <Route path="/games/spin"     element={<SpinGame    />} />
+              <Route path="/games/scratch" element={<ScratchGame />} />
               <Route path="/referral" element={<Referral />} />
               <Route path="/faq"        element={<FAQ       />} />
               <Route path="/bonus-code"     element={<BonusCode />} />
