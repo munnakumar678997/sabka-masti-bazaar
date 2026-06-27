@@ -10,7 +10,8 @@ export default function Loading() {
   const { loadUser } = useApp();
 
   useEffect(() => {
-    sessionStorage.removeItem('smb_session');
+    // sessionStorage hard reload pe automatically clear hoti hai — manually remove mat karo
+    // warna React navigation pe bhi session delete ho jaata hai
 
     let navigated = false;
 
@@ -31,6 +32,21 @@ export default function Loading() {
 
     const minTimer = new Promise(res => setTimeout(res, 2500));
 
+    // Telegram initDataUnsafe?.user kabhi kabhi null aata hai (timing issue)
+    // Isliye retry karte hain 3 baar — 300ms interval
+    const getTgUser = () => new Promise((resolve) => {
+      const tg = window.Telegram?.WebApp;
+      if (!tg || !tg.initData || tg.initData.length === 0) { resolve(null); return; }
+      let attempts = 0;
+      const check = () => {
+        const u = tg.initDataUnsafe?.user;
+        if (u || attempts >= 3) { resolve(u || null); return; }
+        attempts++;
+        setTimeout(check, 300);
+      };
+      check();
+    });
+
     const checkUser = async () => {
       const tg = window.Telegram?.WebApp;
 
@@ -40,11 +56,12 @@ export default function Loading() {
         tg.expand();
         tg.setHeaderColor('#1a1a2e');
         tg.setBackgroundColor('#1a1a2e');
-        const user = tg.initDataUnsafe?.user;
 
-        // Referral code capture — start_param mein hota hai (e.g. "SMB12345")
-        const startParam  = tg.initDataUnsafe?.start_param || null;
-        const referredBy  = startParam && /^SMB\d+$/i.test(startParam) ? startParam : null;
+        const startParam = tg.initDataUnsafe?.start_param || null;
+        const referredBy = startParam && /^SMB\d+$/i.test(startParam) ? startParam : null;
+
+        // Retry se user lo — timing issue fix
+        const user = await getTgUser();
 
         if (user) {
           const tgData = {
@@ -66,7 +83,7 @@ export default function Loading() {
         }
       }
 
-      // ── WEB: localStorage check ──
+      // ── Fallback: localStorage check (Mini App + Web dono ke liye) ──
       const savedId = localStorage.getItem('smb_tg_id');
       if (savedId) {
         const userSnap = await getDoc(doc(db, 'users', savedId));

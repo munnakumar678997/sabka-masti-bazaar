@@ -63,6 +63,9 @@ export function AppProvider({ children }) {
         userIdRef.current  = updated.id;
         balanceRef.current = updated.balance || 0;
 
+        // Mini App + Web dono ke liye save karo — reload pe fallback kaam kare
+        try { localStorage.setItem('smb_tg_id', String(tgUser.id)); } catch (_) {}
+
         setUser(updated);
         setBalance(updated.balance       || 0);
         setStreak(updated.streak          || 0);
