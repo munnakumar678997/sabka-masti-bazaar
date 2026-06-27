@@ -28,8 +28,7 @@ function getTimeLeft() {
 }
 
 export default function Games() {
-  const [time,    setTime]    = useState(getTimeLeft);
-  const [visible, setVisible] = useState(false);
+  const [time, setTime] = useState(getTimeLeft);
 
   // 😊 Countdown timer — har second update 😊
   useEffect(() => {
@@ -37,14 +36,8 @@ export default function Games() {
     return () => clearInterval(id);
   }, []);
 
-  // 😊 Fade-in animation — page load hone par 😊
-  useEffect(() => {
-    const t = setTimeout(() => setVisible(true), 80);
-    return () => clearTimeout(t);
-  }, []);
-
   return (
-    <div className={`gs-page ${visible ? 'gs-visible' : ''}`}>
+    <div className="gs-page">
 
       {/* 😊 Background glow circles — decoration 😊 */}
       <div className="gs-glow gs-glow1" />
