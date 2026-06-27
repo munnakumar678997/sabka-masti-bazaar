@@ -115,11 +115,14 @@ export default function Loading() {
       <div className="bg-circle bg-circle-1" />
       <div className="bg-circle bg-circle-2" />
       <div className="bg-circle bg-circle-3" />
+      <div className="bg-circle bg-circle-4" />
 
       <span className="coin coin-1">🪙</span>
       <span className="coin coin-2">💰</span>
       <span className="coin coin-3">💸</span>
       <span className="coin coin-4">🪙</span>
+      <span className="coin coin-5">🎯</span>
+      <span className="coin coin-6">🎪</span>
 
       <div className="logo-area">
         <div className="logo-box">🎪</div>
@@ -131,7 +134,12 @@ export default function Loading() {
         <div className="bar-track">
           <div className="bar-fill" />
         </div>
-        <span className="loader-text">Loading...</span>
+        <span className="loader-text">
+          Loading
+          <i className="loader-dot">.</i>
+          <i className="loader-dot">.</i>
+          <i className="loader-dot">.</i>
+        </span>
       </div>
 
       <p className="bottom-tag">🇮🇳 Desh ka sabse mast earning app</p>
