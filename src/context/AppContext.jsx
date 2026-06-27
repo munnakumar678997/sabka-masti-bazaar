@@ -15,18 +15,13 @@ const AppContext          = createContext(null);
 const CHECKIN_BACKUP_KEY = 'smb_checkin_ist';
 const SESSION_KEY        = 'smb_session';
 
-// ─── IST date helper ────────────────────────────────────────────────────────
+// 😊 IST date helper — India Standard Time mein date lo 😊
 function getISTDateStr() {
   const istMs = Date.now() + 5.5 * 60 * 60 * 1000;
   return new Date(istMs).toISOString().split('T')[0];
 }
 
-// ─── localStorage game play helpers ─────────────────────────────────────────
-function lsGameKey(type, date) { return `smb_game_${type}_${date}`; }
-function lsGetUsed(type)       { return parseInt(localStorage.getItem(lsGameKey(type, getISTDateStr())) || '0'); }
-function lsSetUsed(type, val)  { localStorage.setItem(lsGameKey(type, getISTDateStr()), String(val)); }
-
-// ─── localStorage task helpers ───────────────────────────────────────────────
+// 😊 localStorage task helpers — task done track karne ke liye 😊
 function lsTaskKey(id, date) { return `smb_task_${id}_${date}`; }
 function lsGetTaskDone(id)   { return localStorage.getItem(lsTaskKey(id, getISTDateStr())) === '1'; }
 function lsMarkTaskDone(id)  { localStorage.setItem(lsTaskKey(id, getISTDateStr()), '1'); }
@@ -46,7 +41,7 @@ export function AppProvider({ children }) {
   const balanceRef = useRef(0);
   const tasksRef   = useRef(0);
 
-  // ─── Notification helper — DB write + local badge update ─────────────────
+  // 😊 Notification helper — DB write + local badge update 😊
   const _addNotification = async (userId, data) => {
     try {
       await addNotifToDb(userId, data);
@@ -56,23 +51,7 @@ export function AppProvider({ children }) {
     } catch (e) { console.error('_addNotification err:', e); }
   };
 
-  // ─── Firebase se game counts sync karo localStorage mein ─────────────────
-  const _syncGameCountsFromFirestore = (userData) => {
-    const today          = getISTDateStr();
-    const savedDate      = userData.game_date || null;
-    const GAME_TYPES     = ['flip', 'spin', 'scratch'];
-    if (savedDate === today) {
-      GAME_TYPES.forEach(type => {
-        const count = userData[`game_${type}_count`] || 0;
-        lsSetUsed(type, count);
-      });
-    } else {
-      // Naya din — local counts zero karo
-      GAME_TYPES.forEach(type => lsSetUsed(type, 0));
-    }
-  };
-
-  // ─── Firebase se task done sync karo localStorage mein ───────────────────
+  // 😊 Firebase se task done sync karo localStorage mein 😊
   const _syncTasksFromFirestore = (userData) => {
     const today     = getISTDateStr();
     const savedDate = userData.task_date || null;
@@ -82,7 +61,7 @@ export function AppProvider({ children }) {
     }
   };
 
-  // ─── loadUser ─────────────────────────────────────────────────────────────
+  // 😊 loadUser — Firebase se user data load karo 😊
   const loadUser = async (tgUser, mobile = null, referredBy = null) => {
     setLoading(true);
     try {
@@ -111,11 +90,10 @@ export function AppProvider({ children }) {
         setReferrals(updated.referral_count || 0);
         setRedeemedCodes(updated.redeemed_codes || []);
 
-        // Firebase se game counts aur tasks localStorage mein sync karo (anti-cheat)
-        _syncGameCountsFromFirestore(updated);
+        // 😊 Firebase se tasks localStorage mein sync karo (anti-cheat) 😊
         _syncTasksFromFirestore(updated);
 
-        // Bonus history Firebase se load karo — cross-device visible hoga
+        // 😊 Bonus history Firebase se load karo — cross-device visible hoga 😊
         const history = updated.bonus_history || [];
         const sorted  = [...history].sort((a, b) => (b.date || '').localeCompare(a.date || '')).slice(0, 10);
         setBonusHistory(sorted);
@@ -132,7 +110,7 @@ export function AppProvider({ children }) {
         }
 
       } else {
-        // ── Naya user ──
+        // 😊 Naya user — welcome bonus ke saath create karo 😊
         const WELCOME_BONUS = 50;
         const newUser = {
           id:                String(tgUser.id),
@@ -148,12 +126,7 @@ export function AppProvider({ children }) {
           referral_count:    0,
           redeemed_codes:    [],
           referred_by:       referredBy       ?? null,
-          // Game tracking fields
-          game_date:         null,
-          game_flip_count:   0,
-          game_spin_count:   0,
-          game_scratch_count: 0,
-          // Task tracking fields
+          // 😊 Task tracking fields — anti-cheat ke liye 😊
           task_date:         null,
           completed_tasks:   [],
         };
@@ -174,7 +147,7 @@ export function AppProvider({ children }) {
 
         _addNotification(newUser.id, {
           title: '🎉 Sabka Masti Bazaar mein Swagat!',
-          desc:  '+50 welcome coins tumhare wallet mein aa gaye! Games khelo, tasks karo aur aur kamao!',
+          desc:  '+50 welcome coins tumhare wallet mein aa gaye! Tasks karo aur aur kamao!',
           icon:  '🎉',
           type:  'welcome',
         });
@@ -190,7 +163,7 @@ export function AppProvider({ children }) {
     }
   };
 
-  // ─── Referral logic — runTransaction se race-condition safe ──────────────
+  // 😊 Referral logic — runTransaction se race-condition safe 😊
   const _handleReferral = async (referredBy, tgUser) => {
     const referrerId = String(referredBy).replace(/^SMB/i, '');
     if (!referrerId || referrerId === String(tgUser.id)) return;
@@ -236,14 +209,14 @@ export function AppProvider({ children }) {
     }
   };
 
-  // ─── saveMobile ───────────────────────────────────────────────────────────
+  // 😊 saveMobile — phone number save karo 😊
   const saveMobile = async (mobile) => {
     if (!userIdRef.current || !mobile) return;
     await updateDoc(doc(db, 'users', String(userIdRef.current)), { mobile });
     setUser(prev => prev ? { ...prev, mobile } : prev);
   };
 
-  // ─── addCoins — optimistic update + Firestore ─────────────────────────────
+  // 😊 addCoins — optimistic update + Firestore 😊
   const addCoins = async (amount) => {
     const newBalance   = balanceRef.current + amount;
     balanceRef.current = newBalance;
@@ -256,7 +229,7 @@ export function AppProvider({ children }) {
     }
   };
 
-  // ─── deductCoins — transaction (race-condition safe) ─────────────────────
+  // 😊 deductCoins — transaction (race-condition safe) 😊
   const deductCoins = async (amount) => {
     if (!userIdRef.current) return false;
     try {
@@ -288,7 +261,7 @@ export function AppProvider({ children }) {
     }
   };
 
-  // ─── completeTask ─────────────────────────────────────────────────────────
+  // 😊 completeTask — coins add karo aur task count badao 😊
   const completeTask = async (coins) => {
     const newBalance   = balanceRef.current + coins;
     const newTasks     = tasksRef.current   + 1;
@@ -307,7 +280,7 @@ export function AppProvider({ children }) {
     }
   };
 
-  // ─── recordTaskCompletion — Firebase mein task ID save karo (anti-cheat) ──
+  // 😊 recordTaskCompletion — Firebase mein task ID save karo (anti-cheat) 😊
   const recordTaskCompletion = async (taskId) => {
     if (!userIdRef.current) return;
     const today = getISTDateStr();
@@ -327,11 +300,9 @@ export function AppProvider({ children }) {
     } catch (e) { console.error('recordTaskCompletion err:', e); }
   };
 
-  // ─── checkTaskDone — Firebase se verify karo (anti-cheat) ────────────────
+  // 😊 checkTaskDone — Firebase se verify karo (anti-cheat) 😊
   const checkTaskDone = async (taskId) => {
-    // Pehle localStorage se check karo (fast)
     if (lsGetTaskDone(taskId)) return true;
-    // Fir Firebase se confirm karo
     if (!userIdRef.current) return false;
     try {
       const today = getISTDateStr();
@@ -345,50 +316,7 @@ export function AppProvider({ children }) {
     } catch { return lsGetTaskDone(taskId); }
   };
 
-  // ─── recordGamePlay — Firebase mein game play track karo (anti-cheat) ────
-  const recordGamePlay = async (gameType) => {
-    if (!userIdRef.current) return;
-    const today    = getISTDateStr();
-    const newCount = lsGetUsed(gameType) + 1;
-    lsSetUsed(gameType, newCount);
-    try {
-      const userRef = doc(db, 'users', String(userIdRef.current));
-      const snap    = await getDoc(userRef);
-      if (!snap.exists()) return;
-      const data      = snap.data();
-      const savedDate = data.game_date || null;
-
-      if (savedDate !== today) {
-        // Naya din — sab counts reset karke sirf is game ka 1 save karo
-        await updateDoc(userRef, {
-          game_date:          today,
-          game_flip_count:    gameType === 'flip'    ? 1 : 0,
-          game_spin_count:    gameType === 'spin'    ? 1 : 0,
-          game_scratch_count: gameType === 'scratch' ? 1 : 0,
-        });
-      } else {
-        // Aaj ka din — sirf is game ka count increment karo
-        await updateDoc(userRef, {
-          [`game_${gameType}_count`]: increment(1),
-        });
-      }
-    } catch (e) { console.error('recordGamePlay err:', e); }
-  };
-
-  // ─── getFirestoreGameCount — Firebase se game count verify karo ──────────
-  const getFirestoreGameCount = async (gameType) => {
-    if (!userIdRef.current) return lsGetUsed(gameType);
-    try {
-      const today = getISTDateStr();
-      const snap  = await getDoc(doc(db, 'users', String(userIdRef.current)));
-      if (!snap.exists()) return lsGetUsed(gameType);
-      const data = snap.data();
-      if (data.game_date !== today) return 0;
-      return data[`game_${gameType}_count`] || 0;
-    } catch { return lsGetUsed(gameType); }
-  };
-
-  // ─── updateCheckIn ────────────────────────────────────────────────────────
+  // 😊 updateCheckIn — daily check-in streak aur coins update karo 😊
   const updateCheckIn = async (newStreak, totalDays, lastDate, coinsEarned) => {
     const newBalance   = balanceRef.current + coinsEarned;
     balanceRef.current = newBalance;
@@ -411,14 +339,14 @@ export function AppProvider({ children }) {
     }
   };
 
-  // ─── updateUserName ───────────────────────────────────────────────────────
+  // 😊 updateUserName — profile mein naam badlo 😊
   const updateUserName = async (newName) => {
     if (!userIdRef.current || !newName) return;
     await updateDoc(doc(db, 'users', String(userIdRef.current)), { name: newName });
     setUser(prev => prev ? { ...prev, name: newName } : prev);
   };
 
-  // ─── saveOrder — via walletService ───────────────────────────────────────
+  // 😊 saveOrder — via walletService 😊
   const saveOrder = async (orderData) => {
     if (!userIdRef.current) return;
     try {
@@ -432,7 +360,7 @@ export function AppProvider({ children }) {
     } catch (e) { console.error('saveOrder err:', e); }
   };
 
-  // ─── saveWithdrawal — via walletService ──────────────────────────────────
+  // 😊 saveWithdrawal — via walletService 😊
   const saveWithdrawal = async (entry) => {
     if (!userIdRef.current) return;
     await saveWithdrawalToDb({
@@ -443,10 +371,10 @@ export function AppProvider({ children }) {
     });
   };
 
-  // ─── fetchWithdrawals — via walletService ────────────────────────────────
+  // 😊 fetchWithdrawals — via walletService 😊
   const fetchWithdrawals = async () => fetchWithdrawalsFromDb(userIdRef.current);
 
-  // ─── markCodeRedeemed ─────────────────────────────────────────────────────
+  // 😊 markCodeRedeemed — redeemed codes track karo 😊
   const markCodeRedeemed = async (code) => {
     if (!userIdRef.current) return;
     try {
@@ -455,7 +383,7 @@ export function AppProvider({ children }) {
     } catch (e) { console.error('markCodeRedeemed err:', e); }
   };
 
-  // ─── redeemBonusCode — via bonusService ──────────────────────────────────
+  // 😊 redeemBonusCode — via bonusService 😊
   const redeemBonusCode = async (code) => {
     if (!userIdRef.current) throw new Error('NOT_LOGGED_IN');
     const { coinsEarned, codeDesc } = await redeemCodeTransaction(userIdRef.current, code);
@@ -465,7 +393,7 @@ export function AppProvider({ children }) {
     setUser(prev => prev ? { ...prev, balance: newBalance } : prev);
     setRedeemedCodes(prev => [...prev, code]);
 
-    // Bonus history — Firebase mein save karo (cross-device)
+    // 😊 Bonus history — Firebase mein save karo (cross-device) 😊
     const histEntry = {
       code,
       coins: coinsEarned,
@@ -476,7 +404,7 @@ export function AppProvider({ children }) {
     setBonusHistory(prev => [histEntry, ...prev].slice(0, 10));
     saveBonusHistoryToDb(userIdRef.current, histEntry).catch(() => {});
 
-    // Notification bhi bhejo
+    // 😊 Notification bhi bhejo 😊
     _addNotification(userIdRef.current, {
       title: '🎟️ Bonus Code Redeem Hua!',
       desc:  `Code "${code}" se +${coinsEarned} coins mile! (${codeDesc})`,
@@ -487,10 +415,10 @@ export function AppProvider({ children }) {
     return { coins: coinsEarned, desc: codeDesc };
   };
 
-  // ─── fetchNotifications — via notifService ───────────────────────────────
+  // 😊 fetchNotifications — via notifService 😊
   const fetchNotifications = async () => fetchNotifsFromDb(userIdRef.current);
 
-  // ─── markNotifRead — via notifService ────────────────────────────────────
+  // 😊 markNotifRead — ek notification read karo 😊
   const markNotifRead = async (notifId) => {
     try {
       await markNotifReadInDb(notifId);
@@ -498,7 +426,7 @@ export function AppProvider({ children }) {
     } catch (e) { console.error('markNotifRead err:', e); }
   };
 
-  // ─── markAllNotifsRead — via notifService ────────────────────────────────
+  // 😊 markAllNotifsRead — sab notifications read karo 😊
   const markAllNotifsRead = async (notifIds) => {
     try {
       await markAllNotifsReadInDb(notifIds);
@@ -515,11 +443,9 @@ export function AppProvider({ children }) {
       redeemedCodes, markCodeRedeemed, redeemBonusCode,
       notifUnreadCount, fetchNotifications, markNotifRead, markAllNotifsRead,
       CHECKIN_BACKUP_KEY, SESSION_KEY,
-      // Game tracking (anti-cheat)
-      recordGamePlay, getFirestoreGameCount,
-      // Task tracking (anti-cheat)
+      // 😊 Task tracking (anti-cheat) 😊
       recordTaskCompletion, checkTaskDone,
-      // Bonus code history (Firebase-backed)
+      // 😊 Bonus code history (Firebase-backed) 😊
       bonusHistory,
     }}>
       {children}
