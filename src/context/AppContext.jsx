@@ -51,9 +51,10 @@ export function AppProvider({ children }) {
       if (userSnap.exists()) {
         const existing       = userSnap.data();
         const updatePayload  = {
-          name:      `${tgUser.first_name || tgUser.name || existing.name || ''}`.trim() || existing.name || null,
-          username:  tgUser.username  ?? null,
-          photo_url: tgUser.photo_url ?? null,
+          name:           `${tgUser.first_name || tgUser.name || existing.name || ''}`.trim() || existing.name || null,
+          username:       tgUser.username  ?? null,
+          photo_url:      tgUser.photo_url ?? null,
+          last_active_at: new Date().toISOString(),
         };
         if (mobile) updatePayload.mobile = mobile;
         await updateDoc(userRef, updatePayload);
@@ -89,18 +90,22 @@ export function AppProvider({ children }) {
       } else {
         const WELCOME_BONUS = 50;
         const newUser = {
-          id:                String(tgUser.id),
-          name:              tgUser.name,
-          username:          tgUser.username  ?? null,
-          photo_url:         tgUser.photo_url ?? null,
-          mobile:            mobile           ?? null,
-          balance:           WELCOME_BONUS,
-          streak:            0,
-          total_checkins:    0,
-          last_checkin_date: null,
-          referral_count:    0,
-          redeemed_codes:    [],
-          referred_by:       referredBy       ?? null,
+          id:                 String(tgUser.id),
+          name:               tgUser.name,
+          username:           tgUser.username  ?? null,
+          photo_url:          tgUser.photo_url ?? null,
+          mobile:             mobile           ?? null,
+          balance:            WELCOME_BONUS,
+          streak:             0,
+          total_checkins:     0,
+          last_checkin_date:  null,
+          referral_count:     0,
+          redeemed_codes:     [],
+          referred_by:        referredBy       ?? null,
+          created_at:         new Date().toISOString(),
+          last_active_at:     new Date().toISOString(),
+          total_coins_earned: WELCOME_BONUS,
+          total_coins_spent:  0,
         };
         await setDoc(userRef, newUser);
 
@@ -154,8 +159,9 @@ export function AppProvider({ children }) {
         ? MILESTONE_COINS[newRefCount] : 0;
 
       const updatePayload = {
-        referral_count: increment(1),
-        balance:        increment(50 + milestoneBonus),
+        referral_count:     increment(1),
+        balance:            increment(50 + milestoneBonus),
+        total_coins_earned: increment(50 + milestoneBonus),
       };
       if (milestoneBonus > 0) updatePayload.awarded_milestones = arrayUnion(newRefCount);
       txn.update(referrerRef, updatePayload);
@@ -190,7 +196,10 @@ export function AppProvider({ children }) {
     setUser(prev => prev ? { ...prev, balance: newBalance } : prev);
     if (userIdRef.current) {
       try {
-        await updateDoc(doc(db, 'users', String(userIdRef.current)), { balance: increment(amount) });
+        await updateDoc(doc(db, 'users', String(userIdRef.current)), {
+          balance:            increment(amount),
+          total_coins_earned: increment(amount),
+        });
       } catch (e) { console.error('addCoins err:', e); }
     }
   };
@@ -210,7 +219,10 @@ export function AppProvider({ children }) {
         const newBalance = currentBalance - amount;
         actualDeducted   = amount;
         success          = true;
-        txn.update(userRef, { balance: newBalance });
+        txn.update(userRef, {
+          balance:           newBalance,
+          total_coins_spent: increment(amount),
+        });
       });
 
       if (!success) return false;
@@ -235,7 +247,11 @@ export function AppProvider({ children }) {
     if (userIdRef.current) {
       try {
         await updateDoc(doc(db, 'users', String(userIdRef.current)), {
-          balance: increment(coinsEarned), streak: newStreak, total_checkins: totalDays, last_checkin_date: lastDate,
+          balance:            increment(coinsEarned),
+          streak:             newStreak,
+          total_checkins:     totalDays,
+          last_checkin_date:  lastDate,
+          total_coins_earned: increment(coinsEarned),
         });
         _addNotification(userIdRef.current, {
           title: `🎁 Daily Check-in Bonus!`,
@@ -263,6 +279,12 @@ export function AppProvider({ children }) {
         userPhone: user?.mobile || null,
         status:    'pending',
       });
+      _addNotification(userIdRef.current, {
+        title: '🛒 Order Place Ho Gaya!',
+        desc:  `${orderData.product} (${orderData.plan} × ${orderData.qty}) ka order submit hua — ₹${orderData.totalINR} · Telegram pe confirm karo.`,
+        icon:  '🛒',
+        type:  'order',
+      });
     } catch (e) { console.error('saveOrder err:', e); }
   };
 
@@ -273,6 +295,12 @@ export function AppProvider({ children }) {
       userId:    String(userIdRef.current),
       userName:  user?.name   || null,
       userPhone: user?.mobile || null,
+    });
+    _addNotification(userIdRef.current, {
+      title: '💸 Withdrawal Request Submit!',
+      desc:  `${entry.coins.toLocaleString()} coins (₹${entry.inr}) ka withdrawal request submit ho gaya — 24-48 ghante mein UPI pe aayega.`,
+      icon:  '💸',
+      type:  'withdrawal',
     });
   };
 

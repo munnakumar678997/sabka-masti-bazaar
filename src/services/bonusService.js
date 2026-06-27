@@ -1,5 +1,5 @@
 import { db } from '../lib/firebase';
-import { doc, runTransaction, arrayUnion, updateDoc } from 'firebase/firestore';
+import { doc, runTransaction, arrayUnion, updateDoc, increment } from 'firebase/firestore';
 
 const VALID_CODES_FALLBACK = {
   'MASTI50':    { coins: 50,   desc: 'Masti Bonus'        },
@@ -42,9 +42,13 @@ export async function redeemCodeTransaction(userId, code) {
 
     const currentBalance = userSnap.data().balance || 0;
     txn.update(userRef, {
-      balance:        currentBalance + coins,
-      redeemed_codes: arrayUnion(code),
+      balance:            currentBalance + coins,
+      redeemed_codes:     arrayUnion(code),
+      total_coins_earned: increment(coins),
     });
+    if (fsCodeSnap.exists()) {
+      txn.update(codeRef, { times_used: increment(1) });
+    }
   });
 
   return { coinsEarned, codeDesc };

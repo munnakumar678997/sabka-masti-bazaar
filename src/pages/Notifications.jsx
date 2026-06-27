@@ -19,14 +19,15 @@ function timeAgo(isoString) {
 }
 
 const TYPE_COLORS = {
-  welcome:   '#ffd700',
-  checkin:   '#22c55e',
-  referral:  '#0088cc',
-  milestone: '#a855f7',
-  games:     '#ff6a00',
-  withdrawal:'#ee0979',
-  admin:     '#e11d48',
-  general:   '#64748b',
+  welcome:    '#ffd700',
+  checkin:    '#22c55e',
+  referral:   '#0088cc',
+  milestone:  '#a855f7',
+  games:      '#ff6a00',
+  withdrawal: '#ee0979',
+  order:      '#00cc66',
+  admin:      '#e11d48',
+  general:    '#64748b',
 };
 
 export default function Notifications() {
