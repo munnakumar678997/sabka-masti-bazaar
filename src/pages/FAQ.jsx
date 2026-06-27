@@ -15,7 +15,7 @@ const FAQS = [
   {
     cat: 'general',
     q: 'Sabka Masti Bazaar kya hai?',
-    a: 'Yeh ek desi earning Telegram Mini App hai jahan tum daily tasks karo, games khelo, aur coins kamao. Coins ko directly UPI pe withdraw kar sakte ho — bilkul free!',
+    a: 'Yeh ek desi earning Telegram Mini App hai jahan tum games khelo, daily check-in karo, aur coins kamao. Coins ko directly UPI pe withdraw kar sakte ho — bilkul free!',
   },
   {
     cat: 'general',
@@ -30,7 +30,7 @@ const FAQS = [
   {
     cat: 'earning',
     q: 'Coins kaise kamate hain?',
-    a: 'Kai tarike hain:\n• Daily Check-in — roz aao, streak pe bonus\n• Earning Tasks — video dekho, survey karo\n• Spin the Wheel — roz 5 baar\n• Scratch Card — roz 3 baar\n• Coin Flip — roz 10 baar\n• Referral — dost ko invite karo',
+    a: 'Kai tarike hain:\n• Daily Check-in — roz aao, streak pe bonus\n• Spin the Wheel — roz 5 baar\n• Scratch Card — roz 3 baar\n• Coin Flip — roz 10 baar\n• Referral — dost ko invite karo\n• Bonus Code — special codes redeem karo',
   },
   {
     cat: 'earning',
