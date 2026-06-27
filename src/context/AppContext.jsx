@@ -11,6 +11,7 @@ import {
 } from '../services/notifService';
 import { saveOrderToDb, saveWithdrawalToDb, fetchWithdrawalsFromDb } from '../services/walletService';
 import { redeemCodeTransaction, saveBonusHistoryToDb } from '../services/bonusService';
+import { applyPendingMigrations, SCHEMA_VERSION } from '../services/migrations';
 
 const AppContext          = createContext(null);
 const CHECKIN_BACKUP_KEY = 'smb_checkin_ist';
@@ -57,6 +58,11 @@ export function AppProvider({ children }) {
           last_active_at: new Date().toISOString(),
         };
         if (mobile) updatePayload.mobile = mobile;
+
+        // Auto-migration: purane users ke liye missing fields fill karo
+        const migrationFields = applyPendingMigrations(existing);
+        if (migrationFields) Object.assign(updatePayload, migrationFields);
+
         await updateDoc(userRef, updatePayload);
 
         const updated = { id: String(tgUser.id), ...existing, ...updatePayload };
@@ -106,6 +112,7 @@ export function AppProvider({ children }) {
           last_active_at:     new Date().toISOString(),
           total_coins_earned: WELCOME_BONUS,
           total_coins_spent:  0,
+          schema_version:     SCHEMA_VERSION,
         };
         await setDoc(userRef, newUser);
 
