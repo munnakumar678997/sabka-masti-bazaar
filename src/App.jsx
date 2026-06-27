@@ -8,6 +8,7 @@ import Store    from './pages/store/index';
 import Wallet   from './pages/Wallet';
 import Profile  from './pages/Profile';
 import Games    from './pages/games/index';
+import SpinGame from './pages/games/spin';
 import Referral from './pages/Referral';
 import FAQ       from './pages/FAQ';
 import BonusCode     from './pages/BonusCode';
@@ -81,7 +82,8 @@ export default function App() {
               <Route path="/store"    element={<Store    />} />
               <Route path="/wallet"   element={<Wallet   />} />
               <Route path="/profile"  element={<Profile  />} />
-              <Route path="/games"    element={<Games    />} />
+              <Route path="/games"      element={<Games    />} />
+              <Route path="/games/spin" element={<SpinGame />} />
               <Route path="/referral" element={<Referral />} />
               <Route path="/faq"        element={<FAQ       />} />
               <Route path="/bonus-code"     element={<BonusCode />} />

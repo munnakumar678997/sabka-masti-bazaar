@@ -18,13 +18,17 @@ export default function BottomNav() {
   // 😊 Active tab pehchanne ke liye current path track karo 😊
   const activePath = location.pathname;
 
+  const isActive = (tab) => {
+    if (tab.key === 'games') return activePath.startsWith('/games');
+    return activePath === tab.path;
+  };
+
   return (
     <div className="bottom-nav-bar">
       {NAV_TABS.map(tab => (
         <button
           key={tab.key}
-          // 😊 Active tab pe special class lagao 😊
-          className={`bnav-tab ${activePath === tab.path ? 'bnav-active' : ''}`}
+          className={`bnav-tab ${isActive(tab) ? 'bnav-active' : ''}`}
           onClick={() => navigate(tab.path)}
         >
           <span className="bnav-icon">{tab.icon}</span>
