@@ -275,6 +275,17 @@
 }
 .confirm-go-btn:active { transform: scale(0.97); }
 
+/* ══ PAGE ENTRY ANIMATIONS ══ */
+/* 😊 Topbar upar se slide-in 😊 */
+.store-topbar {
+  animation: fadeDown 0.28s ease both;
+}
+
+/* 😊 Scroll sections ek ke baad ek neeche se 😊 */
+.store-scroll > *:nth-child(1) { animation: fadeUp 0.32s 0.06s ease both; }
+.store-scroll > *:nth-child(2) { animation: fadeUp 0.32s 0.14s ease both; }
+.store-scroll > *:nth-child(3) { animation: fadeUp 0.32s 0.22s ease both; }
+
 /* 😊 Toast message — order success dikhata hai 😊 */
 .toast-box {
   position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%);
