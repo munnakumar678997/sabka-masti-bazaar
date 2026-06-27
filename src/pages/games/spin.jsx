@@ -7,8 +7,20 @@ function getHourKey() {
   return Math.floor(Date.now() / 3600000);
 }
 
-const MAX_SPINS_PER_HOUR = 3;
-const CANVAS_SIZE        = 280;
+function getSecsLeftInHour() {
+  const msInHour   = 3600000;
+  const msThisHour = Date.now() % msInHour;
+  return Math.ceil((msInHour - msThisHour) / 1000);
+}
+
+function fmtMmSs(secs) {
+  const m = Math.floor(secs / 60);
+  const s = secs % 60;
+  return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+}
+
+const MAX_SPINS  = 3;
+const CANVAS_SIZE = 280;
 
 const SEGMENTS = [
   { coins: 10,  color: '#f97316', label: '10',  emoji: '🪙' },
@@ -28,19 +40,31 @@ export default function SpinGame() {
   const [spinning,   setSpinning]   = useState(false);
   const [winner,     setWinner]     = useState(null);
   const [showResult, setShowResult] = useState(false);
+  const [timeLeft,   setTimeLeft]   = useState(getSecsLeftInHour());
 
   const canvasRef   = useRef(null);
   const rotationRef = useRef(0);
   const rafRef      = useRef(null);
   const dprRef      = useRef(1);
 
-  // Hourly spin tracking
   const hourKey   = getHourKey();
   const spinCount = (user?.spin_hour_key === hourKey) ? (user?.spin_hour_count ?? 0) : 0;
-  const spinsLeft = Math.max(0, MAX_SPINS_PER_HOUR - spinCount);
+  const spinsLeft = Math.max(0, MAX_SPINS - spinCount);
   const canSpin   = !spinning && spinsLeft > 0 && !!user;
 
-  const drawWheel = useCallback((rotDeg, isIdle = false) => {
+  // Live countdown when spins exhausted
+  useEffect(() => {
+    if (spinsLeft > 0) return;
+    setTimeLeft(getSecsLeftInHour());
+    const id = setInterval(() => {
+      const s = getSecsLeftInHour();
+      setTimeLeft(s);
+      if (s <= 0) clearInterval(id);
+    }, 1000);
+    return () => clearInterval(id);
+  }, [spinsLeft]);
+
+  const drawWheel = useCallback((rotDeg) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx    = canvas.getContext('2d');
@@ -103,12 +127,13 @@ export default function SpinGame() {
     ctx.lineWidth   = 2;
     ctx.stroke();
 
-    // Center text
+    // Center label
     if (spinning) {
-      ctx.font         = 'bold 10px "Segoe UI", sans-serif';
+      ctx.font         = 'bold 9px "Segoe UI", sans-serif';
       ctx.textAlign    = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillStyle    = 'rgba(255,255,255,0.5)';
+      ctx.shadowBlur   = 0;
       ctx.fillText('...', cx, cy);
     } else if (spinsLeft > 0) {
       ctx.font         = 'bold 11px "Segoe UI", sans-serif';
@@ -144,7 +169,6 @@ export default function SpinGame() {
     drawWheel(0);
   }, [drawWheel]);
 
-  // Redraw when spin state changes (to update center text)
   useEffect(() => {
     if (!spinning) drawWheel(rotationRef.current);
   }, [spinning, spinsLeft, drawWheel]);
@@ -153,21 +177,19 @@ export default function SpinGame() {
     if (!canSpin) return;
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const rect   = canvas.getBoundingClientRect();
-    const tapX   = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
-    const tapY   = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
-    const cx     = CANVAS_SIZE / 2;
-    const cy     = CANVAS_SIZE / 2;
-    const dist   = Math.sqrt((tapX - cx) ** 2 + (tapY - cy) ** 2);
-    if (dist <= 32) doSpin();
+    const rect = canvas.getBoundingClientRect();
+    const tapX = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+    const tapY = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
+    const cx   = CANVAS_SIZE / 2;
+    const cy   = CANVAS_SIZE / 2;
+    if (Math.sqrt((tapX - cx) ** 2 + (tapY - cy) ** 2) <= 32) doSpin();
   };
 
   const doSpin = () => {
     if (!canSpin) return;
-
-    const n       = SEGMENTS.length;
-    const arc     = 360 / n;
-    const winIdx  = Math.floor(Math.random() * n);
+    const n      = SEGMENTS.length;
+    const arc    = 360 / n;
+    const winIdx = Math.floor(Math.random() * n);
 
     const segAngle     = (winIdx + 0.5) * arc;
     const targetRotDeg = (360 - (segAngle % 360)) % 360;
@@ -188,10 +210,8 @@ export default function SpinGame() {
       const progress = Math.min(elapsed / duration, 1);
       const ease     = 1 - Math.pow(1 - progress, 4);
       const current  = startRot + totalSpin * ease;
-
       rotationRef.current = current;
       drawWheel(current);
-
       if (progress < 1) {
         rafRef.current = requestAnimationFrame(animate);
       } else {
@@ -204,7 +224,6 @@ export default function SpinGame() {
         spinWheelClaim(won.coins).catch(() => {});
       }
     };
-
     rafRef.current = requestAnimationFrame(animate);
   };
 
@@ -214,19 +233,14 @@ export default function SpinGame() {
 
   const closeResult = () => setShowResult(false);
 
-  const minutesLeft = () => {
-    const msInHour   = 3600000;
-    const msThisHour = Date.now() % msInHour;
-    const msLeft     = msInHour - msThisHour;
-    const minsLeft   = Math.ceil(msLeft / 60000);
-    return minsLeft;
-  };
+  const spinsDone = MAX_SPINS - spinsLeft;
 
   return (
     <div className="sw-page">
       <div className="sw-glow sw-glow1" />
       <div className="sw-glow sw-glow2" />
 
+      {/* ── Header ── */}
       <div className="sw-header">
         <button className="sw-back-btn" onClick={() => navigate('/games')}>
           ← Back
@@ -238,18 +252,27 @@ export default function SpinGame() {
         </div>
       </div>
 
-      <div className="sw-spins-info">
-        {spinsLeft > 0 ? (
-          <span className="sw-spins-left">
-            🎯 <b>{spinsLeft}</b> spin{spinsLeft > 1 ? 's' : ''} left this hour
-          </span>
-        ) : (
-          <span className="sw-spins-done">
-            ✅ Aaj ke spins ho gaye — {minutesLeft()} min mein reset
-          </span>
-        )}
+      {/* ── Spins counter bar ── */}
+      <div className="sw-spins-row">
+        <div className="sw-spins-badge">
+          <span className="sw-spins-used">{spinsDone}</span>
+          <span className="sw-spins-slash">/</span>
+          <span className="sw-spins-total">{MAX_SPINS}</span>
+          <span className="sw-spins-label">used this hour</span>
+        </div>
+
+        {/* Dot indicators */}
+        <div className="sw-dots">
+          {Array.from({ length: MAX_SPINS }).map((_, i) => (
+            <div
+              key={i}
+              className={`sw-dot ${i < spinsDone ? 'sw-dot-used' : 'sw-dot-free'}`}
+            />
+          ))}
+        </div>
       </div>
 
+      {/* ── Wheel ── */}
       <div className="sw-wheel-area">
         <div className="sw-pointer-wrap">
           <div className="sw-pointer" />
@@ -265,6 +288,49 @@ export default function SpinGame() {
         </div>
       </div>
 
+      {/* ── Bottom area ── */}
+      <div className="sw-bottom">
+        {spinsLeft === 0 ? (
+          /* Timer box */
+          <div className="sw-timer-box">
+            <div className="sw-timer-label">⏳ Agli baar ke liye taiyar raho</div>
+            <div className="sw-timer-display">{fmtMmSs(timeLeft)}</div>
+            <div className="sw-timer-sub">Naye spins is waqt milenge</div>
+          </div>
+        ) : (
+          /* Rewards info grid */
+          <div className="sw-rewards-grid">
+            <div className="sw-reward-chip" style={{ borderColor: '#a855f7' }}>
+              <span>👑</span>
+              <span>100 coins</span>
+            </div>
+            <div className="sw-reward-chip" style={{ borderColor: '#eab308' }}>
+              <span>💎</span>
+              <span>50 coins</span>
+            </div>
+            <div className="sw-reward-chip" style={{ borderColor: '#ec4899' }}>
+              <span>💰</span>
+              <span>25 coins</span>
+            </div>
+            <div className="sw-reward-chip" style={{ borderColor: '#06b6d4' }}>
+              <span>🌊</span>
+              <span>15 coins</span>
+            </div>
+          </div>
+        )}
+
+        {/* How to play */}
+        <div className="sw-how-card">
+          <div className="sw-how-title">📖 Kaise khelein?</div>
+          <div className="sw-how-rows">
+            <div className="sw-how-row"><span>1️⃣</span><span>Wheel ke beech TAP karo</span></div>
+            <div className="sw-how-row"><span>2️⃣</span><span>Wheel ghoomegi aur coin milega</span></div>
+            <div className="sw-how-row"><span>3️⃣</span><span>Har ghante mein 3 baar khel sakte ho</span></div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Result overlay ── */}
       {showResult && winner && (
         <div className="sw-overlay" onClick={closeResult}>
           <div className="sw-result-card" onClick={e => e.stopPropagation()}>
