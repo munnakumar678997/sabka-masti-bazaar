@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import DailyCheckIn from './DailyCheckIn';
-import TaskSection from './tasks';
 import BottomNav from '../components/BottomNav';
 import '../styles/home.css';
 
@@ -98,9 +97,6 @@ export default function Home() {
 
         {/* ── DAILY CHECK-IN ── */}
         <DailyCheckIn />
-
-        {/* ── EARNING TASKS (alag file mein hai) ── */}
-        <TaskSection />
 
         <div style={{ height: 90 }} />
       </div>
