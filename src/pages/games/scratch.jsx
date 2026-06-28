@@ -54,47 +54,56 @@ export default function ScratchGame() {
     return audioCtxRef.current;
   };
 
+  // Scratch sound — soft paper whisper (low-freq filtered noise)
   const playScratch = useCallback(() => {
     const now = Date.now();
-    if (now - lastNoiseRef.current < 40) return;
+    if (now - lastNoiseRef.current < 50) return;
     lastNoiseRef.current = now;
     try {
       const ac   = getAudioCtx();
       const t    = ac.currentTime;
-      const len  = Math.floor(ac.sampleRate * 0.04);
+      const len  = Math.floor(ac.sampleRate * 0.035);
       const buf  = ac.createBuffer(1, len, ac.sampleRate);
       const data = buf.getChannelData(0);
       for (let i = 0; i < len; i++)
-        data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (len * 0.3));
+        data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (len * 0.5));
       const src  = ac.createBufferSource();
       src.buffer = buf;
+      const lpf  = ac.createBiquadFilter();
+      lpf.type   = 'lowpass';
+      lpf.frequency.value = 900;
+      lpf.Q.value = 0.5;
       const gain = ac.createGain();
-      gain.gain.setValueAtTime(0.22, t);
-      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.04);
-      const bpf       = ac.createBiquadFilter();
-      bpf.type        = 'bandpass';
-      bpf.frequency.value = 3200;
-      bpf.Q.value     = 0.8;
-      src.connect(bpf); bpf.connect(gain); gain.connect(ac.destination);
+      gain.gain.setValueAtTime(0.09, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.035);
+      src.connect(lpf); lpf.connect(gain); gain.connect(ac.destination);
       src.start(t);
     } catch (_) {}
   }, []);
 
+  // Win jingle — soft marimba chime (triangle wave, slow decay)
   const playWin = useCallback(() => {
     try {
       const ac    = getAudioCtx();
-      const notes = [523, 659, 784, 1047, 1319];
-      notes.forEach((freq, i) => {
-        const t    = ac.currentTime + i * 0.11;
+      const notes = [
+        { freq: 523,  vol: 0.22, delay: 0    },
+        { freq: 659,  vol: 0.20, delay: 0.14 },
+        { freq: 784,  vol: 0.20, delay: 0.26 },
+        { freq: 1047, vol: 0.18, delay: 0.38 },
+        { freq: 1319, vol: 0.16, delay: 0.50 },
+      ];
+      notes.forEach(({ freq, vol, delay }) => {
+        const t    = ac.currentTime + delay;
         const osc  = ac.createOscillator();
         const gain = ac.createGain();
-        osc.type = 'sine';
+        osc.type = 'triangle';
         osc.frequency.setValueAtTime(freq, t);
+        osc.frequency.exponentialRampToValueAtTime(freq * 0.98, t + 0.5);
         gain.gain.setValueAtTime(0, t);
-        gain.gain.linearRampToValueAtTime(0.26, t + 0.03);
-        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.32);
+        gain.gain.linearRampToValueAtTime(vol, t + 0.012);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.65);
         osc.connect(gain); gain.connect(ac.destination);
-        osc.start(t); osc.stop(t + 0.35);
+        osc.start(t); osc.stop(t + 0.68);
       });
     } catch (_) {}
   }, []);

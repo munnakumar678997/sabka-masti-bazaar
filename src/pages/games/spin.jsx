@@ -60,50 +60,51 @@ export default function SpinGame() {
     return audioCtxRef.current;
   };
 
-  // Tick sound — segment cross pe click/pop
+  // Tick sound — soft woodblock click (triangle wave pitch drop)
   const playTick = useCallback((speed = 1) => {
     try {
       const ctx  = getAudioCtx();
       const t    = ctx.currentTime;
-      const buf  = ctx.createBuffer(1, ctx.sampleRate * 0.025, ctx.sampleRate);
-      const data = buf.getChannelData(0);
-      for (let i = 0; i < data.length; i++) {
-        data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (data.length * 0.15));
-      }
-      const src  = ctx.createBufferSource();
-      src.buffer = buf;
+      const vol  = Math.min(0.22, 0.10 + speed * 0.015);
+      const osc  = ctx.createOscillator();
       const gain = ctx.createGain();
-      gain.gain.setValueAtTime(Math.min(0.35, 0.18 + speed * 0.04), t);
-      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.025);
-      const bpf  = ctx.createBiquadFilter();
-      bpf.type  = 'bandpass';
-      bpf.frequency.value = 1800 + speed * 200;
-      bpf.Q.value = 1.2;
-      src.connect(bpf);
-      bpf.connect(gain);
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(480 + speed * 30, t);
+      osc.frequency.exponentialRampToValueAtTime(180, t + 0.045);
+      gain.gain.setValueAtTime(vol, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.055);
+      osc.connect(gain);
       gain.connect(ctx.destination);
-      src.start(t);
+      osc.start(t);
+      osc.stop(t + 0.06);
     } catch (_) {}
   }, []);
 
-  // Win jingle — ascending chime
+  // Win jingle — soft marimba chime (triangle wave, slow decay)
   const playWin = useCallback(() => {
     try {
-      const ctx    = getAudioCtx();
-      const notes  = [523, 659, 784, 1047, 1319];
-      notes.forEach((freq, i) => {
-        const t    = ctx.currentTime + i * 0.12;
-        const osc  = ctx.createOscillator();
+      const ctx   = getAudioCtx();
+      const notes = [
+        { freq: 523,  vol: 0.22, delay: 0    },
+        { freq: 659,  vol: 0.20, delay: 0.14 },
+        { freq: 784,  vol: 0.20, delay: 0.26 },
+        { freq: 1047, vol: 0.18, delay: 0.38 },
+        { freq: 1319, vol: 0.16, delay: 0.50 },
+      ];
+      notes.forEach(({ freq, vol, delay }) => {
+        const t   = ctx.currentTime + delay;
+        const osc = ctx.createOscillator();
         const gain = ctx.createGain();
-        osc.type = 'sine';
+        osc.type = 'triangle';
         osc.frequency.setValueAtTime(freq, t);
+        osc.frequency.exponentialRampToValueAtTime(freq * 0.98, t + 0.5);
         gain.gain.setValueAtTime(0, t);
-        gain.gain.linearRampToValueAtTime(0.28, t + 0.03);
-        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+        gain.gain.linearRampToValueAtTime(vol, t + 0.012);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.65);
         osc.connect(gain);
         gain.connect(ctx.destination);
         osc.start(t);
-        osc.stop(t + 0.38);
+        osc.stop(t + 0.68);
       });
     } catch (_) {}
   }, []);
