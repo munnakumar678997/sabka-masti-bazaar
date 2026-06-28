@@ -36,8 +36,8 @@ export const AD_PLATFORMS = [
   },
 
   // ── 2. ADSTERRA ───────────────────────────────────────────
-  // Zone ID yahan add karo jab Adsterra se milega:
-  // window['adsterraShow'] ya unka specific function
+  // Popunder script dynamically inject hota hai click pe:
+  // <script src="https://pl29909881.effectivecpmnetwork.com/a3/74/5f/a3745fdb026064330f6742dc41eb565c.js"></script>
   {
     id:      'ADT',
     name:    'Adsterra',
@@ -46,10 +46,24 @@ export const AD_PLATFORMS = [
     border:  'rgba(14,165,233,0.45)',
     enabled: true,
     show: async () => {
-      // TODO: Adsterra zone ID milne pe yahan function add karo
-      // Example: const fn = window['adsterraZoneXXXXX'];
-      // if (typeof fn === 'function') await fn();
-      await new Promise(res => setTimeout(res, 800));
+      // Adsterra Popunder — script click event ke andar load hota hai
+      // toh popunder naturally trigger ho jaata hai
+      await new Promise((resolve) => {
+        const ADSTERRA_SRC = 'https://pl29909881.effectivecpmnetwork.com/a3/74/5f/a3745fdb026064330f6742dc41eb565c.js';
+        // Agar already loaded hai toh dobara inject mat karo
+        const alreadyLoaded = document.querySelector(`script[src="${ADSTERRA_SRC}"]`);
+        if (alreadyLoaded) {
+          // Already hai — sirf thoda wait karo (popunder re-trigger browser pe depend karta hai)
+          setTimeout(resolve, 1000);
+          return;
+        }
+        const script = document.createElement('script');
+        script.src = ADSTERRA_SRC;
+        script.async = true;
+        script.onload = () => setTimeout(resolve, 800);
+        script.onerror = () => resolve(); // fail hone pe bhi game unlock karo
+        document.head.appendChild(script);
+      });
     },
   },
 
