@@ -28,10 +28,12 @@ export default function ScratchGame() {
   const { user, scratchClaim } = useApp();
   const navigate               = useNavigate();
 
-  const [phase,    setPhase]    = useState('ready');   // 'ready' | 'done'
-  const [reward,   setReward]   = useState(() => pickReward());
-  const [timeLeft, setTimeLeft] = useState(getSecsLeftInHour());
-  const [pct,      setPct]      = useState(0);
+  const [phase,      setPhase]      = useState('ready'); // 'ready' | 'done'
+  const [reward,     setReward]     = useState(() => pickReward());
+  const [timeLeft,   setTimeLeft]   = useState(getSecsLeftInHour());
+  const [pct,        setPct]        = useState(0);
+  const [adWatched,  setAdWatched]  = useState(false);
+  const [adLoading,  setAdLoading]  = useState(false);
 
   const canvasRef    = useRef(null);
   const ctxRef       = useRef(null);
@@ -44,7 +46,7 @@ export default function ScratchGame() {
   const scratchCount  = (user?.scratch_hour_key === hourKey) ? (user?.scratch_hour_count ?? 0) : 0;
   const scratchesLeft = Math.max(0, MAX_SCRATCHES - scratchCount);
   const cardsDone     = MAX_SCRATCHES - scratchesLeft;
-  const canScratch    = phase === 'ready' && scratchesLeft > 0 && !!user;
+  const canScratch    = phase === 'ready' && scratchesLeft > 0 && !!user && adWatched;
 
   // ── Audio helpers ──────────────────────────────────────────────
   const getAudioCtx = () => {
@@ -247,10 +249,30 @@ export default function ScratchGame() {
   };
   const onEnd = () => { isDrawing.current = false; };
 
+  // ── Watch Ad → unlock scratching ─────────────────────────────
+  const handleWatchAd = async () => {
+    if (adLoading) return;
+    setAdLoading(true);
+    try {
+      const fn = window['show_11204152'];
+      if (typeof fn === 'function') {
+        await fn();
+      }
+      setAdWatched(true);
+    } catch (_) {
+      // Ad fail ya skip hone pe bhi scratch unlock karo
+      setAdWatched(true);
+    } finally {
+      setAdLoading(false);
+    }
+  };
+
   // ── New card ──────────────────────────────────────────────────
   const handleNewCard = () => {
     setReward(pickReward());
     setPhase('ready');
+    setAdWatched(false);   // naya card = phir se ad dekhna hoga
+    setAdLoading(false);
     claimedRef.current = false;
     setPct(0);
   };
@@ -305,6 +327,22 @@ export default function ScratchGame() {
           onTouchEnd={onEnd}
         />
 
+        {/* Ad gate — ad dekhne ke baad hi scratch milega */}
+        {phase === 'ready' && scratchesLeft > 0 && !adWatched && (
+          <div className="sc-ad-gate">
+            <div className="sc-ad-icon">📺</div>
+            <div className="sc-ad-title">Ad Dekho, Scratch Karo!</div>
+            <div className="sc-ad-sub">Short ad dekne ke baad card scratch kar sakte ho</div>
+            <button
+              className={`sc-ad-btn ${adLoading ? 'sc-ad-btn-loading' : ''}`}
+              onClick={handleWatchAd}
+              disabled={adLoading}
+            >
+              {adLoading ? '⏳ Loading...' : '▶ Ad Dekho & Khelo'}
+            </button>
+          </div>
+        )}
+
         {/* Win card — reward bg ka same gradient, koi overlap nahi */}
         {phase === 'done' && (
           <div className="sc-win-overlay" style={{ background: reward.bg }}>
@@ -317,11 +355,12 @@ export default function ScratchGame() {
 
       {/* Hint or pct */}
       <div className="sc-hint">
-        {phase === 'ready' && canScratch && pct < 10 && 'Ungli se ghisao aur jeeto!'}
+        {phase === 'ready' && !adWatched && scratchesLeft > 0 && 'Ad dekho aur scratch card unlock karo!'}
+        {phase === 'ready' && canScratch && pct < 10  && 'Ungli se ghisao aur jeeto!'}
         {phase === 'ready' && canScratch && pct >= 10 && pct < 60 && `${pct}% scratched...`}
         {phase === 'ready' && canScratch && pct >= 60 && 'Almost done!'}
         {phase === 'done' && ' '}
-        {!canScratch && phase !== 'done' && ' '}
+        {scratchesLeft === 0 && phase !== 'done' && ' '}
       </div>
 
       {/* Bottom */}

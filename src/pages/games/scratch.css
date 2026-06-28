@@ -146,6 +146,55 @@
   cursor: crosshair;
 }
 
+/* Ad gate — canvas ke upar overlay, ad dekhne se unlock hoga */
+.sc-ad-gate {
+  position: absolute;
+  inset: 0;
+  background: rgba(10, 6, 24, 0.92);
+  border-radius: 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  z-index: 10;
+  padding: 16px;
+}
+.sc-ad-icon {
+  font-size: 32px;
+  line-height: 1;
+  margin-bottom: 2px;
+}
+.sc-ad-title {
+  font-size: 15px;
+  font-weight: 800;
+  color: #fff;
+  text-align: center;
+}
+.sc-ad-sub {
+  font-size: 11px;
+  color: rgba(255,255,255,0.5);
+  text-align: center;
+  line-height: 1.4;
+  margin-bottom: 4px;
+}
+.sc-ad-btn {
+  background: linear-gradient(135deg, #f97316, #ee0979);
+  border: none;
+  border-radius: 22px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 800;
+  padding: 11px 28px;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(238,9,121,0.4);
+  transition: transform 0.15s, opacity 0.15s;
+  letter-spacing: 0.2px;
+  margin-top: 2px;
+}
+.sc-ad-btn:active  { transform: scale(0.96); }
+.sc-ad-btn-loading { opacity: 0.65; cursor: default; }
+
 /* Win overlay (replaces canvas after done — fully opaque, no bleed-through) */
 .sc-win-overlay {
   position: absolute;
