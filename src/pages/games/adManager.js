@@ -17,39 +17,25 @@
  * ============================================================
  */
 
+import { showAdOverlay } from './adOverlay';
+
 // ══════════════════════════════════════════════════════════════
-//  ADSTERRA PRE-LOADER
+//  ADSTERRA SOCIAL BAR CONFIG
 //
-//  Adsterra popunder flow:
-//    1. Script load hoti hai → document pe click listener lagta hai
-//    2. User ka TRUSTED click → listener fire → window.open(adUrl)
+//  Adsterra dashboard se Social Bar ka code lo:
+//    Dashboard → Website → SocialBar_1 → GET CODE
 //
-//  Script games page mount pe pre-load karein taaki user ke
-//  "Watch Ad" click pe instantly fire ho sake.
+//  Jo script tag milega, uska src= URL yahan paste karo:
+//
+//  Example:
+//    const ADT_SOCIAL_BAR_SRC = 'https://pl29909881.effectivecpmnetwork.com/XXXXX/invoke.js';
+//
+//  Abhi ek placeholder URL hai — apna actual Social Bar URL dalo.
 // ══════════════════════════════════════════════════════════════
-const ADSTERRA_SRC = 'https://pl29909881.effectivecpmnetwork.com/a3/74/5f/a3745fdb026064330f6742dc41eb565c.js';
-let _adsterraState = 'idle'; // 'idle' | 'loading' | 'ready'
 
-export function preloadAdsterra() {
-  if (_adsterraState !== 'idle') return;
-  if (document.querySelector('script[data-adt="1"]')) {
-    _adsterraState = 'ready';
-    return;
-  }
-  _adsterraState = 'loading';
-  const s = document.createElement('script');
-  s.src = ADSTERRA_SRC;
-  s.setAttribute('data-adt', '1');
-  s.async = true;
-  s.onload  = () => { _adsterraState = 'ready'; };
-  s.onerror = () => { _adsterraState = 'idle'; };
-  document.head.appendChild(s);
-}
-
-export function isAdsterraReady() {
-  return _adsterraState === 'ready';
-}
-
+// ▼▼▼ YAHAN APNA ADSTERRA SOCIAL BAR SCRIPT URL PASTE KARO ▼▼▼
+const ADT_SOCIAL_BAR_SRC = '';
+// ▲▲▲ (Adsterra → SocialBar_1 → GET CODE → script src="..." URL) ▲▲▲
 
 // ══════════════════════════════════════════════════════════════
 //  AD PLATFORMS CONFIG
@@ -57,8 +43,9 @@ export function isAdsterraReady() {
 export const AD_PLATFORMS = [
 
   // ── 1. MONETAG ────────────────────────────────────────────
-  // SDK already loaded hai index.html mein (Telegram-compatible):
+  // SDK already loaded hai index.html mein (Telegram-native):
   // <script src='//libtl.com/sdk.js' data-zone='11204152' data-sdk='show_11204152'></script>
+  // show_11204152() function directly Telegram ke andar ad dikhata hai.
   {
     id:      'MG',
     name:    'Monetag',
@@ -74,21 +61,19 @@ export const AD_PLATFORMS = [
 
   // ── 2. ADSTERRA ───────────────────────────────────────────
   //
-  //  HOW IT WORKS (Telegram WebView ke saath):
+  //  FORMAT: Social Bar (in-app overlay)
   //
-  //  Problem: Adsterra popunder internally window.open(url) call
-  //  karta hai. Telegram Mini App WebView is call ko block karta
-  //  hai ya "Open with" dialog dikhata hai.
+  //  Kyun Social Bar?
+  //  - Popunder format window.open() use karta hai → Telegram mein kaam nahi
+  //  - Social Bar same page pe dikhta hai → iframe ke andar load hota hai
+  //  - User click kare toh Telegram browser mein advertiser page khulta hai
   //
-  //  Fix (event timing trick):
-  //  - show() ek SYNCHRONOUS patch lagata hai window.open pe
-  //    pehle kisi bhi 'await' se pehle.
-  //  - Jab show() pehla 'await' hit karta hai, click event DOM
-  //    mein bubble karna continue karta hai → document tak
-  //    pohunchta hai → Adsterra ka listener fire karta hai.
-  //  - Adsterra window.open(url) call karta hai → hamaara patch
-  //    us URL ko Telegram.WebApp.openLink() se kholta hai.
-  //  - Telegram apna in-app browser kholta hai ✅
+  //  HOW IT WORKS:
+  //    1. User "Ad Dekho" click kare
+  //    2. Fullscreen overlay + countdown timer dikhta hai
+  //    3. Iframe ke andar Adsterra Social Bar widget load hota hai
+  //    4. Timer khatam → "Continue" button enable hota hai
+  //    5. User continue kare → game unlock ✅
   //
   {
     id:      'ADT',
@@ -98,65 +83,11 @@ export const AD_PLATFORMS = [
     border:  'rgba(14,165,233,0.45)',
     enabled: true,
     show: async () => {
-      // ── STEP 1 (SYNC): window.open ko patch karo ──────────────
-      // Yeh synchronously hona chahiye — pehle kisi bhi 'await' se
-      // pehle. Is waqt click event abhi button se upar jaa raha hai.
-      // Jab hum 'await' hit karein, click event document tak
-      // pohunchega aur Adsterra ka listener hamaara patch use karega.
-      const _origOpen = window.open;
-
-      window.open = function adsterraTelegramProxy(url, target, features) {
-        if (url) {
-          try {
-            const tg = window.Telegram?.WebApp;
-            if (tg && typeof tg.openLink === 'function') {
-              // Telegram ka in-app browser mein kholo
-              tg.openLink(String(url), { try_instant_view: false });
-            } else {
-              // Non-Telegram context: normal window.open
-              _origOpen.call(window, url, target, features);
-            }
-          } catch (_) {
-            // tg.openLink fail ho toh original try karo
-            try { _origOpen.call(window, url, target, features); } catch(_2) {}
-          }
-        }
-        // Fake window object return karo taaki Adsterra script crash na ho
-        return {
-          focus: () => {},
-          blur:  () => {},
-          closed: false,
-          location: { href: url || '' },
-        };
-      };
-
-      // ── STEP 2: Script ready nahi hai toh load karo ───────────
-      if (_adsterraState === 'idle') preloadAdsterra();
-
-      if (_adsterraState === 'loading') {
-        // Script abhi load ho rahi hai — wait karo (max 4s)
-        await new Promise((resolve) => {
-          const check = setInterval(() => {
-            if (_adsterraState !== 'loading') {
-              clearInterval(check);
-              resolve();
-            }
-          }, 150);
-          setTimeout(() => { clearInterval(check); resolve(); }, 4000);
-        });
-      }
-
-      // ── STEP 3: YIELD — click event ab document tak pohunchega ──
-      // Yahan 'await' se control event loop ko waapas jaata hai.
-      // Click event ab document tak bubble karta hai:
-      //   document.click listener fires → Adsterra → window.open(url)
-      //   → hamaara proxy → Telegram.WebApp.openLink(url) → browser khulta hai ✅
-      //
-      // 2.5s wait: ad URL fetch + external browser open ka time
-      await new Promise(res => setTimeout(res, 2500));
-
-      // ── STEP 4: window.open restore karo ──────────────────────
-      window.open = _origOpen;
+      await showAdOverlay({
+        scriptSrc: ADT_SOCIAL_BAR_SRC,
+        timerSecs: 8,
+        title: 'Ad Dekho, Spin Karo!',
+      });
     },
   },
 
@@ -246,3 +177,7 @@ export async function showAdByPlatform(platformId) {
     // Network error ya ad blocker — silently pass, game unlock hoga
   }
 }
+
+// ── Unused exports (for backward compat) ─────────────────────
+export function preloadAdsterra() {}
+export function isAdsterraReady() { return false; }
