@@ -17,13 +17,6 @@
  * ============================================================
  */
 
-import { showAdOverlay } from './adOverlay';
-
-// ══════════════════════════════════════════════════════════════
-//  ADSTERRA SOCIAL BAR — SocialBar_1 (sabka-masti-bazaar-71333.web.app)
-// ══════════════════════════════════════════════════════════════
-const ADT_SOCIAL_BAR_SRC = 'https://pl29909882.effectivecpmnetwork.com/a4/6a/9a/a46a9a933804f41544e006517693d607.js';
-
 // ══════════════════════════════════════════════════════════════
 //  AD PLATFORMS CONFIG
 // ══════════════════════════════════════════════════════════════
@@ -47,21 +40,7 @@ export const AD_PLATFORMS = [
   },
 
   // ── 2. ADSTERRA ───────────────────────────────────────────
-  //
-  //  FORMAT: Social Bar (in-app overlay)
-  //
-  //  Kyun Social Bar?
-  //  - Popunder format window.open() use karta hai → Telegram mein kaam nahi
-  //  - Social Bar same page pe dikhta hai → iframe ke andar load hota hai
-  //  - User click kare toh Telegram browser mein advertiser page khulta hai
-  //
-  //  HOW IT WORKS:
-  //    1. User "Ad Dekho" click kare
-  //    2. Fullscreen overlay + countdown timer dikhta hai
-  //    3. Iframe ke andar Adsterra Social Bar widget load hota hai
-  //    4. Timer khatam → "Continue" button enable hota hai
-  //    5. User continue kare → game unlock ✅
-  //
+  // Coming soon — abhi setup nahi hai
   {
     id:      'ADT',
     name:    'Adsterra',
@@ -70,11 +49,7 @@ export const AD_PLATFORMS = [
     border:  'rgba(14,165,233,0.45)',
     enabled: true,
     show: async () => {
-      await showAdOverlay({
-        scriptSrc: ADT_SOCIAL_BAR_SRC,
-        timerSecs: 15,
-        title: 'Ad Dekho, Spin Karo!',
-      });
+      await new Promise(res => setTimeout(res, 800));
     },
   },
 
@@ -164,4 +139,3 @@ export async function showAdByPlatform(platformId) {
     // Network error ya ad blocker — silently pass, game unlock hoga
   }
 }
-
