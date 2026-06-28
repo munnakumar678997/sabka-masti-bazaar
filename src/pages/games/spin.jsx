@@ -41,6 +41,8 @@ export default function SpinGame() {
   const [winner,     setWinner]     = useState(null);
   const [showResult, setShowResult] = useState(false);
   const [timeLeft,   setTimeLeft]   = useState(getSecsLeftInHour());
+  const [adWatched,  setAdWatched]  = useState(false);
+  const [adLoading,  setAdLoading]  = useState(false);
 
   const canvasRef   = useRef(null);
   const rotationRef = useRef(0);
@@ -112,7 +114,7 @@ export default function SpinGame() {
   const hourKey   = getHourKey();
   const spinCount = (user?.spin_hour_key === hourKey) ? (user?.spin_hour_count ?? 0) : 0;
   const spinsLeft = Math.max(0, MAX_SPINS - spinCount);
-  const canSpin   = !spinning && spinsLeft > 0 && !!user;
+  const canSpin   = !spinning && spinsLeft > 0 && !!user && adWatched;
 
   // Audio pre-warm — component mount pe pehle touch/click pe hi ready karo
   useEffect(() => {
@@ -339,7 +341,25 @@ export default function SpinGame() {
     if (rafRef.current) cancelAnimationFrame(rafRef.current);
   }, []);
 
-  const closeResult = () => setShowResult(false);
+  // ── Watch Ad → spin unlock ────────────────────────────────────
+  const handleWatchAd = async () => {
+    if (adLoading) return;
+    setAdLoading(true);
+    try {
+      const fn = window['show_11204152'];
+      if (typeof fn === 'function') await fn();
+      setAdWatched(true);
+    } catch (_) {
+      setAdWatched(true); // fail/skip pe bhi unlock
+    } finally {
+      setAdLoading(false);
+    }
+  };
+
+  const closeResult = () => {
+    setShowResult(false);
+    setAdWatched(false); // agli spin ke liye phir ad dekhna hoga
+  };
 
   const spinsDone = MAX_SPINS - spinsLeft;
 
@@ -386,6 +406,22 @@ export default function SpinGame() {
         <div className="sw-tap-hint">
           {canSpin ? 'Beech mein tap karke spin karo!' : ''}
         </div>
+
+        {/* Ad gate — wheel ke upar, ad dekhne ke baad unlock */}
+        {!adWatched && spinsLeft > 0 && !spinning && (
+          <div className="sw-ad-gate">
+            <div className="sw-ad-icon">📺</div>
+            <div className="sw-ad-title">Ad Dekho, Spin Karo!</div>
+            <div className="sw-ad-sub">Short ad dekne ke baad spin kar sakte ho</div>
+            <button
+              className={`sw-ad-btn ${adLoading ? 'sw-ad-btn-loading' : ''}`}
+              onClick={handleWatchAd}
+              disabled={adLoading}
+            >
+              {adLoading ? '⏳ Loading...' : '▶ Ad Dekho & Spin Karo'}
+            </button>
+          </div>
+        )}
       </div>
 
       {/* ── Bottom area ── */}

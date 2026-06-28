@@ -380,3 +380,48 @@
 }
 
 .sw-result-btn:active { transform: scale(0.96); }
+
+/* ── AD GATE ─────────────────────────────────────── */
+.sw-ad-gate {
+  position: absolute;
+  inset: 0;
+  background: rgba(8, 6, 22, 0.92);
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  z-index: 10;
+  padding: 24px;
+}
+.sw-ad-icon  { font-size: 34px; line-height: 1; margin-bottom: 2px; }
+.sw-ad-title {
+  font-size: 15px;
+  font-weight: 800;
+  color: #fff;
+  text-align: center;
+}
+.sw-ad-sub {
+  font-size: 11px;
+  color: rgba(255,255,255,0.5);
+  text-align: center;
+  line-height: 1.4;
+  margin-bottom: 4px;
+}
+.sw-ad-btn {
+  background: linear-gradient(135deg, #f97316, #ee0979);
+  border: none;
+  border-radius: 22px;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 800;
+  padding: 11px 22px;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(238,9,121,0.4);
+  transition: transform 0.15s, opacity 0.15s;
+  letter-spacing: 0.2px;
+  -webkit-tap-highlight-color: transparent;
+}
+.sw-ad-btn:active      { transform: scale(0.96); }
+.sw-ad-btn-loading     { opacity: 0.65; cursor: default; }
