@@ -44,6 +44,7 @@ export default function ScratchGame() {
   const scratchCount  = (user?.scratch_hour_key === hourKey) ? (user?.scratch_hour_count ?? 0) : 0;
   const scratchesLeft = Math.max(0, MAX_SCRATCHES - scratchCount);
   const cardsDone     = MAX_SCRATCHES - scratchesLeft;
+  const canScratch    = phase === 'ready' && scratchesLeft > 0 && !!user;
 
   // ── Audio helpers ──────────────────────────────────────────────
   const getAudioCtx = () => {
@@ -137,14 +138,25 @@ export default function ScratchGame() {
     ctxRef.current = ctx;
     ctx.clearRect(0, 0, CARD_W, CARD_H);
 
-    // Silver scratch layer
+    // Silver scratch layer — rounded rect (all browsers compatible)
     const grd = ctx.createLinearGradient(0, 0, CARD_W, CARD_H);
     grd.addColorStop(0,   '#b8b8c8');
     grd.addColorStop(0.4, '#d8d8e8');
     grd.addColorStop(0.7, '#a8a8b8');
     grd.addColorStop(1,   '#c0c0d0');
     ctx.fillStyle = grd;
-    ctx.roundRect(0, 0, CARD_W, CARD_H, 18);
+    const r = 18;
+    ctx.beginPath();
+    ctx.moveTo(r, 0);
+    ctx.lineTo(CARD_W - r, 0);
+    ctx.arcTo(CARD_W, 0, CARD_W, r, r);
+    ctx.lineTo(CARD_W, CARD_H - r);
+    ctx.arcTo(CARD_W, CARD_H, CARD_W - r, CARD_H, r);
+    ctx.lineTo(r, CARD_H);
+    ctx.arcTo(0, CARD_H, 0, CARD_H - r, r);
+    ctx.lineTo(0, r);
+    ctx.arcTo(0, 0, r, 0, r);
+    ctx.closePath();
     ctx.fill();
 
     // Scratch texture lines
