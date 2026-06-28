@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
+import { showAdByPlatform, getSelectedPlatform } from './adManager';
 import './spin.css';
 
 function getHourKey() {
@@ -346,8 +347,8 @@ export default function SpinGame() {
     if (adLoading) return;
     setAdLoading(true);
     try {
-      const fn = window['show_11204152'];
-      if (typeof fn === 'function') await fn();
+      const platformId = window.__smbAdPlatform || getSelectedPlatform();
+      await showAdByPlatform(platformId);
       setAdWatched(true);
     } catch (_) {
       setAdWatched(true); // fail/skip pe bhi unlock

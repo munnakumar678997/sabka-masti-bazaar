@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
 import BottomNav from '../../components/BottomNav';
+import AdSelector from './AdSelector';
 import '../../styles/games.css';
 
 function getHourKey() {
@@ -73,6 +74,8 @@ export default function GamesHub() {
       <div className={`gh-subtitle ${visible ? 'gh-anim-fade' : 'gh-invisible'}`}>
         Khelo aur Coins Kamao!
       </div>
+
+      <AdSelector />
 
       <div className="gh-grid">
         {GAMES.map((game, i) => {
