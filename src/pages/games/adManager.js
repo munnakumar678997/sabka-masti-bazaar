@@ -46,22 +46,83 @@ export const AD_PLATFORMS = [
     border:  'rgba(14,165,233,0.45)',
     enabled: true,
     show: async () => {
-      // Adsterra Popunder — script click event ke andar load hota hai
-      // toh popunder naturally trigger ho jaata hai
+      /**
+       * Adsterra Popunder — Telegram WebView Fix
+       *
+       * Problem: Adsterra popunder internally calls window.open(url).
+       * Telegram Mini App WebView window.open() ko block karta hai ya
+       * "Open with" dialog dikhata hai — ad kabhi load nahi hota.
+       *
+       * Fix: window.open ko temporarily override karo.
+       * Jab Adsterra us URL ko open karna chahega, hum us URL ko
+       * Telegram.WebApp.openLink() se khol denge — jo Telegram ke
+       * built-in browser mein properly open hota hai.
+       */
+      const ADSTERRA_SRC = 'https://pl29909881.effectivecpmnetwork.com/a3/74/5f/a3745fdb026064330f6742dc41eb565c.js';
+
       await new Promise((resolve) => {
-        const ADSTERRA_SRC = 'https://pl29909881.effectivecpmnetwork.com/a3/74/5f/a3745fdb026064330f6742dc41eb565c.js';
-        // Agar already loaded hai toh dobara inject mat karo
-        const alreadyLoaded = document.querySelector(`script[src="${ADSTERRA_SRC}"]`);
+        // ── Step 1: window.open override — Telegram ke saath compatible ──
+        const originalOpen = window.open;
+        let adOpened = false;
+
+        window.open = function (url, ...args) {
+          if (url && !adOpened) {
+            adOpened = true;
+            try {
+              // Telegram WebApp ka official method — built-in browser mein kholega
+              const tg = window.Telegram?.WebApp;
+              if (tg && typeof tg.openLink === 'function') {
+                tg.openLink(url, { try_instant_view: false });
+              } else {
+                // Fallback: normal open (non-Telegram browsers ke liye)
+                originalOpen.call(window, url, ...args);
+              }
+            } catch (_) {}
+          }
+          // Koi bhi fake window object return karo taaki script crash na ho
+          return { focus: () => {}, blur: () => {}, closed: false };
+        };
+
+        // ── Step 2: Restore original window.open after 5 seconds ──
+        const restoreTimer = setTimeout(() => {
+          window.open = originalOpen;
+          resolve();
+        }, 5000);
+
+        // ── Step 3: Script load karo ──
+        const alreadyLoaded = document.querySelector(`script[data-adt="1"]`);
+
+        const onScriptDone = () => {
+          // Script load ho gaya — thodi der baad resolve (ad trigger hone ka time do)
+          setTimeout(() => {
+            clearTimeout(restoreTimer);
+            window.open = originalOpen;
+            resolve();
+          }, 1500);
+        };
+
         if (alreadyLoaded) {
-          // Already hai — sirf thoda wait karo (popunder re-trigger browser pe depend karta hai)
-          setTimeout(resolve, 1000);
+          // Script pehle se hai — sirf click simulate karo taaki popunder re-fire ho
+          // Adsterra popunder click event pe trigger hota hai
+          document.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+          setTimeout(() => {
+            clearTimeout(restoreTimer);
+            window.open = originalOpen;
+            resolve();
+          }, 1500);
           return;
         }
+
         const script = document.createElement('script');
         script.src = ADSTERRA_SRC;
+        script.setAttribute('data-adt', '1');
         script.async = true;
-        script.onload = () => setTimeout(resolve, 800);
-        script.onerror = () => resolve(); // fail hone pe bhi game unlock karo
+        script.onload = onScriptDone;
+        script.onerror = () => {
+          clearTimeout(restoreTimer);
+          window.open = originalOpen;
+          resolve();
+        };
         document.head.appendChild(script);
       });
     },
