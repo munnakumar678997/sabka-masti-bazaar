@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { enabledPlatforms, getSelectedPlatform, setSelectedPlatform, preloadAdsterra } from './adManager';
+import { enabledPlatforms, getSelectedPlatform, setSelectedPlatform } from './adManager';
 import './adSelector.css';
 
 export default function AdSelector() {
@@ -18,8 +18,6 @@ export default function AdSelector() {
     setSelected(id);
     setSelectedPlatform(id);
     window.__smbAdPlatform = id;
-    // ADT select kiya toh script turant pre-load karo
-    if (id === 'ADT') preloadAdsterra();
   };
 
   return (

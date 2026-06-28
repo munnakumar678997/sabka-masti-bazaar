@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
-import { showAdByPlatform, getSelectedPlatform, preloadAdsterra } from './adManager';
+import { showAdByPlatform, getSelectedPlatform } from './adManager';
 import './spin.css';
 
 function getHourKey() {
@@ -116,11 +116,6 @@ export default function SpinGame() {
   const spinCount = (user?.spin_hour_key === hourKey) ? (user?.spin_hour_count ?? 0) : 0;
   const spinsLeft = Math.max(0, MAX_SPINS - spinCount);
   const canSpin   = !spinning && spinsLeft > 0 && !!user && adWatched;
-
-  // Adsterra pre-load — spin page mount pe hi script ready karo
-  useEffect(() => {
-    if (getSelectedPlatform() === 'ADT') preloadAdsterra();
-  }, []);
 
   // Audio pre-warm — component mount pe pehle touch/click pe hi ready karo
   useEffect(() => {

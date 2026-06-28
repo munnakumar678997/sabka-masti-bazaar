@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
-import { showAdByPlatform, getSelectedPlatform, preloadAdsterra } from './adManager';
+import { showAdByPlatform, getSelectedPlatform } from './adManager';
 import './scratch.css';
 
 const MAX_SCRATCHES     = 3;
@@ -109,12 +109,6 @@ export default function ScratchGame() {
         osc.start(t); osc.stop(t + 0.68);
       });
     } catch (_) {}
-  }, []);
-
-  // ── Audio pre-warm on first touch ────────────────────────────
-  // Adsterra pre-load — scratch page mount pe hi script ready karo
-  useEffect(() => {
-    if (getSelectedPlatform() === 'ADT') preloadAdsterra();
   }, []);
 
   useEffect(() => {

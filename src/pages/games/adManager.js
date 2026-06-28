@@ -20,22 +20,9 @@
 import { showAdOverlay } from './adOverlay';
 
 // ══════════════════════════════════════════════════════════════
-//  ADSTERRA SOCIAL BAR CONFIG
-//
-//  Adsterra dashboard se Social Bar ka code lo:
-//    Dashboard → Website → SocialBar_1 → GET CODE
-//
-//  Jo script tag milega, uska src= URL yahan paste karo:
-//
-//  Example:
-//    const ADT_SOCIAL_BAR_SRC = 'https://pl29909881.effectivecpmnetwork.com/XXXXX/invoke.js';
-//
-//  Abhi ek placeholder URL hai — apna actual Social Bar URL dalo.
+//  ADSTERRA SOCIAL BAR — SocialBar_1 (sabka-masti-bazaar-71333.web.app)
 // ══════════════════════════════════════════════════════════════
-
-// ▼▼▼ YAHAN APNA ADSTERRA SOCIAL BAR SCRIPT URL PASTE KARO ▼▼▼
-const ADT_SOCIAL_BAR_SRC = '';
-// ▲▲▲ (Adsterra → SocialBar_1 → GET CODE → script src="..." URL) ▲▲▲
+const ADT_SOCIAL_BAR_SRC = 'https://pl29909882.effectivecpmnetwork.com/a4/6a/9a/a46a9a933804f41544e006517693d607.js';
 
 // ══════════════════════════════════════════════════════════════
 //  AD PLATFORMS CONFIG
@@ -178,6 +165,3 @@ export async function showAdByPlatform(platformId) {
   }
 }
 
-// ── Unused exports (for backward compat) ─────────────────────
-export function preloadAdsterra() {}
-export function isAdsterraReady() { return false; }

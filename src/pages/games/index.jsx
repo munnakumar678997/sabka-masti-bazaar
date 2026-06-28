@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
 import BottomNav from '../../components/BottomNav';
 import AdSelector from './AdSelector';
-import { preloadAdsterra, getSelectedPlatform } from './adManager';
 import '../../styles/games.css';
 
 function getHourKey() {
@@ -46,9 +45,6 @@ export default function GamesHub() {
 
   useEffect(() => {
     const t = setTimeout(() => setVisible(true), 30);
-    // ADT selected hai toh Adsterra script pehle se load karo
-    // taaki user ke click pe popunder instantly fire ho sake
-    if (getSelectedPlatform() === 'ADT') preloadAdsterra();
     return () => clearTimeout(t);
   }, []);
 
