@@ -273,17 +273,19 @@ export default function ScratchGame() {
 
       {/* Card area */}
       <div className="sc-card-wrap">
-        {/* Reward layer (below canvas) */}
-        <div className="sc-reward-bg" style={{ background: reward.bg }}>
-          <div className="sc-reward-emoji">{reward.emoji}</div>
-          <div className="sc-reward-coins">{reward.label}</div>
-          <div className="sc-reward-label">Coins</div>
-        </div>
+        {/* Reward layer — sirf scratching ke time dikhao */}
+        {phase !== 'done' && (
+          <div className="sc-reward-bg" style={{ background: reward.bg }}>
+            <div className="sc-reward-emoji">{reward.emoji}</div>
+            <div className="sc-reward-coins">{reward.label}</div>
+            <div className="sc-reward-label">Coins</div>
+          </div>
+        )}
 
         {/* Canvas scratch layer */}
         <canvas
           ref={canvasRef}
-          className={`sc-canvas ${canScratch && phase === 'ready' ? 'sc-canvas-active' : ''}`}
+          className={`sc-canvas ${canScratch ? 'sc-canvas-active' : ''}`}
           style={{ display: phase === 'done' ? 'none' : 'block' }}
           onMouseDown={onStart}
           onMouseMove={onMove}
@@ -294,12 +296,12 @@ export default function ScratchGame() {
           onTouchEnd={onEnd}
         />
 
-        {/* Win overlay */}
+        {/* Win card — reward bg ka same gradient, koi overlap nahi */}
         {phase === 'done' && (
-          <div className="sc-win-overlay">
+          <div className="sc-win-overlay" style={{ background: reward.bg }}>
             <div className="sc-win-emoji">{reward.emoji}</div>
             <div className="sc-win-text">+{reward.coins} Coins!</div>
-            <div className="sc-win-sub">Badhai ho! Coins add ho gaye</div>
+            <div className="sc-win-sub">Badhai ho! Coins add ho gaye 🎉</div>
           </div>
         )}
       </div>
