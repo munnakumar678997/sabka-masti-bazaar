@@ -72,7 +72,7 @@ export const AD_PLATFORMS = [
     show: async () => {
       await showAdOverlay({
         scriptSrc: ADT_SOCIAL_BAR_SRC,
-        timerSecs: 8,
+        timerSecs: 15,
         title: 'Ad Dekho, Spin Karo!',
       });
     },

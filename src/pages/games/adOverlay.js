@@ -3,238 +3,216 @@
  *  AD OVERLAY — In-App Fullscreen Ad Viewer
  * ============================================================
  *
- *  Yeh Monetag jaisa in-app ad overlay banata hai.
- *  Ad same page ke andar dikhta hai — koi naya tab nahi.
- *
- *  Usage:
- *    import { showAdOverlay } from './adOverlay';
- *    await showAdOverlay({ scriptSrc: 'https://...', timerSecs: 8 });
+ *  Social Bar format ke liye DIRECT page injection approach:
+ *  - Script seedha document <head> mein inject hota hai
+ *  - Social Bar ke floating notifications PAGE pe appear hote hain
+ *  - Fullscreen overlay pe timer dikhta hai
+ *  - Ads overlay ke UPAR float karte hain (natural Social Bar behavior)
+ *  - Ad immediately load hona shuru hota hai — timer ke saath
  *
  * ============================================================
  */
 
+// Already injected scripts track karne ke liye
+const _injectedSrcs = new Set();
+
 /**
- * In-app ad overlay dikhao.
- * Promise resolve hota hai jab:
- *   - Timer khatam ho (timerSecs seconds)
- *   - Ya user "Continue" button dabaaye
+ * Script seedha document head mein inject karo.
+ * Ek baar inject ho toh dobara nahi hoga.
+ */
+function injectScript(src) {
+  if (!src || _injectedSrcs.has(src)) return;
+  _injectedSrcs.add(src);
+  const s = document.createElement('script');
+  s.src   = src;
+  s.async = true;
+  document.head.appendChild(s);
+}
+
+/**
+ * Fullscreen in-app ad overlay dikhao.
+ *
+ * - Script TURANT inject hota hai (delay nahi)
+ * - Social Bar ads page pe float karte hain overlay ke upar
+ * - Timer ke baad "Continue" button enable hota hai
  *
  * @param {Object} opts
- * @param {string} opts.scriptSrc  - Ad script ka URL (e.g. Adsterra Social Bar)
- * @param {string} opts.scriptHtml - Raw HTML/script tags (alternative to scriptSrc)
- * @param {number} opts.timerSecs  - Countdown timer (default: 8)
+ * @param {string} opts.scriptSrc  - Social Bar script URL
+ * @param {number} opts.timerSecs  - Countdown (default: 15)
  * @param {string} opts.title      - Overlay ka title
  */
 export function showAdOverlay({
   scriptSrc  = '',
-  scriptHtml = '',
-  timerSecs  = 8,
+  timerSecs  = 15,
   title      = 'Ad Dekho, Reward Pao!',
 } = {}) {
   return new Promise((resolve) => {
 
-    // ── Overlay backdrop ──────────────────────────────────────
+    // ── STEP 1: Script TURANT inject karo ─────────────────────
+    // Pehle inject, baad mein overlay dikhao
+    // Isse script network se load hona shuru ho jaata hai immediately
+    if (scriptSrc) injectScript(scriptSrc);
+
+    // ── STEP 2: Fullscreen overlay banao ──────────────────────
     const overlay = document.createElement('div');
     overlay.id = 'smb-ad-overlay';
     overlay.style.cssText = `
       position: fixed;
       inset: 0;
-      z-index: 99999;
-      background: rgba(0,0,0,0.92);
+      z-index: 9000;
+      background: rgba(5, 5, 15, 0.93);
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: flex-start;
-      padding: 20px 16px 24px;
+      justify-content: space-between;
+      padding: 0;
       box-sizing: border-box;
-      overflow: hidden;
       font-family: "Segoe UI", system-ui, sans-serif;
+      overflow: hidden;
     `;
 
-    // ── Header ───────────────────────────────────────────────
-    const header = document.createElement('div');
-    header.style.cssText = `
+    // ── Header section ─────────────────────────────────────────
+    const headerWrap = document.createElement('div');
+    headerWrap.style.cssText = `
       width: 100%;
+      padding: 18px 20px 14px;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 6px;
-      margin-bottom: 14px;
+      gap: 4px;
+      background: rgba(255,255,255,0.04);
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+      flex-shrink: 0;
     `;
 
     const titleEl = document.createElement('div');
     titleEl.textContent = title;
     titleEl.style.cssText = `
       color: #fff;
-      font-size: 15px;
-      font-weight: 700;
-      letter-spacing: 0.3px;
+      font-size: 17px;
+      font-weight: 800;
+      letter-spacing: 0.2px;
     `;
 
     const subEl = document.createElement('div');
-    subEl.textContent = 'Neeche ka ad dekho, reward milega!';
+    subEl.textContent = 'Ad dekho aur reward lo!';
     subEl.style.cssText = `
-      color: rgba(255,255,255,0.55);
+      color: rgba(255,255,255,0.45);
       font-size: 12px;
     `;
 
-    header.appendChild(titleEl);
-    header.appendChild(subEl);
+    headerWrap.appendChild(titleEl);
+    headerWrap.appendChild(subEl);
 
-    // ── Timer badge ───────────────────────────────────────────
+    // ── Middle section — timer + ad area ──────────────────────
+    const middleWrap = document.createElement('div');
+    middleWrap.style.cssText = `
+      flex: 1;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 24px;
+      padding: 24px 20px;
+      box-sizing: border-box;
+    `;
+
+    // Ad loading message
+    const adInfoEl = document.createElement('div');
+    adInfoEl.style.cssText = `
+      text-align: center;
+      color: rgba(255,255,255,0.35);
+      font-size: 12px;
+      letter-spacing: 0.3px;
+      line-height: 1.5;
+    `;
+    adInfoEl.innerHTML = `
+      <div style="font-size:28px; margin-bottom:8px;">📱</div>
+      <div>Ads oopar floating karenge</div>
+      <div style="margin-top:3px; color:rgba(255,255,255,0.2);">Inhe dismiss mat karo</div>
+    `;
+
+    // Timer circle
     let remaining = timerSecs;
-
-    const timerWrap = document.createElement('div');
-    timerWrap.style.cssText = `
-      width: 52px;
-      height: 52px;
+    const timerCircle = document.createElement('div');
+    timerCircle.style.cssText = `
+      width: 90px;
+      height: 90px;
       border-radius: 50%;
       background: linear-gradient(135deg, #0ea5e9, #0284c7);
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
-      font-size: 18px;
-      font-weight: 800;
-      color: #fff;
-      margin-bottom: 14px;
-      box-shadow: 0 0 18px rgba(14,165,233,0.5);
+      box-shadow: 0 0 32px rgba(14,165,233,0.4), inset 0 1px 0 rgba(255,255,255,0.2);
       flex-shrink: 0;
     `;
-    timerWrap.textContent = remaining;
 
-    // ── Ad iframe container ───────────────────────────────────
-    const iframeWrap = document.createElement('div');
-    iframeWrap.style.cssText = `
+    const timerNum = document.createElement('div');
+    timerNum.textContent = remaining;
+    timerNum.style.cssText = `
+      font-size: 32px;
+      font-weight: 900;
+      color: #fff;
+      line-height: 1;
+    `;
+
+    const timerLabel = document.createElement('div');
+    timerLabel.textContent = 'sec';
+    timerLabel.style.cssText = `
+      font-size: 10px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.7);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    `;
+
+    timerCircle.appendChild(timerNum);
+    timerCircle.appendChild(timerLabel);
+
+    middleWrap.appendChild(adInfoEl);
+    middleWrap.appendChild(timerCircle);
+
+    // ── Bottom section — continue button ──────────────────────
+    const bottomWrap = document.createElement('div');
+    bottomWrap.style.cssText = `
       width: 100%;
-      flex: 1;
-      min-height: 200px;
-      max-height: 420px;
-      border-radius: 12px;
-      overflow: hidden;
-      background: #fff;
-      position: relative;
+      padding: 16px 20px 24px;
+      box-sizing: border-box;
+      flex-shrink: 0;
     `;
 
-    // Build iframe srcdoc with ad script injected
-    const adScriptTag = scriptSrc
-      ? `<script src="${scriptSrc}" async><\/script>`
-      : scriptHtml || '';
-
-    const iframeSrcdoc = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <base target="_blank">
-        <style>
-          * { box-sizing: border-box; margin: 0; padding: 0; }
-          html, body {
-            width: 100%;
-            min-height: 100%;
-            background: #f8fafc;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-            padding: 12px;
-            font-family: system-ui, sans-serif;
-          }
-          .ad-label {
-            font-size: 11px;
-            color: #94a3b8;
-            margin-bottom: 10px;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-          }
-        </style>
-        ${adScriptTag}
-      </head>
-      <body>
-        <div class="ad-label">Advertisement</div>
-      </body>
-      </html>
-    `.trim();
-
-    const iframe = document.createElement('iframe');
-    iframe.setAttribute('scrolling', 'no');
-    iframe.setAttribute('frameborder', '0');
-    iframe.setAttribute('allowfullscreen', '');
-    iframe.style.cssText = `
-      width: 100%;
-      height: 100%;
-      border: none;
-      display: block;
-    `;
-
-    // Loading placeholder
-    const loadingDiv = document.createElement('div');
-    loadingDiv.style.cssText = `
-      position: absolute;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
-      gap: 10px;
-      background: #f8fafc;
-      color: #64748b;
-      font-size: 13px;
-    `;
-    loadingDiv.innerHTML = `
-      <div style="width:28px;height:28px;border:3px solid #e2e8f0;border-top-color:#0ea5e9;border-radius:50%;animation:spin 0.8s linear infinite;"></div>
-      <span>Ad load ho raha hai...</span>
-      <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
-    `;
-
-    iframeWrap.appendChild(loadingDiv);
-    iframeWrap.appendChild(iframe);
-
-    // Hide loading once iframe loads
-    iframe.onload = () => {
-      loadingDiv.style.opacity = '0';
-      setTimeout(() => loadingDiv.remove(), 300);
-    };
-
-    // Set srcdoc after appending to DOM
-    setTimeout(() => {
-      iframe.srcdoc = iframeSrcdoc;
-    }, 100);
-
-    // ── Continue / Skip button ────────────────────────────────
     const continueBtn = document.createElement('button');
     continueBtn.style.cssText = `
-      margin-top: 16px;
-      padding: 14px 32px;
-      border-radius: 12px;
+      width: 100%;
+      padding: 16px 24px;
+      border-radius: 14px;
       border: none;
-      font-size: 15px;
+      font-size: 16px;
       font-weight: 700;
       cursor: pointer;
-      transition: all 0.2s;
-      width: 100%;
-      max-width: 320px;
-      opacity: 0;
-      pointer-events: none;
+      transition: all 0.3s ease;
+      letter-spacing: 0.2px;
     `;
 
-    const updateBtn = (secs) => {
-      if (secs > 0) {
-        continueBtn.textContent = `⏳ ${secs}s mein continue karo`;
-        continueBtn.style.background = '#1e293b';
-        continueBtn.style.color = 'rgba(255,255,255,0.5)';
-        continueBtn.style.opacity = '1';
-        continueBtn.style.pointerEvents = 'none';
-      } else {
-        continueBtn.textContent = '✅ Continue & Reward Lo!';
-        continueBtn.style.background = 'linear-gradient(135deg, #22c55e, #16a34a)';
-        continueBtn.style.color = '#fff';
-        continueBtn.style.pointerEvents = 'auto';
-        continueBtn.style.boxShadow = '0 4px 16px rgba(34,197,94,0.45)';
-      }
+    const setBtnLocked = (secs) => {
+      continueBtn.textContent = `⏳ ${secs}s mein continue karo`;
+      continueBtn.style.background = 'rgba(255,255,255,0.08)';
+      continueBtn.style.color = 'rgba(255,255,255,0.35)';
+      continueBtn.style.pointerEvents = 'none';
+      continueBtn.style.boxShadow = 'none';
     };
 
-    updateBtn(remaining);
+    const setBtnUnlocked = () => {
+      continueBtn.textContent = '✅ Continue & Reward Lo!';
+      continueBtn.style.background = 'linear-gradient(135deg, #22c55e, #16a34a)';
+      continueBtn.style.color = '#fff';
+      continueBtn.style.pointerEvents = 'auto';
+      continueBtn.style.boxShadow = '0 4px 20px rgba(34,197,94,0.5)';
+    };
+
+    setBtnLocked(remaining);
 
     const done = () => {
       overlay.style.opacity = '0';
@@ -246,32 +224,36 @@ export function showAdOverlay({
     };
 
     continueBtn.addEventListener('click', done);
+    bottomWrap.appendChild(continueBtn);
 
-    // ── Assemble overlay ──────────────────────────────────────
-    overlay.appendChild(header);
-    overlay.appendChild(timerWrap);
-    overlay.appendChild(iframeWrap);
-    overlay.appendChild(continueBtn);
+    // ── Assemble overlay ───────────────────────────────────────
+    overlay.appendChild(headerWrap);
+    overlay.appendChild(middleWrap);
+    overlay.appendChild(bottomWrap);
     document.body.appendChild(overlay);
 
-    // ── Countdown ─────────────────────────────────────────────
+    // ── Countdown ──────────────────────────────────────────────
     const tick = setInterval(() => {
       remaining -= 1;
-      timerWrap.textContent = Math.max(0, remaining);
-      updateBtn(remaining);
+      timerNum.textContent = Math.max(0, remaining);
+
       if (remaining <= 0) {
         clearInterval(tick);
-        timerWrap.style.background = 'linear-gradient(135deg, #22c55e, #16a34a)';
-        timerWrap.style.boxShadow  = '0 0 18px rgba(34,197,94,0.5)';
-        timerWrap.textContent = '✓';
+        timerNum.textContent = '✓';
+        timerLabel.textContent = '';
+        timerCircle.style.background = 'linear-gradient(135deg, #22c55e, #16a34a)';
+        timerCircle.style.boxShadow  = '0 0 32px rgba(34,197,94,0.5)';
+        setBtnUnlocked();
+      } else {
+        setBtnLocked(remaining);
       }
     }, 1000);
 
-    // Safety timeout: 30s pe auto-resolve (ad blocker cases)
+    // Safety: 45s pe auto-resolve
     setTimeout(() => {
       clearInterval(tick);
       remaining = 0;
       done();
-    }, 30_000);
+    }, 45_000);
   });
 }
