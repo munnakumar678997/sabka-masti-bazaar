@@ -12,7 +12,12 @@ function getSecsLeftInHour() { const ms = Date.now() % 3600000; return Math.ceil
 function fmtMmSs(secs)       { const m = Math.floor(secs / 60), s = secs % 60; return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`; }
 function randCoins()         { return Math.floor(Math.random() * (COINS_MAX - COINS_MIN + 1)) + COINS_MIN; }
 
-const API_KEY = import.meta.env.VITE_CAPTCHA_API_KEY || '';
+const API_KEY   = import.meta.env.VITE_CAPTCHA_API_KEY || '';
+const PROXY     = 'https://corsproxy.io/?';
+
+function proxyUrl(url) {
+  return `${PROXY}${encodeURIComponent(url)}`;
+}
 
 export default function CaptchaGame() {
   const { user, captchaClaim } = useApp();
@@ -53,24 +58,41 @@ export default function CaptchaGame() {
     setResult(null);
 
     try {
-      // 2Captcha Worker API — getimage endpoint
-      const url = `https://2captcha.com/res.php?key=${API_KEY}&action=getimage&json=1`;
-      const res = await fetch(url);
-      const data = await res.json();
+      // 2Captcha Worker API — getimage endpoint (via CORS proxy)
+      const rawUrl = `https://2captcha.com/res.php?key=${API_KEY}&action=getimage&json=1`;
+      const res    = await fetch(proxyUrl(rawUrl));
+      const text   = await res.text();
 
-      if (data.status !== 1) {
-        throw new Error(data.request || 'Captcha load nahi ho raha — baad mein try karo');
+      // Try JSON parse first, fallback to text parsing
+      let data;
+      try { data = JSON.parse(text); } catch { data = {}; }
+
+      if (!data.status && !data.captchaImg) {
+        // Text format: "OK|TASK_ID|BASE64" or error
+        if (text.startsWith('OK|')) {
+          const parts = text.split('|');
+          data = { status: 1, request: parts[1], captchaImg: parts[2] || '' };
+        } else {
+          throw new Error('Captcha server se jawab nahi mila — baad mein try karo');
+        }
       }
 
-      // data.request = "task_id|image_url" ya JSON object
-      // 2Captcha returns: { status: 1, request: "TASK_ID" } + separate image field
-      // Actual format: request contains task id, captcha_image contains base64 or URL
-      const tid = data.request;
+      if (data.status !== 1 && !data.captchaImg) {
+        throw new Error(data.request || 'Captcha load nahi ho raha');
+      }
+
+      const tid = data.request || String(Date.now());
       setTaskId(tid);
 
-      // Get captcha image — 2captcha returns captchaImg as base64 in data
-      const imgUrl = data.captchaImg || data.image || `https://2captcha.com/image.php?id=${tid}&key=${API_KEY}`;
-      setCaptchaImg(imgUrl);
+      // Build image src — base64 or URL
+      let imgSrc = data.captchaImg || data.image || '';
+      if (imgSrc && !imgSrc.startsWith('data:') && !imgSrc.startsWith('http')) {
+        imgSrc = `data:image/png;base64,${imgSrc}`;
+      }
+      if (imgSrc.startsWith('http')) {
+        imgSrc = proxyUrl(imgSrc); // also proxy the image if it's an external URL
+      }
+      setCaptchaImg(imgSrc);
       setPhase('playing');
 
     } catch (e) {
@@ -88,12 +110,15 @@ export default function CaptchaGame() {
     const newCount = localCount + 1;
 
     try {
-      // Report answer to 2Captcha
-      const url = `https://2captcha.com/res.php?key=${API_KEY}&action=reportgood&id=${taskId}&text=${encodeURIComponent(answer.trim())}&json=1`;
-      const res  = await fetch(url);
-      const data = await res.json();
+      // Report answer to 2Captcha (via CORS proxy)
+      const rawUrl = `https://2captcha.com/res.php?key=${API_KEY}&action=reportgood&id=${taskId}&text=${encodeURIComponent(answer.trim())}&json=1`;
+      const res    = await fetch(proxyUrl(rawUrl));
+      const text   = await res.text();
 
-      const isCorrect = data.status === 1 || data.request === 'OK';
+      let data;
+      try { data = JSON.parse(text); } catch { data = {}; }
+
+      const isCorrect = data.status === 1 || data.request === 'OK' || text.startsWith('OK');
 
       setLocalCount(newCount);
 
