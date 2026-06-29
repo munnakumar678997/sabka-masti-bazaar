@@ -255,6 +255,45 @@ export function AppProvider({ children }) {
     });
   };
 
+  const captchaClaim = async (coins, extraFields = {}) => {
+    if (!userIdRef.current) return;
+    const hourKey = Math.floor(Date.now() / 3600000);
+    const userRef = doc(db, 'users', String(userIdRef.current));
+    let newCount  = 1;
+
+    await runTransaction(db, async (txn) => {
+      const snap = await txn.get(userRef);
+      if (!snap.exists()) throw new Error('user not found');
+      const data = snap.data();
+      const prev = (data.captcha_hour_key === hourKey) ? (data.captcha_hour_count ?? 0) : 0;
+      newCount   = prev + 1;
+      txn.update(userRef, {
+        balance:              increment(coins),
+        total_coins_earned:   increment(coins),
+        captcha_hour_key:     hourKey,
+        captcha_hour_count:   newCount,
+        ...extraFields,
+      });
+    });
+
+    const newBalance   = balanceRef.current + coins;
+    balanceRef.current = newBalance;
+    setBalance(newBalance);
+    setUser(prev => prev ? {
+      ...prev,
+      balance:             newBalance,
+      captcha_hour_key:    hourKey,
+      captcha_hour_count:  newCount,
+    } : prev);
+
+    _addNotification(userIdRef.current, {
+      title: '🔤 Captcha Solve Kiya!',
+      desc:  `Badhai ho! +${coins} coins tumhare wallet mein add ho gaye! 🎉`,
+      icon:  '🔤',
+      type:  'games',
+    });
+  };
+
   const scratchClaim = async (coins) => {
     if (!userIdRef.current) return;
     const hourKey = Math.floor(Date.now() / 3600000);
@@ -449,6 +488,7 @@ export function AppProvider({ children }) {
       redeemedCodes, redeemBonusCode,
       spinWheelClaim,
       scratchClaim,
+      captchaClaim,
       notifUnreadCount, fetchNotifications, markNotifRead, markAllNotifsRead,
       CHECKIN_BACKUP_KEY,
       bonusHistory,

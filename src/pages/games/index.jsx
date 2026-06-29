@@ -36,6 +36,19 @@ const GAMES = [
     path: '/games/scratch',
     live: true,
   },
+  {
+    id: 'captcha',
+    emoji: '🔤',
+    name: 'Captcha Game',
+    rewardText: 'Up to 10',
+    rewardColor: '#3b82f6',
+    borderColor: '#3b82f6',
+    glowColor: 'rgba(59,130,246,0.15)',
+    btnGradient: 'linear-gradient(135deg, #2563eb, #3b82f6)',
+    btnShadow: 'rgba(59,130,246,0.45)',
+    path: '/games/captcha',
+    live: true,
+  },
 ];
 
 export default function GamesHub() {
@@ -48,11 +61,13 @@ export default function GamesHub() {
     return () => clearTimeout(t);
   }, []);
 
-  const hourKey      = getHourKey();
-  const spinCount    = (user?.spin_hour_key    === hourKey) ? (user?.spin_hour_count    ?? 0) : 0;
-  const scratchCount = (user?.scratch_hour_key === hourKey) ? (user?.scratch_hour_count ?? 0) : 0;
-  const spinsLeft    = Math.max(0, 3 - spinCount);
-  const scratchLeft  = Math.max(0, 3 - scratchCount);
+  const hourKey       = getHourKey();
+  const spinCount     = (user?.spin_hour_key     === hourKey) ? (user?.spin_hour_count     ?? 0) : 0;
+  const scratchCount  = (user?.scratch_hour_key  === hourKey) ? (user?.scratch_hour_count  ?? 0) : 0;
+  const captchaCount  = (user?.captcha_hour_key  === hourKey) ? (user?.captcha_hour_count  ?? 0) : 0;
+  const spinsLeft     = Math.max(0, 3  - spinCount);
+  const scratchLeft   = Math.max(0, 3  - scratchCount);
+  const captchaLeft   = Math.max(0, 10 - captchaCount);
 
   const handlePlay = (game) => {
     if (game.live && game.path) navigate(game.path);
@@ -104,7 +119,7 @@ export default function GamesHub() {
               <div className="gh-game-name">{game.name}</div>
 
               <div className="gh-reward" style={{ color: game.rewardColor }}>
-                {game.live ? `Up to 100` : 'Coming Soon'}
+                {game.live ? game.rewardText : 'Coming Soon'}
                 {game.live && <span className="gh-coin-icon"> 🪙</span>}
               </div>
 
@@ -114,6 +129,13 @@ export default function GamesHub() {
                 <div className="gh-plays">
                   {spinsLeft > 0
                     ? `${spinsLeft} spin${spinsLeft > 1 ? 's' : ''} left this hour`
+                    : 'Next reset: next hour'}
+                </div>
+              )}
+              {game.id === 'captcha' && (
+                <div className="gh-plays">
+                  {captchaLeft > 0
+                    ? `${captchaLeft} captcha${captchaLeft > 1 ? 's' : ''} left this hour`
                     : 'Next reset: next hour'}
                 </div>
               )}

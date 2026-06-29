@@ -10,6 +10,7 @@ import Profile  from './pages/Profile';
 import Games       from './pages/games/index';
 import SpinGame    from './pages/games/spin';
 import ScratchGame from './pages/games/scratch';
+import CaptchaGame from './pages/games/captcha';
 import Referral from './pages/Referral';
 import FAQ       from './pages/FAQ';
 import BonusCode     from './pages/BonusCode';
@@ -85,7 +86,8 @@ export default function App() {
               <Route path="/profile"  element={<Profile  />} />
               <Route path="/games"      element={<Games    />} />
               <Route path="/games/spin"     element={<SpinGame    />} />
-              <Route path="/games/scratch" element={<ScratchGame />} />
+              <Route path="/games/scratch"  element={<ScratchGame />} />
+              <Route path="/games/captcha" element={<CaptchaGame />} />
               <Route path="/referral" element={<Referral />} />
               <Route path="/faq"        element={<FAQ       />} />
               <Route path="/bonus-code"     element={<BonusCode />} />
